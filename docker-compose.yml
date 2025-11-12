@@ -1,8 +1,28 @@
-version: '3.8'
 services:
   backend:
     build: ./backend
     ports:
       - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: vingo-fintech-db-1
     environment:
-      - SPRING_PROFILES_ACTIVE=dev
+      POSTGRES_DB: vingo_db
+      POSTGRES_USER: vingo
+      POSTGRES_PASSWORD: vingo123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vingo -d vingo_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
