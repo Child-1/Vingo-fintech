@@ -1,19 +1,65 @@
+logging:
+  level:
+    org.springframework.security: ${LOG_LEVEL_SECURITY:WARN}
+    org.springframework.web: ${LOG_LEVEL_WEB:WARN}
+    # --- JWT Configuration ---
+jwt:
+  secret: ${JWT_SECRET:ThisIsAVingoFintechSuperSecretKeyForJWT2025}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# AES-256 key (32 bytes Base64-encoded) — MUST be overridden via env var in production
+encryption:
+  key: ${ENCRYPTION_KEY:MyrabaDefaultEncKeyMustChange2025==}
+
+# --- Spring Configuration ---
 spring:
   datasource:
-    url: jdbc:postgresql://db:5432/vingo_db
-    username: vingo
-    password: vingo123
+    url: ${DATABASE_URL:jdbc:postgresql://db:5432/myraba_db}
+    username: ${DATABASE_USER:vingo}
+    password: ${DATABASE_PASSWORD:vingo2025}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: ${SHOW_SQL:false}
+    # Note: I removed the dialect line here because your logs showed a 
+    # warning saying Hibernate 6 detects it automatically now!
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MYRABA_MAIL_USERNAME:noreply@myraba.ng}
+    password: ${MYRABA_MAIL_PASSWORD:changeme}
     properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   jackson:
     serialization:
       write-dates-as-timestamps: false
     deserialization:
       fail-on-unknown-properties: false
+
+# ─── External API keys (override via env vars in production) ───────
+myraba:
+  flutterwave:
+    secret-key: ${FLUTTERWAVE_SECRET_KEY:FLWSECK_TEST-changeme}
+    public-key: ${FLUTTERWAVE_PUBLIC_KEY:FLWPUBK_TEST-changeme}
+    base-url: https://api.flutterwave.com/v3
+  vtpass:
+    api-key: ${VTPASS_API_KEY:changeme}
+    public-key: ${VTPASS_PUBLIC_KEY:changeme}
+    secret-key: ${VTPASS_SECRET_KEY:changeme}
+    base-url: https://sandbox.vtpass.com/api
+  dojah:
+    app-id: ${DOJAH_APP_ID:changeme}
+    private-key: ${DOJAH_PRIVATE_KEY:changeme}
+    base-url: https://sandbox.dojah.io
+  termii:
+    api-key: ${TERMII_API_KEY:changeme}
+    sender-id: ${TERMII_SENDER_ID:Vingo}
+    base-url: https://v3.api.termii.com
+  aml:
+    daily-transfer-limit: ${AML_DAILY_TRANSFER_LIMIT:500000}   # ₦500,000 default
+    single-transfer-limit: ${AML_SINGLE_TRANSFER_LIMIT:200000} # ₦200,000 per transaction

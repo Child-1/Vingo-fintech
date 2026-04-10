@@ -1,25 +1,17 @@
 services:
-  backend:
-    build: ./backend
-    ports:
-      - "8080:8080"
-    depends_on:
-      db:
-        condition: service_healthy
-
   db:
     image: postgres:16-alpine
-    container_name: vingo-fintech-db-1
-    environment:
-      POSTGRES_DB: vingo_db
-      POSTGRES_USER: vingo
-      POSTGRES_PASSWORD: vingo123
+    container_name: myraba-fintech-db-1
     ports:
       - "5432:5432"
+    environment:
+      POSTGRES_DB: myraba_db
+      POSTGRES_USER: vingo
+      POSTGRES_PASSWORD: vingo2025
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U vingo -d vingo_db"]
+      test: ["CMD-SHELL", "pg_isready -U vingo -d myraba_db"]
       interval: 10s
       timeout: 5s
       retries: 5
