@@ -1,10 +1,12 @@
 package com.myraba.backend.controller.admin
 
+import com.myraba.backend.repository.OtpRepository
 import com.myraba.backend.repository.TransactionRepository
 import com.myraba.backend.repository.UserRepository
 import com.myraba.backend.repository.WalletRepository
 import com.myraba.backend.repository.thrift.ThriftCategoryRepository
 import com.myraba.backend.repository.thrift.ThriftMemberRepository
+import com.myraba.backend.service.AesEncryptionService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
@@ -19,8 +21,28 @@ class AdminSystemController(
     private val walletRepository: WalletRepository,
     private val transactionRepository: TransactionRepository,
     private val categoryRepository: ThriftCategoryRepository,
-    private val memberRepository: ThriftMemberRepository
+    private val memberRepository: ThriftMemberRepository,
+    private val otpRepository: OtpRepository,
+    private val aes: AesEncryptionService
 ) {
+
+    /** DEV ONLY — retrieve active OTP for a contact (email or phone) */
+    @GetMapping("/dev/otp")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    fun getOtp(@RequestParam contact: String): ResponseEntity<Map<String, Any>> {
+        val now = LocalDateTime.now()
+        val otps = if (contact.contains("@"))
+            otpRepository.findActiveOtpsByEmail(contact, "REGISTRATION", now)
+        else
+            otpRepository.findActiveOtpsByPhone(contact, "REGISTRATION", now)
+        if (otps.isEmpty()) return ResponseEntity.ok(mapOf("message" to "No active OTP found for $contact"))
+        val code = aes.decryptOrNull(otps.last().code) ?: "Could not decrypt"
+        return ResponseEntity.ok(mapOf(
+            "contact" to contact,
+            "otp" to code,
+            "expiresAt" to otps.last().expiresAt.toString()
+        ))
+    }
 
     @GetMapping("/health")
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN', 'SUPER_ADMIN')")
