@@ -2,8 +2,6 @@ package com.myraba.backend.service
 
 import com.myraba.backend.model.Otp
 import com.myraba.backend.repository.OtpRepository
-import org.springframework.mail.SimpleMailMessage
-import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import kotlin.random.Random
@@ -11,11 +9,9 @@ import kotlin.random.Random
 @Service
 class OtpService(
     private val otpRepository: OtpRepository,
-    private val mailSender: JavaMailSender,
+    private val resend: ResendEmailService,
     private val aes: AesEncryptionService,
     private val sms: SmsService,
-    @org.springframework.beans.factory.annotation.Value("\${MYRABA_MAIL_FROM:onboarding@resend.dev}")
-    private val fromEmail: String = "onboarding@resend.dev"
 ) {
 
     // ─── Phone OTP ────────────────────────────────────────────────
@@ -75,30 +71,23 @@ class OtpService(
     private fun newCode() = String.format("%06d", Random.nextInt(0, 999999))
 
     private fun sendEmailOtp(email: String, code: String, purpose: String) {
-        try {
-            val subject = when (purpose) {
-                "REGISTRATION" -> "Your Myraba registration code"
-                "LOGIN"        -> "Your Myraba login code"
-                "WITHDRAWAL"   -> "Confirm your Myraba withdrawal"
-                else           -> "Your Myraba verification code"
-            }
-            val message = SimpleMailMessage()
-            message.from = fromEmail
-            message.setTo(email)
-            message.subject = subject
-            message.text = """
-                Your Myraba verification code is: $code
-
-                This code expires in 10 minutes. Do not share it with anyone.
-
-                If you did not request this, please ignore this email.
-
-                — The Myraba Team
-            """.trimIndent()
-            mailSender.send(message)
-        } catch (e: Exception) {
-            // Log but don't fail — in dev the mail server may not be configured
-            println("=== MYRABA EMAIL OTP (mail send failed: ${e.message}) ===\nEmail: $email\nCode: $code\n===")
+        val subject = when (purpose) {
+            "REGISTRATION" -> "Your Myraba registration code"
+            "LOGIN"        -> "Your Myraba login code"
+            "WITHDRAWAL"   -> "Confirm your Myraba withdrawal"
+            else           -> "Your Myraba verification code"
         }
+        val text = """
+            Your Myraba verification code is: $code
+
+            This code expires in 10 minutes. Do not share it with anyone.
+
+            If you did not request this, please ignore this email.
+
+            — The Myraba Team
+        """.trimIndent()
+
+        val sent = resend.send(email, subject, text)
+        if (!sent) println("=== OTP FALLBACK — Email: $email | Code: $code ===")
     }
 }
