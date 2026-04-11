@@ -43,14 +43,11 @@ class GlobalExceptionHandler {
     @ExceptionHandler(ResponseStatusException::class)
     fun handleResponseStatus(ex: ResponseStatusException): ResponseEntity<ErrorResponse> =
         ResponseEntity.status(ex.statusCode)
-            .body(ErrorResponse("Error", ex.reason ?: ex.message))
+            .body(ErrorResponse("Error", ex.reason ?: ex.message ?: "Error"))
 
-    /** Catch-all → 500 */
+    /** Catch-all → 500, but don't leak stack traces */
     @ExceptionHandler(Exception::class)
-    fun handleGeneric(ex: Exception): ResponseEntity<ErrorResponse> {
-        println("=== UNHANDLED EXCEPTION: ${ex::class.simpleName}: ${ex.message} ===")
-        ex.printStackTrace()
-        return ResponseEntity.internalServerError()
-            .body(ErrorResponse("Internal server error", "${ex::class.simpleName}: ${ex.message}"))
-    }
+    fun handleGeneric(ex: Exception): ResponseEntity<ErrorResponse> =
+        ResponseEntity.internalServerError()
+            .body(ErrorResponse("Internal server error", "An unexpected error occurred"))
 }
