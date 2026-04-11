@@ -56,6 +56,19 @@ class ApiService {
 
   Future<Map<String, dynamic>> getMyQr() => _get('/api/users/me/qr');
 
+  Future<Map<String, dynamic>> updateMyProfile({String? fullName, String? phone, String? email}) =>
+      _put('/api/users/me', {
+        if (fullName != null) 'fullName': fullName,
+        if (phone != null) 'phone': phone,
+        if (email != null) 'email': email,
+      });
+
+  Future<Map<String, dynamic>> changePassword(String currentPassword, String newPassword) =>
+      _post('/api/users/me/change-password', {
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      });
+
   // ─── Thrift ───────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> getThriftCategories() =>

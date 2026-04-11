@@ -69,6 +69,33 @@ class UserController(
         return ResponseEntity.ok(savedUser.toResponse(wallet.balance.toPlainString()))
     }
 
+    data class UpdateProfileRequest(val fullName: String?, val phone: String?, val email: String?)
+
+    @PutMapping("/me")
+    fun updateMyProfile(
+        @RequestBody req: UpdateProfileRequest,
+        auth: Authentication,
+        httpRequest: HttpServletRequest
+    ): ResponseEntity<UserResponse> {
+        val user = auth.principal as User
+        if (!req.fullName.isNullOrBlank()) user.fullName = req.fullName
+        if (!req.phone.isNullOrBlank()) {
+            if (userRepository.findByPhone(req.phone) != null && req.phone != user.phone)
+                throw ResponseStatusException(HttpStatus.CONFLICT, "Phone number already in use")
+            user.phone = req.phone
+        }
+        if (!req.email.isNullOrBlank()) {
+            if (userRepository.findByEmail(req.email) != null && req.email != user.email)
+                throw ResponseStatusException(HttpStatus.CONFLICT, "Email already in use")
+            user.email = req.email
+        }
+        val saved = userRepository.save(user)
+        auditLogService.logUser(user.myrabaHandle, "PROFILE_UPDATE", "USER", user.id.toString(),
+            details = "Self profile update", request = httpRequest)
+        val wallet = walletRepository.findByUserVingHandle(saved.myrabaHandle)!!
+        return ResponseEntity.ok(saved.toResponse(wallet.balance.toPlainString()))
+    }
+
     data class ChangePasswordRequest(val currentPassword: String, val newPassword: String)
 
     @PostMapping("/me/change-password")
