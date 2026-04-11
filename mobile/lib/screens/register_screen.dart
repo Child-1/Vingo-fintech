@@ -25,6 +25,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _passVisible = false;
   bool _loading = false;
   String? _error;
+  bool _useCustomAccountId = false;
 
   int _step = 1; // 1 = contact+OTP, 2 = account details
 
@@ -107,6 +108,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       phone: _useEmail ? null : contact,
       email: _useEmail ? contact : null,
       otpCode: _otpCtrl.text.trim(),
+      useCustomAccountId: _useCustomAccountId,
     );
 
     if (!mounted) return;
@@ -332,6 +334,67 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 color: MyrabaColors.green,
                 fontWeight: FontWeight.w700,
                 fontSize: 16),
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // ── Account number info ──────────────────────────────────
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: MyrabaColors.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: MyrabaColors.surfaceLine),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.account_balance_outlined,
+                    size: 16, color: MyrabaColors.textHint),
+                  const SizedBox(width: 8),
+                  const Text('Your Account Number',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+                        color: MyrabaColors.textPrimary)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                _useEmail
+                  ? 'A unique 10-digit number will be auto-generated for you.'
+                  : 'Your account number will be based on your phone number.',
+                style: const TextStyle(fontSize: 12, color: MyrabaColors.textHint, height: 1.4),
+              ),
+              if (!_useEmail) ...[
+                const SizedBox(height: 10),
+                const Divider(height: 1, color: MyrabaColors.surfaceLine),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Also create a Custom ID',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
+                                color: MyrabaColors.textPrimary)),
+                          SizedBox(height: 2),
+                          Text('e.g. 5678-smith — an easier way to receive money',
+                            style: TextStyle(fontSize: 11, color: MyrabaColors.textHint, height: 1.3)),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: _useCustomAccountId,
+                      onChanged: (v) => setState(() => _useCustomAccountId = v),
+                      activeThumbColor: MyrabaColors.green,
+                    ),
+                  ],
+                ),
+              ],
+            ],
           ),
         ),
         const SizedBox(height: 20),

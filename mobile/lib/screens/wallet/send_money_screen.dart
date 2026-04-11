@@ -17,10 +17,14 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
   final _amountCtrl    = TextEditingController();
   final _noteCtrl      = TextEditingController();
 
-  String _method = 'myrabatag'; // vingtag | account | custom
-  bool _loading  = false;
+  // Top-level: 'app_user' or 'bank'
+  String _sendMode  = 'app_user';
+  // Within app_user: 'myrabatag' or 'custom'
+  String _appMethod = 'myrabatag';
+
+  bool _loading = false;
   String? _error;
-  bool _success  = false;
+  bool _success = false;
 
   @override
   void initState() {
@@ -36,6 +40,16 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
     super.dispose();
   }
 
+  String _friendlyError(String? status) {
+    switch (status) {
+      case 'INSUFFICIENT_FUNDS':      return 'Insufficient balance. Please fund your wallet first.';
+      case 'RECEIVER_NOT_FOUND':      return 'Recipient not found. Check the details and try again.';
+      case 'CANNOT_SEND_TO_SELF':     return 'You cannot send money to yourself.';
+      case 'RECEIVER_ACCOUNT_FROZEN': return 'This recipient\'s account is currently unavailable.';
+      default:                        return 'Transfer failed. Please try again.';
+    }
+  }
+
   Future<void> _send() async {
     final recipient = _recipientCtrl.text.trim();
     final amount    = _amountCtrl.text.trim();
@@ -49,22 +63,22 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
 
     try {
       Map<String, dynamic> res;
-      if (_method == 'myrabatag') {
-        res = await api.transfer(recipient, amount);
-      } else if (_method == 'account') {
+      if (_sendMode == 'bank') {
         res = await api.transferByAccount(recipient, amount);
-      } else {
+      } else if (_appMethod == 'custom') {
         res = await api.transferByCustomId(recipient, amount);
+      } else {
+        res = await api.transfer(recipient, amount);
       }
 
       if (!mounted) return;
       if (res['status'] == 'SUCCESS') {
         setState(() { _success = true; _loading = false; });
       } else {
-        setState(() { _error = res['status'] ?? 'Transfer failed'; _loading = false; });
+        setState(() { _error = _friendlyError(res['status']); _loading = false; });
       }
     } catch (_) {
-      if (mounted) setState(() { _error = 'Connection error'; _loading = false; });
+      if (mounted) setState(() { _error = 'Connection error. Check your internet.'; _loading = false; });
     }
   }
 
@@ -83,38 +97,71 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Method selector
-          const Text('Send via', style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
+          // ── Who are you sending to? ──────────────────────────────
+          const Text('Sending to',
+            style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
           const SizedBox(height: 10),
           Row(
             children: [
-              _methodChip('myrabatag', 'MyrabaTag'),
-              const SizedBox(width: 8),
-              _methodChip('account', 'Account No.'),
-              const SizedBox(width: 8),
-              _methodChip('custom', 'Custom ID'),
+              Expanded(child: _modeCard(
+                mode: 'app_user',
+                icon: Icons.person_rounded,
+                label: 'Myraba User',
+                subtitle: 'Send via MyrabaTag or Custom ID',
+              )),
+              const SizedBox(width: 10),
+              Expanded(child: _modeCard(
+                mode: 'bank',
+                icon: Icons.account_balance_outlined,
+                label: 'Bank Transfer',
+                subtitle: 'Send via 10-digit account number',
+              )),
             ],
           ),
-          const SizedBox(height: 24),
+
+          // ── If App User: sub-method selector ─────────────────────
+          if (_sendMode == 'app_user') ...[
+            const SizedBox(height: 20),
+            const Text('Find recipient by',
+              style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                _subChip('myrabatag', 'MyrabaTag'),
+                const SizedBox(width: 8),
+                _subChip('custom', 'Custom ID'),
+              ],
+            ),
+          ],
+
+          const SizedBox(height: 20),
           Text(
-            _method == 'myrabatag' ? 'Recipient MyrabaTag'
-              : _method == 'account' ? '10-digit Account Number'
-              : 'Custom Account ID (e.g. 5678-smith)',
+            _sendMode == 'bank'
+              ? '10-digit Account Number'
+              : _appMethod == 'custom'
+                ? 'Custom Account ID'
+                : 'MyrabaTag',
             style: const TextStyle(fontSize: 13, color: MyrabaColors.textSecond),
           ),
           const SizedBox(height: 8),
           TextField(
             controller: _recipientCtrl,
+            keyboardType: _sendMode == 'bank'
+              ? TextInputType.number
+              : TextInputType.text,
             decoration: InputDecoration(
-              hintText: _method == 'myrabatag' ? 'e.g. Davinci96'
-                : _method == 'account' ? 'e.g. 8012345678'
-                : 'e.g. 5678-smith',
-              prefixText: _method == 'myrabatag' ? 'v\u20a6 ' : null,
+              hintText: _sendMode == 'bank'
+                ? 'e.g. 8012345678'
+                : _appMethod == 'custom'
+                  ? 'e.g. 5678-smith'
+                  : 'e.g. Davinci96',
+              prefixText: (_sendMode == 'app_user' && _appMethod == 'myrabatag') ? 'm₦ ' : null,
               prefixStyle: const TextStyle(color: MyrabaColors.green, fontWeight: FontWeight.w700),
             ),
           ),
           const SizedBox(height: 20),
-          const Text('Amount (₦)', style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
+          const Text('Amount (₦)',
+            style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
           const SizedBox(height: 8),
           TextField(
             controller: _amountCtrl,
@@ -127,7 +174,8 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 20),
-          const Text('Note (optional)', style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
+          const Text('Note (optional)',
+            style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
           const SizedBox(height: 8),
           TextField(
             controller: _noteCtrl,
@@ -142,7 +190,16 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: MyrabaColors.red.withValues(alpha: 0.3)),
               ),
-              child: Text(_error!, style: const TextStyle(color: MyrabaColors.red, fontSize: 13)),
+              child: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: MyrabaColors.red, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(_error!,
+                      style: const TextStyle(color: MyrabaColors.red, fontSize: 13)),
+                  ),
+                ],
+              ),
             ),
           ],
           const SizedBox(height: 32),
@@ -158,10 +215,51 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
     );
   }
 
-  Widget _methodChip(String value, String label) {
-    final active = _method == value;
+  Widget _modeCard({
+    required String mode,
+    required IconData icon,
+    required String label,
+    required String subtitle,
+  }) {
+    final active = _sendMode == mode;
     return GestureDetector(
-      onTap: () => setState(() { _method = value; _recipientCtrl.clear(); }),
+      onTap: () => setState(() {
+        _sendMode = mode;
+        _recipientCtrl.clear();
+      }),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: active ? MyrabaColors.greenGlow : MyrabaColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: active ? MyrabaColors.green : MyrabaColors.surfaceLine,
+            width: active ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: active ? MyrabaColors.green : MyrabaColors.textHint, size: 20),
+            const SizedBox(height: 8),
+            Text(label,
+              style: TextStyle(
+                fontSize: 12, fontWeight: FontWeight.w700,
+                color: active ? MyrabaColors.green : MyrabaColors.textPrimary,
+              )),
+            const SizedBox(height: 2),
+            Text(subtitle,
+              style: const TextStyle(fontSize: 10, color: MyrabaColors.textHint, height: 1.3)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _subChip(String value, String label) {
+    final active = _appMethod == value;
+    return GestureDetector(
+      onTap: () => setState(() { _appMethod = value; _recipientCtrl.clear(); }),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
@@ -173,8 +271,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
           style: TextStyle(
             fontSize: 12, fontWeight: FontWeight.w600,
             color: active ? MyrabaColors.green : MyrabaColors.textSecond,
-          ),
-        ),
+          )),
       ),
     );
   }
@@ -197,7 +294,8 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
             ),
             const SizedBox(height: 24),
             const Text('Money Sent!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: MyrabaColors.textPrimary)),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800,
+                  color: MyrabaColors.textPrimary)),
             const SizedBox(height: 10),
             Text('₦${_amountCtrl.text} sent to ${_recipientCtrl.text}',
               style: const TextStyle(color: MyrabaColors.textSecond, fontSize: 15),

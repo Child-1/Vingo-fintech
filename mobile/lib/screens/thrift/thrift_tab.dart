@@ -718,7 +718,55 @@ class _PrivateGroupsTab extends StatelessWidget {
   void _showCreateDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => _CreateThriftDialog(onCreated: onRefresh),
+      builder: (_) => _CreateThriftDialog(
+        onCreated: (inviteCode, collateral) {
+          onRefresh();
+          _showInviteCodeDialog(context, inviteCode, collateral);
+        },
+      ),
+    );
+  }
+
+  void _showInviteCodeDialog(BuildContext context, String code, String collateral) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: MyrabaColors.surface,
+        title: const Text('Group Created! 🎉'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Share this invite code with your members:',
+              style: TextStyle(color: MyrabaColors.textSecond, fontSize: 13)),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: MyrabaColors.green.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: MyrabaColors.green.withValues(alpha: 0.3)),
+              ),
+              child: Text(code,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold,
+                    color: MyrabaColors.green, letterSpacing: 4)),
+            ),
+            if (collateral.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(collateral,
+                style: const TextStyle(fontSize: 11, color: MyrabaColors.textHint, height: 1.4)),
+            ],
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Done'),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -726,7 +774,7 @@ class _PrivateGroupsTab extends StatelessWidget {
 // ─── Create Private Thrift Dialog ─────────────────────────────────────────────
 
 class _CreateThriftDialog extends StatefulWidget {
-  final VoidCallback onCreated;
+  final void Function(String inviteCode, String collateral) onCreated;
   const _CreateThriftDialog({required this.onCreated});
 
   @override
@@ -769,47 +817,10 @@ class _CreateThriftDialogState extends State<_CreateThriftDialog> {
         creatorRules: _rulesCtrl.text.trim().isEmpty ? null : _rulesCtrl.text.trim(),
       );
       if (!mounted) return;
+      final code = result['inviteCode'] as String? ?? '—';
+      final collateral = result['collateral'] as String? ?? '';
       Navigator.pop(context);
-      widget.onCreated();
-      final code = result['inviteCode'] ?? '—';
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          backgroundColor: MyrabaColors.surface,
-          title: const Text('Group Created! 🎉'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Share this invite code with your members:',
-                style: TextStyle(color: MyrabaColors.textSecond, fontSize: 13)),
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: MyrabaColors.green.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: MyrabaColors.green.withValues(alpha: 0.3)),
-                ),
-                child: Text(code,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold,
-                      color: MyrabaColors.green, letterSpacing: 4)),
-              ),
-              const SizedBox(height: 12),
-              Text(result['collateral'] ?? '',
-                style: const TextStyle(fontSize: 11, color: MyrabaColors.textHint, height: 1.4)),
-            ],
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Done'),
-            ),
-          ],
-        ),
-      );
+      widget.onCreated(code, collateral);
     } catch (e) {
       if (!mounted) return;
       setState(() => _submitting = false);

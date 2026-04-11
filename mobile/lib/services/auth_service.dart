@@ -114,9 +114,9 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> logout() async {
-    await _storage.deleteAll();
     _token = _myrabaHandle = _myrabaTag = _role = _fullName = null;
-    notifyListeners();
+    notifyListeners(); // immediate UI update — navigate to login without waiting for storage
+    await _storage.deleteAll();
   }
 
   Future<void> _saveSession(Map<String, dynamic> data) async {

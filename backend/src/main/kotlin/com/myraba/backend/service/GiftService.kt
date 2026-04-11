@@ -46,6 +46,8 @@ class GiftService(
             IllegalArgumentException("Gift item not found")
         }
         if (!item.isActive) throw IllegalStateException("This gift item is no longer available")
+        if (item.nairaValue <= BigDecimal.ZERO)
+            throw IllegalStateException("This gift item has no value configured yet. Contact support.")
 
         val success = walletService.deductFromWallet(
             user = sender,
