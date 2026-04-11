@@ -14,6 +14,8 @@ class OtpService(
     private val mailSender: JavaMailSender,
     private val aes: AesEncryptionService,
     private val sms: SmsService,
+    @org.springframework.beans.factory.annotation.Value("\${MYRABA_MAIL_FROM:onboarding@resend.dev}")
+    private val fromEmail: String = "onboarding@resend.dev"
 ) {
 
     // ─── Phone OTP ────────────────────────────────────────────────
@@ -81,6 +83,7 @@ class OtpService(
                 else           -> "Your Myraba verification code"
             }
             val message = SimpleMailMessage()
+            message.from = fromEmail
             message.setTo(email)
             message.subject = subject
             message.text = """

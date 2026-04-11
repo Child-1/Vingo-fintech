@@ -8,13 +8,9 @@ import org.springframework.stereotype.Service
 @Service
 class EmailService(private val mailSender: JavaMailSender) {
 
-    @Value("\${spring.mail.username}") private val from: String = "noreply@myraba.ng"
+    @Value("\${MYRABA_MAIL_FROM:onboarding@resend.dev}") private val from: String = "onboarding@resend.dev"
 
     fun sendStaffWelcome(to: String, fullName: String, handle: String, tempPassword: String, role: String) {
-        if (from.contains("changeme") || from.isBlank()) {
-            println("=== STAFF WELCOME EMAIL (dev) === To: $to | Handle: @$handle | TempPass: $tempPassword | Role: $role")
-            return
-        }
         try {
             val msg = mailSender.createMimeMessage()
             val helper = MimeMessageHelper(msg, false, "UTF-8")

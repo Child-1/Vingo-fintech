@@ -28,15 +28,15 @@ spring:
     # Note: I removed the dialect line here because your logs showed a 
     # warning saying Hibernate 6 detects it automatically now!
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MYRABA_MAIL_USERNAME:noreply@myraba.ng}
+    host: ${MAIL_HOST:smtp.resend.com}
+    port: ${MAIL_PORT:465}
+    username: ${MYRABA_MAIL_USERNAME:resend}
     password: ${MYRABA_MAIL_PASSWORD:changeme}
     properties:
       mail:
         smtp:
           auth: true
-          starttls:
+          ssl:
             enable: true
           connectiontimeout: 5000
           timeout: 5000
