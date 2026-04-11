@@ -17,7 +17,7 @@ class OtpService(
     // ─── Phone OTP ────────────────────────────────────────────────
 
     fun generateOtpForPhone(phone: String, purpose: String = "REGISTRATION"): String {
-        otpRepository.findByPhoneAndPurpose(phone, purpose)?.let {
+        otpRepository.findTopByPhoneAndPurposeOrderByIdDesc(phone, purpose)?.let {
             it.used = true; otpRepository.save(it)
         }
         val code = newCode()
@@ -38,7 +38,7 @@ class OtpService(
     // ─── Email OTP ────────────────────────────────────────────────
 
     fun generateOtpForEmail(email: String, purpose: String = "REGISTRATION"): String {
-        otpRepository.findByEmailAndPurpose(email, purpose)?.let {
+        otpRepository.findTopByEmailAndPurposeOrderByIdDesc(email, purpose)?.let {
             it.used = true; otpRepository.save(it)
         }
         val code = newCode()
