@@ -7,7 +7,7 @@ logging:
     org.springframework.web: ${LOG_LEVEL_WEB:WARN}
     # --- JWT Configuration ---
 jwt:
-  secret: ${JWT_SECRET:ThisIsAVingoFintechSuperSecretKeyForJWT2025}
+  secret: ${JWT_SECRET:ThisIsAMyrabaFintechSuperSecretKeyForJWT2025!!SecureEnough}
   expiration: ${JWT_EXPIRATION:86400000}
 
 # AES-256 key (32 bytes Base64-encoded) — MUST be overridden via env var in production
