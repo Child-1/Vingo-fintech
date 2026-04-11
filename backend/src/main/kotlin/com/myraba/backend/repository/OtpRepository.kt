@@ -7,7 +7,10 @@ import java.time.LocalDateTime
 
 interface OtpRepository : JpaRepository<Otp, Long> {
 
+    @Query("SELECT o FROM Otp o WHERE o.phone = :phone AND o.purpose = :purpose ORDER BY o.id DESC LIMIT 1")
     fun findByPhoneAndPurpose(phone: String, purpose: String): Otp?
+
+    @Query("SELECT o FROM Otp o WHERE o.email = :email AND o.purpose = :purpose ORDER BY o.id DESC LIMIT 1")
     fun findByEmailAndPurpose(email: String, purpose: String): Otp?
 
     /** Fetch all active (unused, unexpired) OTPs for a phone — code comparison done in-memory after decryption */
