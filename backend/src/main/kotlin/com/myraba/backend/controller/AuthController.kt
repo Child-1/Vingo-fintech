@@ -152,8 +152,8 @@ class AuthController(
         if (request.email != null && userRepository.findByEmail(request.email) != null)
             throw ResponseStatusException(HttpStatus.CONFLICT, "Email already registered")
 
-        // Account number
-        val accountNumber = if (!request.phone.isNullOrBlank())
+        // Account number — use phone digits if phone provided AND user opted in; otherwise auto-generate
+        val accountNumber = if (!request.phone.isNullOrBlank() && request.usePhoneAsAccountNumber)
             phoneToAccountNumber(request.phone)
         else
             generateUniqueAccountNumber()

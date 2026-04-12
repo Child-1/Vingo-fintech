@@ -26,6 +26,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _loading = false;
   String? _error;
   bool _useCustomAccountId = false;
+  bool _usePhoneAsAccountNumber = true; // only relevant when registering with phone
 
   int _step = 1; // 1 = contact+OTP, 2 = account details
 
@@ -109,6 +110,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       email: _useEmail ? contact : null,
       otpCode: _otpCtrl.text.trim(),
       useCustomAccountId: _useCustomAccountId,
+      usePhoneAsAccountNumber: _useEmail ? false : _usePhoneAsAccountNumber,
     );
 
     if (!mounted) return;
@@ -209,7 +211,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: _loading ? MyrabaColors.textHint : MyrabaColors.green,
+                    color:
+                        _loading ? MyrabaColors.textHint : MyrabaColors.green,
                   )),
             ),
           ),
@@ -306,7 +309,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 fontWeight: FontWeight.w800,
                 color: MyrabaColors.textPrimary)),
         const SizedBox(height: 6),
-        const Text('Choose your MyrabaTag — this is how people find and pay you',
+        const Text(
+            'Choose your MyrabaTag — this is how people find and pay you',
             style: TextStyle(fontSize: 14, color: MyrabaColors.textSecond)),
         const SizedBox(height: 32),
         const Text('Full Name',
@@ -338,7 +342,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         const SizedBox(height: 20),
 
-        // ── Account number info ──────────────────────────────────
+        // ── Account number ────────────────────────────────────────
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
@@ -349,22 +353,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              const Row(
                 children: [
-                  const Icon(Icons.account_balance_outlined,
-                    size: 16, color: MyrabaColors.textHint),
-                  const SizedBox(width: 8),
-                  const Text('Your Account Number',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
-                        color: MyrabaColors.textPrimary)),
+                  Icon(Icons.account_balance_outlined,
+                      size: 16, color: MyrabaColors.textHint),
+                  SizedBox(width: 8),
+                  Text('Account Number',
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: MyrabaColors.textPrimary)),
                 ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                _useEmail
-                  ? 'A unique 10-digit number will be auto-generated for you.'
-                  : 'Your account number will be based on your phone number.',
-                style: const TextStyle(fontSize: 12, color: MyrabaColors.textHint, height: 1.4),
               ),
               if (!_useEmail) ...[
                 const SizedBox(height: 10),
@@ -377,23 +376,65 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Also create a Custom ID',
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-                                color: MyrabaColors.textPrimary)),
+                          Text('Use phone number as account number',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: MyrabaColors.textPrimary)),
                           SizedBox(height: 2),
-                          Text('e.g. 5678-smith — an easier way to receive money',
-                            style: TextStyle(fontSize: 11, color: MyrabaColors.textHint, height: 1.3)),
+                          Text('Off = a unique 10-digit number is auto-generated',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: MyrabaColors.textHint,
+                                  height: 1.3)),
                         ],
                       ),
                     ),
                     Switch(
-                      value: _useCustomAccountId,
-                      onChanged: (v) => setState(() => _useCustomAccountId = v),
+                      value: _usePhoneAsAccountNumber,
+                      onChanged: (v) => setState(() => _usePhoneAsAccountNumber = v),
                       activeThumbColor: MyrabaColors.green,
                     ),
                   ],
                 ),
+              ] else ...[
+                const SizedBox(height: 6),
+                const Text(
+                  'A unique 10-digit number will be auto-generated for you.',
+                  style: TextStyle(fontSize: 12, color: MyrabaColors.textHint, height: 1.4),
+                ),
               ],
+              const SizedBox(height: 10),
+              const Divider(height: 1, color: MyrabaColors.surfaceLine),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Also create a Custom ID',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: MyrabaColors.textPrimary)),
+                        SizedBox(height: 2),
+                        Text('e.g. 5678-smith — an easier way to receive money',
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: MyrabaColors.textHint,
+                                height: 1.3)),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: _useCustomAccountId,
+                    onChanged: (v) => setState(() => _useCustomAccountId = v),
+                    activeThumbColor: MyrabaColors.green,
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -440,7 +481,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             decoration: BoxDecoration(
               color: MyrabaColors.red.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: MyrabaColors.red.withValues(alpha: 0.3)),
+              border:
+                  Border.all(color: MyrabaColors.red.withValues(alpha: 0.3)),
             ),
             child: Text(_error!,
                 style: const TextStyle(color: MyrabaColors.red, fontSize: 13)),

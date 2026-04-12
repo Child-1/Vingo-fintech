@@ -22,6 +22,10 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
   // Within app_user: 'myrabatag' or 'custom'
   String _appMethod = 'myrabatag';
 
+  // Bank transfer verification
+  bool _verifying = false;
+  Map<String, dynamic>? _verifiedAccount; // {fullName, myrabaHandle, accountNumber}
+
   bool _loading = false;
   String? _error;
   bool _success = false;
@@ -38,6 +42,28 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
   void dispose() {
     _recipientCtrl.dispose(); _amountCtrl.dispose(); _noteCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _verifyAccount() async {
+    final accountNumber = _recipientCtrl.text.trim();
+    if (accountNumber.length != 10) {
+      setState(() => _error = 'Enter a valid 10-digit account number');
+      return;
+    }
+    final auth = Provider.of<AuthService>(context, listen: false);
+    final api  = ApiService(auth.token!);
+    setState(() { _verifying = true; _error = null; _verifiedAccount = null; });
+    try {
+      final res = await api.lookupAccountByNumber(accountNumber);
+      if (!mounted) return;
+      if (res.containsKey('fullName')) {
+        setState(() { _verifiedAccount = res; _verifying = false; });
+      } else {
+        setState(() { _error = res['message'] as String? ?? 'Account not found'; _verifying = false; });
+      }
+    } catch (e) {
+      if (mounted) setState(() { _error = 'Account not found'; _verifying = false; });
+    }
   }
 
   String _friendlyError(String? status) {
@@ -115,6 +141,12 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                 icon: Icons.account_balance_outlined,
                 label: 'Bank Transfer',
                 subtitle: 'Send via 10-digit account number',
+                onTap: () => setState(() {
+                  _sendMode = 'bank';
+                  _recipientCtrl.clear();
+                  _verifiedAccount = null;
+                  _error = null;
+                }),
               )),
             ],
           ),
@@ -149,6 +181,9 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
             keyboardType: _sendMode == 'bank'
               ? TextInputType.number
               : TextInputType.text,
+            onChanged: _sendMode == 'bank'
+              ? (_) => setState(() { _verifiedAccount = null; _error = null; })
+              : null,
             decoration: InputDecoration(
               hintText: _sendMode == 'bank'
                 ? 'e.g. 8012345678'
@@ -157,8 +192,45 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                   : 'e.g. Davinci96',
               prefixText: (_sendMode == 'app_user' && _appMethod == 'myrabatag') ? 'm₦ ' : null,
               prefixStyle: const TextStyle(color: MyrabaColors.green, fontWeight: FontWeight.w700),
+              suffixIcon: _sendMode == 'bank'
+                ? TextButton(
+                    onPressed: _verifying ? null : _verifyAccount,
+                    child: _verifying
+                      ? const SizedBox(width: 16, height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: MyrabaColors.green))
+                      : const Text('Verify', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: MyrabaColors.green)),
+                  )
+                : null,
             ),
           ),
+          if (_sendMode == 'bank' && _verifiedAccount != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: MyrabaColors.greenGlow,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: MyrabaColors.green.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle_rounded, color: MyrabaColors.green, size: 18),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(_verifiedAccount!['fullName'] as String? ?? '',
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: MyrabaColors.textPrimary)),
+                        Text('m₦${_verifiedAccount!['myrabaHandle']}',
+                          style: const TextStyle(fontSize: 11, color: MyrabaColors.green)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           const Text('Amount (₦)',
             style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
@@ -204,7 +276,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
           ],
           const SizedBox(height: 32),
           ElevatedButton(
-            onPressed: _loading ? null : _send,
+            onPressed: (_loading || (_sendMode == 'bank' && _verifiedAccount == null)) ? null : _send,
             child: _loading
                 ? const SizedBox(height: 22, width: 22,
                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
@@ -220,10 +292,11 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
     required IconData icon,
     required String label,
     required String subtitle,
+    VoidCallback? onTap,
   }) {
     final active = _sendMode == mode;
     return GestureDetector(
-      onTap: () => setState(() {
+      onTap: onTap ?? () => setState(() {
         _sendMode = mode;
         _recipientCtrl.clear();
       }),

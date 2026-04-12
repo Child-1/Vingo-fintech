@@ -82,6 +82,7 @@ class AuthService extends ChangeNotifier {
     required String otpCode,
     bool useCustomAccountId = false,
     String nameChoice = 'LAST',
+    bool usePhoneAsAccountNumber = true,
   }) async {
     try {
       final response = await http.post(
@@ -96,6 +97,7 @@ class AuthService extends ChangeNotifier {
           'otpCode': otpCode.trim(),
           'useCustomAccountId': useCustomAccountId,
           'nameChoice': nameChoice,
+          'usePhoneAsAccountNumber': usePhoneAsAccountNumber,
         }),
       );
 

@@ -69,7 +69,13 @@ class UserController(
         return ResponseEntity.ok(savedUser.toResponse(wallet.balance.toPlainString()))
     }
 
-    data class UpdateProfileRequest(val fullName: String?, val phone: String?, val email: String?)
+    data class UpdateProfileRequest(
+        val fullName: String?,
+        val phone: String?,
+        val email: String?,
+        val address: String?,
+        val customAccountId: String?
+    )
 
     @PutMapping("/me")
     fun updateMyProfile(
@@ -88,6 +94,13 @@ class UserController(
             if (userRepository.findByEmail(req.email) != null && req.email != user.email)
                 throw ResponseStatusException(HttpStatus.CONFLICT, "Email already in use")
             user.email = req.email
+        }
+        if (!req.address.isNullOrBlank()) user.address = req.address
+        if (!req.customAccountId.isNullOrBlank()) {
+            val existing = userRepository.findByCustomAccountId(req.customAccountId)
+            if (existing != null && existing.id != user.id)
+                throw ResponseStatusException(HttpStatus.CONFLICT, "Custom ID already in use")
+            user.customAccountId = req.customAccountId
         }
         val saved = userRepository.save(user)
         auditLogService.logUser(user.myrabaHandle, "PROFILE_UPDATE", "USER", user.id.toString(),

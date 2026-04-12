@@ -34,6 +34,21 @@ class WalletController(
     private val auditLogService: AuditLogService,
 ) {
 
+    /** Resolve an account number to a name — used before bank transfers */
+    @GetMapping("/lookup/account/{accountNumber}")
+    fun lookupByAccountNumber(@PathVariable accountNumber: String): ResponseEntity<Any> {
+        val user = userRepository.findByAccountNumber(accountNumber)
+            ?: return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(mapOf("message" to "No account found for this number"))
+        return ResponseEntity.ok(
+            mapOf(
+                "accountNumber" to user.accountNumber,
+                "fullName"      to user.fullName,
+                "myrabaHandle"  to user.myrabaHandle
+            )
+        )
+    }
+
     /** Public endpoint — used for QR code scanning (no auth required) */
     @GetMapping("/{myrabaHandle}")
     fun getWallet(@PathVariable myrabaHandle: String): ResponseEntity<Any> {

@@ -73,12 +73,16 @@ class AdminSystemController(
         val totalFees = transactionRepository.sumAllFees() ?: BigDecimal.ZERO
 
         return ResponseEntity.ok(mapOf(
-            "totalSystemBalance" to totalWalletBalance.toPlainString(),
-            "lockedInThrifts" to lockedInThrifts.toPlainString(),
-            "availableLiquidity" to totalWalletBalance.subtract(lockedInThrifts).toPlainString(),
+            "totalWalletBalance"    to totalWalletBalance.toPlainString(),
+            "totalSystemBalance"    to totalWalletBalance.toPlainString(), // alias kept for compatibility
+            "thriftPoolLocked"      to lockedInThrifts.toPlainString(),
+            "lockedInThrifts"       to lockedInThrifts.toPlainString(),   // alias kept for compatibility
+            "availableLiquidity"    to totalWalletBalance.subtract(lockedInThrifts).toPlainString(),
             "totalTransactionVolume" to totalVolume.toPlainString(),
-            "totalFeesCollected" to totalFees.toPlainString(),
-            "generatedAt" to LocalDateTime.now().toString()
+            "totalFeesCollected"    to totalFees.toPlainString(),
+            "totalUsers"            to userRepository.count(),
+            "activeWallets"         to walletRepository.count(),
+            "generatedAt"           to LocalDateTime.now().toString()
         ))
     }
 

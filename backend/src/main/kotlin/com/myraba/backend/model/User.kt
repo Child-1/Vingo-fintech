@@ -49,6 +49,9 @@ data class User(
     @Column(name = "custom_account_id", unique = true, nullable = true, length = 20)
     var customAccountId: String? = null,
 
+    @Column(nullable = true, length = 255)
+    var address: String? = null,
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var accountStatus: UserStatus = UserStatus.ACTIVE,

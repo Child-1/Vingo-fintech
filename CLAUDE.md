@@ -3,14 +3,14 @@
 ## Project Overview
 Myraba is a Nigerian fintech platform (think OPay/CashApp for Nigeria) built with:
 - **Backend:** Spring Boot (Kotlin), PostgreSQL, JWT auth
+- **Admin Frontend:** React + TypeScript + Tailwind CSS (in `/admin-frontend/`)
 - **Mobile:** Flutter (in `/mobile/`)
 - **Infrastructure:** Docker Compose (PostgreSQL only for now)
-- **No separate admin frontend yet** — admin panel needs to be built as a web dashboard
 
 ---
 
 ## Current Mission
-**Improve and complete the admin backend + build an admin frontend dashboard** that conforms to conventions of modern fintechs like CashApp, OPay, PalmPay, and Kuda.
+Continue improving and extending the platform — backend stability, admin panel features, and mobile app polish.
 
 ---
 
@@ -20,27 +20,40 @@ Myraba is a Nigerian fintech platform (think OPay/CashApp for Nigeria) built wit
 - **Language:** Kotlin
 - **Framework:** Spring Boot 3.x
 - **Database:** PostgreSQL 16 (via Docker)
-- **Auth:** JWT (stateless), BCrypt passwords
+- **Auth:** JWT (stateless), BCrypt passwords, TOTP-based MFA
 - **ORM:** Spring Data JPA / Hibernate (DDL auto: update)
 - **Build:** Gradle (Kotlin DSL)
 - **Base package:** `com.myraba.backend`
 
+### Admin Frontend
+- **Framework:** React 19 + TypeScript + Vite
+- **Styling:** Tailwind CSS
+- **Routing:** React Router DOM v7
+- **Data fetching:** TanStack Query v5 + Axios
+- **Charts:** Recharts
+- **Icons:** Lucide React
+- **Location:** `/admin-frontend/`
+- **Dev server:** `npm run dev` (Vite, default port 5173)
+
 ### External APIs (all sandbox/dev keys)
-| Service     | Purpose                        | Env Var Prefix   |
-|-------------|--------------------------------|------------------|
-| Flutterwave | External gift payments         | `FLUTTERWAVE_*`  |
-| VTpass      | Bill payments (airtime, data…) | `VTPASS_*`       |
-| Dojah       | KYC (BVN/NIN verification)     | `DOJAH_*`        |
-| Gmail SMTP  | OTP emails                     | `VINGO_MAIL_*`   |
+| Service     | Purpose                        | Env Var Prefix        |
+|-------------|--------------------------------|-----------------------|
+| Resend      | Transactional email (OTP etc.) | `MYRABA_MAIL_*`       |
+| Flutterwave | External gift payments         | `FLUTTERWAVE_*`       |
+| VTpass      | Bill payments (airtime, data…) | `VTPASS_*`            |
+| Dojah       | KYC (BVN/NIN verification)     | `DOJAH_*`             |
 
 ### Database
 - **Connection:** `jdbc:postgresql://db:5432/myraba_db`
-- **User/Pass:** `myraba` / `myraba2025`
+- **User/Pass:** `vingo` / `vingo2025`
 - **Docker service name:** `db`
 
 ### JWT
-- Secret: `ThisIsAMyrabaFintechSuperSecretKeyForJWT2025` (dev only — use env var in prod)
-- Expiry: 24 hours
+- Secret: env var `JWT_SECRET` (dev fallback in `application.yml`)
+- Expiry: 24 hours (env var `JWT_EXPIRATION`, ms)
+
+### AES Encryption
+- Key: env var `ENCRYPTION_KEY` (32-byte Base64) — used for sensitive field encryption
 
 ---
 
@@ -52,7 +65,7 @@ Myraba-fintech/
 │   ├── src/main/kotlin/com/myraba/backend/
 │   │   ├── config/          # SecurityConfig, DataInitializer, CORS
 │   │   ├── controller/      # REST controllers
-│   │   │   └── admin/       # 14 admin controllers
+│   │   │   └── admin/       # 15 admin controllers
 │   │   ├── dto/             # Request/Response DTOs
 │   │   ├── filter/          # JwtRequestFilter
 │   │   ├── model/           # JPA entities
@@ -60,11 +73,20 @@ Myraba-fintech/
 │   │   ├── repository/      # Spring Data repositories
 │   │   │   └── thrift/
 │   │   ├── scheduler/       # Cron jobs (thrift penalties, defaults)
-│   │   └── service/         # Business logic (11 services)
+│   │   ├── service/         # Business logic (17 services)
+│   │   └── util/            # Helpers
 │   ├── src/main/resources/
 │   │   └── application.yml
 │   ├── build.gradle.kts
 │   └── Dockerfile
+├── admin-frontend/          # React admin dashboard (BUILT)
+│   ├── src/
+│   │   ├── pages/           # 15 admin pages
+│   │   ├── components/      # Layout, AuthGuard, StatCard
+│   │   ├── context/         # AuthContext
+│   │   ├── types/           # TypeScript types
+│   │   └── lib/             # Utilities
+│   └── package.json
 ├── mobile/                  # Flutter app
 ├── docker-compose.yml       # PostgreSQL only
 └── CLAUDE.md                # This file
@@ -74,23 +96,25 @@ Myraba-fintech/
 
 ## Core Domain Models
 
-| Entity              | Key Fields                                                                 |
-|---------------------|----------------------------------------------------------------------------|
-| `User`              | myrabaHandle, password, phone, email, accountNumber, customAccountId, role, status, kycStatus |
-| `Wallet`            | balance (BigDecimal), one-to-one with User                                |
-| `Transaction`       | sender/receiverWallet (nullable), amount, type, status, description       |
-| `ThriftCategory`    | name, amount, frequency (DAILY/WEEKLY/MONTHLY), duration, memberCount     |
-| `ThriftMember`      | user, category, position, cyclesContributed, penaltyLevel                 |
-| `PrivateThrift`     | creator, inviteCode, positionAssignment (RAFFLE/MANUAL), status           |
-| `GiftCategory`      | name, slug, active                                                         |
-| `GiftItem`          | name, emoji, valueNaira, category, active                                 |
-| `GiftTransaction`   | sender (nullable), recipient, item, paymentMethod (WALLET/CARD), status   |
-| `KycSubmission`     | type (BVN/NIN), maskedNumber, status, verifiedName, dob                   |
-| `UserPoints`        | totalLifetime, thisYear, allTime                                           |
-| `BillPayment`       | category, serviceId, provider, identifier, amount, vtpassCode, status     |
-| `AuditLog`          | adminHandle, action, targetType, targetId, beforeValue, afterValue        |
-| `BroadcastMessage`  | title, body, type, audience, expiry                                        |
-| `Otp`               | phone/email, code, purpose, expiresAt, used                               |
+| Entity                | Key Fields                                                                              |
+|-----------------------|-----------------------------------------------------------------------------------------|
+| `User`                | myrabaHandle, password, phone, email, accountNumber, customAccountId, role, status, kycStatus |
+| `Wallet`              | balance (BigDecimal), one-to-one with User                                              |
+| `Transaction`         | sender/receiverWallet (nullable), amount, type, status, description                     |
+| `ThriftCategory`      | name, amount, frequency (DAILY/WEEKLY/MONTHLY), duration, memberCount                  |
+| `ThriftMember`        | user, category, position, cyclesContributed, penaltyLevel                               |
+| `PrivateThrift`       | creator, inviteCode, positionAssignment (RAFFLE/MANUAL), status                         |
+| `GiftCategory`        | name, slug, active                                                                      |
+| `GiftTransaction`     | sender (nullable), recipient, item, paymentMethod (WALLET/CARD), status                 |
+| `KycSubmission`       | type (BVN/NIN), maskedNumber, status, verifiedName, dob                                 |
+| `UserPoints`          | totalLifetime, thisYear, allTime                                                         |
+| `BillPayment`         | category, serviceId, provider, identifier, amount, vtpassCode, status                  |
+| `AuditLog`            | adminHandle, action, targetType, targetId, beforeValue, afterValue                      |
+| `BroadcastMessage`    | title, body, type, audience, expiry                                                     |
+| `Otp`                 | phone/email, code, purpose, expiresAt, used                                             |
+| `MfaSecret`           | user, secret, enabled                                                                   |
+| `IdempotencyRecord`   | idempotencyKey, responseBody, statusCode, createdAt                                     |
+| `VingTagChangeRequest`| user, requestedHandle, status, reviewedBy                                               |
 
 ---
 
@@ -157,9 +181,16 @@ Myraba-fintech/
 - `GET /api/points` — Balance
 - `GET /api/points/history`
 
+### MFA
+- `POST /api/mfa/setup`, `/verify`, `/disable`
+
+### Wrapped (Year in Review)
+- `GET /api/wrapped` — User's year-in-review stats
+
 ### Admin (`/api/admin/**` — requires STAFF+)
 - **Dashboard:** `GET /api/admin/dashboard/stats`
 - **Users:** CRUD, role change, KYC update, freeze/suspend/activate
+- **Staff:** Manage staff/admin accounts
 - **Transactions:** List (filtered), single, reverse, audit trail
 - **Reports:** Daily, monthly, date range, 30-day breakdown, all-time totals
 - **Thrifts:** Create/manage public categories, view private thrifts, resolve defaults
@@ -170,86 +201,88 @@ Myraba-fintech/
 - **System:** Health, liquidity report, activate/deactivate thrift categories
 - **Balance:** `POST /api/admin/balance/adjust` (SUPER_ADMIN only)
 - **MyrabaTag Requests:** Approve/deny tag change requests
+- **User Stats:** Per-user activity stats
 
 ---
 
 ## Known Issues / TODOs
 
 ### High Priority
-1. **OTP SMS not implemented** — `OtpService` prints to console. Need Termii or AfricasTalking integration.
+1. **OTP SMS not implemented** — `SmsService` is a stub. Need Termii or AfricasTalking integration.
 2. **Transfer race condition** — `WalletController` modifies balances without row-level locking (use `@Lock` or `SELECT FOR UPDATE`).
-3. **No admin frontend** — All admin endpoints exist but no web dashboard UI yet.
 
 ### Medium Priority
-4. **JWT secret must be env var in prod** — currently hardcoded in `application.yml`
-5. **CORS too permissive** — `allowedOriginPatterns = ["*"]` should be scoped to known domains
-6. **MyrabaTag validation** — No regex enforcement on allowed characters/length at registration
-7. **Transaction type as String** — Prone to typos; should be an enum
-8. **Error handling** — Many `IllegalArgumentException` throws not translated to proper HTTP status codes consistently
+3. **CORS too permissive** — `allowedOriginPatterns = ["*"]` should be scoped to known domains in prod
+4. **MyrabaTag validation** — No regex enforcement on allowed characters/length at registration
+5. **Transaction type as String** — Prone to typos; should be an enum
+6. **Error handling** — Many `IllegalArgumentException` throws not consistently translated to proper HTTP status codes
 
 ### Low Priority
-9. **GiftBalance separate model** — Could be merged into Wallet for simplicity
-10. **Missing SMS rate limiting on OTP**
-11. **BigDecimal scale** — Some operations may need explicit scale for currency precision
+7. **GiftBalance separate model** — Could be merged into Wallet for simplicity
+8. **Missing SMS rate limiting on OTP**
+9. **BigDecimal scale** — Some operations may need explicit scale for currency precision
 
 ---
 
-## Admin Dashboard — Target Feature Set
-Modelled after CashApp, OPay, Kuda, and PalmPay admin panels:
+## Admin Dashboard — Feature Status
 
 ### Overview / Dashboard
-- [ ] Total users (growth chart)
-- [ ] Active users today / this week
-- [ ] Total transaction volume (today / 7d / 30d)
-- [ ] System liquidity (total wallet balances)
-- [ ] Pending KYC count
-- [ ] Failed transactions (24h)
-- [ ] Thrift pool value locked
+- [x] Total users, active users, transaction volume
+- [x] System liquidity, pending KYC, failed transactions
+- [x] Thrift pool value
 
 ### User Management
-- [ ] Search / filter users (name, MyrabaTag, phone, email, KYC status, account status)
-- [ ] User detail view (profile, wallet balance, transaction history, KYC docs)
-- [ ] Freeze / Suspend / Activate accounts
-- [ ] Update KYC status manually
-- [ ] Change user role
-- [ ] View/approve MyrabaTag change requests
+- [x] Search / filter users
+- [x] User detail view (profile, wallet, transaction history, KYC)
+- [x] Freeze / Suspend / Activate accounts
+- [x] Update KYC status manually
+- [x] Change user role
+- [x] View/approve MyrabaTag change requests
 
 ### Transaction Management
-- [ ] List with filters (type, status, date range, amount range, user)
-- [ ] Transaction detail view
-- [ ] Reverse transactions (ADMIN+)
-- [ ] Download CSV export
+- [x] List with filters (type, status, date range, amount range)
+- [x] Transaction detail view
+- [x] Reverse transactions
 
 ### Financial Reports
-- [ ] Daily/monthly summary
-- [ ] 30-day breakdown chart
-- [ ] All-time platform totals
+- [x] Daily/monthly summary
+- [x] 30-day breakdown chart
+- [x] All-time platform totals
 
 ### Thrift Management
-- [ ] Create / activate / deactivate public thrift categories
-- [ ] View all private thrifts
-- [ ] Resolve disputed defaults
+- [x] Create / activate / deactivate public thrift categories
+- [x] View all private thrifts
+- [x] Resolve disputed defaults
 
 ### Gift Catalog Management
-- [ ] Create categories and items
-- [ ] Toggle active status
-- [ ] Update prices
+- [x] Create categories and items
+- [x] Toggle active status
+- [x] Update prices
 
 ### Points
-- [ ] Grant points to user
-- [ ] Trigger year-end conversion
+- [x] Grant points to user
+- [x] Trigger year-end conversion
 
 ### Broadcasts
-- [ ] Create targeted messages (by role/KYC status/all users)
-- [ ] View active broadcasts
-- [ ] Deactivate broadcasts
+- [x] Create targeted messages
+- [x] View active broadcasts
+- [x] Deactivate broadcasts
 
 ### Audit Log
-- [ ] Filter by admin, action type, date range
+- [x] Filter by admin, action type, date range
 
 ### System
-- [ ] Health status
-- [ ] Liquidity overview
+- [x] Health status
+- [x] Liquidity overview
+
+### Balance (SUPER_ADMIN)
+- [x] Manual balance adjustment
+
+### KYC Queue
+- [x] Review and approve/reject KYC submissions
+
+### Staff Management
+- [x] Create and manage STAFF/ADMIN accounts
 
 ---
 
@@ -265,20 +298,46 @@ cd backend
 ./gradlew bootRun
 ```
 
+### Run admin frontend
+```bash
+cd admin-frontend
+npm install
+npm run dev
+# Opens at http://localhost:5173
+# API base: http://localhost:8080
+```
+
 ### Build Docker image
 ```bash
 docker build -t myraba-backend ./backend
 ```
 
-### Admin frontend (to be built)
-Preferred stack: **React + TypeScript + Tailwind CSS + shadcn/ui**
-Location: `/admin-frontend/` (to be created)
-API base: `http://localhost:8080`
+### Environment Variables (production)
+| Variable           | Purpose                              |
+|--------------------|--------------------------------------|
+| `DATABASE_URL`     | PostgreSQL JDBC URL                  |
+| `DATABASE_USER`    | DB username                          |
+| `DATABASE_PASSWORD`| DB password                          |
+| `JWT_SECRET`       | JWT signing secret (min 256-bit)     |
+| `ENCRYPTION_KEY`   | AES-256 key (32-byte Base64)         |
+| `MYRABA_MAIL_USERNAME` | Resend SMTP username (= "resend") |
+| `MYRABA_MAIL_PASSWORD` | Resend API key                   |
+| `FLUTTERWAVE_SECRET_KEY` | Flutterwave API key            |
+| `VTPASS_API_KEY`   | VTpass API key                       |
+| `DOJAH_APP_ID`     | Dojah App ID                         |
+| `DOJAH_PRIVATE_KEY`| Dojah private key                    |
+| `PORT`             | Server port (default 8080)           |
 
 ---
 
 ## Commit History
-- `c42aab7` — wallet creation + fetch by myrabaHandle + auto-create on user signup
-- `0146ee9` — user registration + fetch by myrabaHandle with UserResponse DTO
-- `0cc4bcb` — hello API + Docker setup
+- `6456521` — feat: profile editing, password change, help & support, year in review
+- `04b674b` — fix: transfer UX, logout lag, gift validation, invite code dialog, registration flow
+- `d1795e5` — fix: use Spring Data findTop for OTP queries, avoid duplicate result error
+- `a044e8a` — feat: switch to Resend HTTP API for email delivery
+- `3983ff2` — feat: dev OTP lookup endpoint for SUPER_ADMIN testing
+- `3295a5f` — feat: deploy-ready config — env vars for DB/secrets
+- `c42aab7` — feat: wallet creation + fetch by handle + auto-create on user signup
+- `0146ee9` — feat: user registration + fetch by handle with UserResponse DTO
+- `0cc4bcb` — feat: hello API + Docker setup
 - `6995257` — Initial commit

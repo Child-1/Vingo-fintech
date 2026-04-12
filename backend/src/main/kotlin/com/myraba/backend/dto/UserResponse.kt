@@ -12,6 +12,7 @@ data class UserResponse(
     val email: String?,
     val accountNumber: String,
     val customAccountId: String?,       // "5678-smith" style — in-app transfers only
+    val address: String?,
     val role: String,
     val kycStatus: String,
     val accountStatus: String,
@@ -30,6 +31,7 @@ fun User.toResponse(balance: String): UserResponse {
         email = this.email,
         accountNumber = this.accountNumber,
         customAccountId = this.customAccountId,
+        address = this.address,
         role = this.role.name,
         kycStatus = this.kycStatus,
         accountStatus = this.accountStatus.name,

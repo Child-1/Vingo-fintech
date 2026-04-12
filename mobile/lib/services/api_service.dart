@@ -31,7 +31,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> transfer(String recipientMyrabaHandle, String amount, {String? idempotencyKey}) =>
       _postIdempotent('/wallets/transfer',
-          {'receiverMyrabaHandle': recipientMyrabaHandle, 'amount': amount},
+          {'receiverVingHandle': recipientMyrabaHandle, 'amount': amount},
           idempotencyKey);
 
   Future<Map<String, dynamic>> transferByAccount(String accountNumber, String amount, {String? idempotencyKey}) =>
@@ -56,12 +56,17 @@ class ApiService {
 
   Future<Map<String, dynamic>> getMyQr() => _get('/api/users/me/qr');
 
-  Future<Map<String, dynamic>> updateMyProfile({String? fullName, String? phone, String? email}) =>
-      _put('/api/users/me', {
+  Future<Map<String, dynamic>> updateMyProfile({String? fullName, String? phone, String? email, String? address, String? customAccountId}) =>
+      _putStrict('/api/users/me', {
         if (fullName != null) 'fullName': fullName,
         if (phone != null) 'phone': phone,
         if (email != null) 'email': email,
+        if (address != null) 'address': address,
+        if (customAccountId != null) 'customAccountId': customAccountId,
       });
+
+  Future<Map<String, dynamic>> lookupAccountByNumber(String accountNumber) =>
+      _get('/wallets/lookup/account/$accountNumber');
 
   Future<Map<String, dynamic>> changePassword(String currentPassword, String newPassword) =>
       _post('/api/users/me/change-password', {
@@ -100,7 +105,7 @@ class ApiService {
     required int totalCycles,
     String positionAssignment = 'RAFFLE',
     String? creatorRules,
-  }) => _post('/api/private-thrifts', {
+  }) => _postStrict('/api/private-thrifts', {
     'name': name,
     if (description != null) 'description': description,
     'contributionAmount': contributionAmount,
@@ -371,5 +376,30 @@ class ApiService {
     final decoded = jsonDecode(res.body);
     if (decoded is Map<String, dynamic>) return decoded;
     return {'data': decoded};
+  }
+
+  /// Like _parse but throws an Exception on 4xx / 5xx so callers can show the error.
+  Map<String, dynamic> _parseStrict(http.Response res) {
+    final data = _parse(res);
+    if (res.statusCode >= 400) {
+      throw Exception(
+        data['message'] as String? ??
+        data['error'] as String? ??
+        'Request failed (${res.statusCode})',
+      );
+    }
+    return data;
+  }
+
+  Future<Map<String, dynamic>> _postStrict(String path, Map<String, dynamic> body) async {
+    final res = await http.post(Uri.parse('$base$path'),
+        headers: _h, body: jsonEncode(body));
+    return _parseStrict(res);
+  }
+
+  Future<Map<String, dynamic>> _putStrict(String path, Map<String, dynamic> body) async {
+    final res = await http.put(Uri.parse('$base$path'),
+        headers: _h, body: jsonEncode(body));
+    return _parseStrict(res);
   }
 }
