@@ -8,11 +8,11 @@ export default defineConfig({
     allowedHosts: true,   // required for ngrok / external tunnels
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL ?? 'http://localhost:8080',
+        target: process.env.VITE_API_URL ?? 'https://vingo-fintech.onrender.com',
         changeOrigin: true,
       },
       '/auth': {
-        target: process.env.VITE_API_URL ?? 'http://localhost:8080',
+        target: process.env.VITE_API_URL ?? 'https://vingo-fintech.onrender.com',
         changeOrigin: true,
       },
     },

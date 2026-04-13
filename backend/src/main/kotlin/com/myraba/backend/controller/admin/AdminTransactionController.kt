@@ -60,7 +60,7 @@ class AdminTransactionController(
         val txType = type?.uppercase()?.let { runCatching { TransactionType.valueOf(it) }.getOrNull() }
         val result = transactionRepository.filterTransactions(
             type = txType,
-            status = status,
+            status = status?.uppercase(),
             from = from,
             to = to,
             minAmount = minAmount,

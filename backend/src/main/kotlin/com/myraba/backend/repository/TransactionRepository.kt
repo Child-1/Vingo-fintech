@@ -38,7 +38,7 @@ interface TransactionRepository : JpaRepository<Transaction, Long> {
     @Query("""
         SELECT t FROM Transaction t WHERE
         (:type IS NULL OR t.type = :type) AND
-        (:status IS NULL OR LOWER(t.status) = LOWER(:status)) AND
+        (:status IS NULL OR t.status = :status) AND
         (:from IS NULL OR t.createdAt >= :from) AND
         (:to IS NULL OR t.createdAt <= :to) AND
         (:minAmount IS NULL OR t.amount >= :minAmount) AND

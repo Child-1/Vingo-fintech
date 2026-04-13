@@ -12,16 +12,45 @@ interface AuthContextValue extends AuthState {
   logout: () => void;
   isAdmin: boolean;
   isSuperAdmin: boolean;
+  isValidating: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const storedToken = localStorage.getItem('myraba_admin_token');
   const [auth, setAuth] = useState<AuthState>({
-    token: localStorage.getItem('myraba_admin_token'),
+    token: storedToken,
     role:  localStorage.getItem('myraba_admin_role'),
     myrabaHandle: localStorage.getItem('myraba_admin_handle'),
   });
+  // True while we're verifying a stored token with the backend
+  const [isValidating, setIsValidating] = useState<boolean>(!!storedToken);
+
+  // On mount: if we have a stored token, verify it's still valid
+  useEffect(() => {
+    if (!storedToken) return;
+    api.get('/api/users/me')
+      .then(({ data }) => {
+        const role: string = data.role ?? '';
+        if (!['ADMIN', 'SUPER_ADMIN', 'STAFF'].includes(role)) {
+          // Valid token but not an admin — clear and force login
+          clearAuth();
+        } else {
+          setAuth(prev => ({ ...prev, role, myrabaHandle: data.myrabaHandle }));
+        }
+      })
+      .catch(() => clearAuth())
+      .finally(() => setIsValidating(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function clearAuth() {
+    setAuth({ token: null, role: null, myrabaHandle: null });
+    ['myraba_admin_token', 'myraba_admin_role', 'myraba_admin_handle'].forEach(k =>
+      localStorage.removeItem(k)
+    );
+  }
 
   useEffect(() => {
     // Sync to localStorage whenever auth changes
