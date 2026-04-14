@@ -96,7 +96,37 @@ class WalletController(
                         description = tx.description ?: "Penalty deduction",
                         counterparty = null, date = tx.createdAt, status = tx.status
                     )
-                    else -> {
+                    TransactionType.WITHDRAWAL -> TransactionResponse(
+                        id = tx.id, type = "WITHDRAWAL", amount = tx.amount,
+                        description = tx.description ?: "Withdrawal",
+                        counterparty = null, date = tx.createdAt, status = tx.status
+                    )
+                    TransactionType.BILL_PAYMENT -> TransactionResponse(
+                        id = tx.id, type = "BILL_PAYMENT", amount = tx.amount,
+                        description = tx.description ?: "Bill payment",
+                        counterparty = null, date = tx.createdAt, status = tx.status
+                    )
+                    TransactionType.GIFT -> TransactionResponse(
+                        id = tx.id, type = "GIFT", amount = tx.amount,
+                        description = tx.description ?: "Gift",
+                        counterparty = null, date = tx.createdAt, status = tx.status
+                    )
+                    TransactionType.ADMIN_CREDIT -> TransactionResponse(
+                        id = tx.id, type = "ADMIN_CREDIT", amount = tx.amount,
+                        description = tx.description ?: "Admin credit",
+                        counterparty = null, date = tx.createdAt, status = tx.status
+                    )
+                    TransactionType.ADMIN_DEBIT -> TransactionResponse(
+                        id = tx.id, type = "ADMIN_DEBIT", amount = tx.amount,
+                        description = tx.description ?: "Admin deduction",
+                        counterparty = null, date = tx.createdAt, status = tx.status
+                    )
+                    TransactionType.REVERSAL -> TransactionResponse(
+                        id = tx.id, type = "REVERSAL", amount = tx.amount,
+                        description = tx.description ?: "Transaction reversed",
+                        counterparty = null, date = tx.createdAt, status = tx.status
+                    )
+                    else -> { // TRANSFER — has real sender & receiver wallets
                         if (tx.senderWallet?.id == wallet.id) {
                             TransactionResponse(
                                 id = tx.id, type = "SENT", amount = tx.amount,

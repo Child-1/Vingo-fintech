@@ -83,15 +83,21 @@ class UserController(
         auth: Authentication,
         httpRequest: HttpServletRequest
     ): ResponseEntity<UserResponse> {
-        val user = auth.principal as User
+        val principal = auth.principal as User
+        // Reload fresh from DB — the JWT principal can be stale after a previous update in the same session
+        val user = userRepository.findById(principal.id).orElseThrow {
+            ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
+        }
         if (!req.fullName.isNullOrBlank()) user.fullName = req.fullName
         if (!req.phone.isNullOrBlank()) {
-            if (userRepository.findByPhone(req.phone) != null && req.phone != user.phone)
+            val existing = userRepository.findByPhone(req.phone)
+            if (existing != null && existing.id != user.id)
                 throw ResponseStatusException(HttpStatus.CONFLICT, "Phone number already in use")
             user.phone = req.phone
         }
         if (!req.email.isNullOrBlank()) {
-            if (userRepository.findByEmail(req.email) != null && req.email != user.email)
+            val existing = userRepository.findByEmail(req.email)
+            if (existing != null && existing.id != user.id)
                 throw ResponseStatusException(HttpStatus.CONFLICT, "Email already in use")
             user.email = req.email
         }

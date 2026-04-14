@@ -38,23 +38,41 @@ class _ThriftTabState extends State<ThriftTab>
     final auth = Provider.of<AuthService>(context, listen: false);
     if (auth.token == null) return;
     final api = ApiService(auth.token!);
-    setState(() { _loading = true; _loadError = false; });
+    setState(() {
+      _loading = true;
+      _loadError = false;
+    });
+
+    // Load categories independently — public endpoint, must succeed for the tab to be useful
+    List<dynamic> categories = [];
+    bool catError = false;
     try {
-      final results = await Future.wait([
-        api.getThriftCategories(),
-        api.getMyThrifts(),
-        api.getMyPrivateThrifts(),
-      ]);
-      if (!mounted) return;
-      setState(() {
-        _categories = (results[0]['categories'] as List?) ?? [];
-        _myThrifts = (results[1]['thrifts'] as List?) ?? [];
-        _myPrivate = (results[2]['memberships'] as List?) ?? [];
-        _loading = false;
-      });
+      final res = await api.getThriftCategories();
+      categories = (res['categories'] as List?) ?? [];
     } catch (_) {
-      if (mounted) setState(() { _loading = false; _loadError = true; });
+      catError = true;
     }
+
+    // Load user-specific data — best effort, failures don't block category display
+    List<dynamic> myThrifts = [];
+    List<dynamic> myPrivate = [];
+    try {
+      final res = await api.getMyThrifts();
+      myThrifts = (res['thrifts'] as List?) ?? [];
+    } catch (_) {}
+    try {
+      final res = await api.getMyPrivateThrifts();
+      myPrivate = (res['memberships'] as List?) ?? [];
+    } catch (_) {}
+
+    if (!mounted) return;
+    setState(() {
+      _categories = categories;
+      _myThrifts = myThrifts;
+      _myPrivate = myPrivate;
+      _loading = false;
+      _loadError = catError && categories.isEmpty;
+    });
   }
 
   @override
@@ -79,37 +97,40 @@ class _ThriftTabState extends State<ThriftTab>
           ? const Center(
               child: CircularProgressIndicator(color: MyrabaColors.green))
           : _loadError
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.cloud_off_rounded, color: MyrabaColors.textHint, size: 48),
-                  const SizedBox(height: 16),
-                  const Text('Could not load thrift data',
-                      style: TextStyle(color: MyrabaColors.textSecond)),
-                  const SizedBox(height: 8),
-                  const Text('The server may be waking up — try again in a moment.',
-                      style: TextStyle(color: MyrabaColors.textHint, fontSize: 12),
-                      textAlign: TextAlign.center),
-                  const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: _load,
-                    icon: const Icon(Icons.refresh_rounded, size: 16),
-                    label: const Text('Retry'),
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.cloud_off_rounded,
+                          color: MyrabaColors.textHint, size: 48),
+                      const SizedBox(height: 16),
+                      const Text('Could not load thrift data',
+                          style: TextStyle(color: MyrabaColors.textSecond)),
+                      const SizedBox(height: 8),
+                      const Text(
+                          'The server may be waking up — try again in a moment.',
+                          style: TextStyle(
+                              color: MyrabaColors.textHint, fontSize: 12),
+                          textAlign: TextAlign.center),
+                      const SizedBox(height: 20),
+                      ElevatedButton.icon(
+                        onPressed: _load,
+                        icon: const Icon(Icons.refresh_rounded, size: 16),
+                        label: const Text('Retry'),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            )
-          : TabBarView(
-              controller: _tabs,
-              children: [
-                _SavingsPlansTab(
-                    categories: _categories,
-                    myThrifts: _myThrifts,
-                    onRefresh: _load),
-                _PrivateGroupsTab(myPrivate: _myPrivate, onRefresh: _load),
-              ],
-            ),
+                )
+              : TabBarView(
+                  controller: _tabs,
+                  children: [
+                    _SavingsPlansTab(
+                        categories: _categories,
+                        myThrifts: _myThrifts,
+                        onRefresh: _load),
+                    _PrivateGroupsTab(myPrivate: _myPrivate, onRefresh: _load),
+                  ],
+                ),
     );
   }
 }
@@ -1017,8 +1038,9 @@ class _CreateThriftDialogState extends State<_CreateThriftDialog> {
               keyboardType: TextInputType.number,
               validator: (v) {
                 if (v == null || v.isEmpty) return 'Required';
-                if (double.tryParse(v) == null || double.parse(v) <= 0)
+                if (double.tryParse(v) == null || double.parse(v) <= 0) {
                   return 'Enter a valid amount';
+                }
                 return null;
               },
             ),

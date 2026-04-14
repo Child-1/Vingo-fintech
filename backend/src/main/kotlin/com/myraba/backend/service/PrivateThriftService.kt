@@ -5,9 +5,11 @@ import com.myraba.backend.model.User
 import com.myraba.backend.model.thrift.*
 import com.myraba.backend.repository.WalletRepository
 import com.myraba.backend.repository.thrift.*
+import org.springframework.http.HttpStatus
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.server.ResponseStatusException
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDateTime
@@ -39,14 +41,15 @@ class PrivateThriftService(
         if (activeCount >= 1) {
             val completedCount = thriftRepo.countByCreatorAndStatusIn(creator, listOf(PrivateThriftStatus.COMPLETED))
             if (completedCount < 3)
-                throw IllegalStateException("Complete at least 3 thrift cycles before running multiple thrifts")
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Complete at least 3 thrift cycles before running multiple thrifts")
         }
 
         // Creator must have enough collateral balance (one contribution amount)
         val creatorWallet = walletRepo.findByUserVingHandle(creator.myrabaHandle)
-            ?: throw IllegalStateException("Creator wallet not found")
+            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Creator wallet not found")
         if (creatorWallet.balance < request.contributionAmount)
-            throw IllegalStateException(
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST,
                 "You need at least ₦${request.contributionAmount} in your wallet as collateral to create this thrift"
             )
 

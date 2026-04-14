@@ -62,6 +62,9 @@ class SecurityConfig(
                     .requestMatchers("/public/gift/**").permitAll()
                     // Public wallet lookup (QR code scanning)
                     .requestMatchers(HttpMethod.GET, "/wallets/{myrabaHandle}").permitAll()
+                    // Public thrift category browsing — no login required to see available plans
+                    .requestMatchers(HttpMethod.GET, "/api/thrifts/categories").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/thrifts/categories/{id}").permitAll()
 
                     // Specific Role-Based Access
                     // Fine-grained access is enforced per-method via @PreAuthorize on each controller
