@@ -2,6 +2,7 @@ package com.myraba.backend.controller
 
 import com.myraba.backend.model.User
 import com.myraba.backend.repository.thrift.ThriftCategoryRepository
+import com.myraba.backend.repository.thrift.ThriftMemberRepository
 import com.myraba.backend.service.AuditLogService
 import com.myraba.backend.service.ThriftService
 import jakarta.servlet.http.HttpServletRequest
@@ -16,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException
 class ThriftController(
     private val thriftService: ThriftService,
     private val categoryRepo: ThriftCategoryRepository,
+    private val memberRepo: ThriftMemberRepository,
     private val auditLogService: AuditLogService,
 ) {
 
@@ -31,7 +33,7 @@ class ThriftController(
                 "frequency"           to c.contributionFrequency,
                 "cyclesRequired"      to c.durationInCycles,
                 "estimatedPayout"     to c.payoutAmount.toPlainString(),
-                "currentMemberCount"  to c.members.count { !it.hasWithdrawn }
+                "currentMemberCount"  to memberRepo.countByCategoryIdAndHasWithdrawn(c.id!!, false)
             )
         }
         return ResponseEntity.ok(mapOf("categories" to categories, "total" to categories.size))
