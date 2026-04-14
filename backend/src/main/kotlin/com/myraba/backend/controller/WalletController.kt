@@ -18,6 +18,7 @@ import com.myraba.backend.service.IdempotencyService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
@@ -260,6 +261,7 @@ class WalletController(
     }
 
     @PostMapping("/fund")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @Transactional
     fun fundWallet(@RequestBody request: FundWalletRequest): ResponseEntity<String> {
         val wallet = walletRepository.findByUserVingHandle(request.myrabaHandle)
