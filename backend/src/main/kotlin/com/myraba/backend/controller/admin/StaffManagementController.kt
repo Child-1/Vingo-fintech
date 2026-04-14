@@ -3,9 +3,7 @@ package com.myraba.backend.controller.admin
 import com.myraba.backend.model.User
 import com.myraba.backend.model.UserRole
 import com.myraba.backend.model.UserStatus
-import com.myraba.backend.model.Wallet
 import com.myraba.backend.repository.UserRepository
-import com.myraba.backend.repository.WalletRepository
 import com.myraba.backend.service.AuditLogService
 import com.myraba.backend.service.EmailService
 import org.springframework.http.HttpStatus
@@ -23,7 +21,6 @@ import java.time.LocalDateTime
 @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
 class StaffManagementController(
     private val userRepository: UserRepository,
-    private val walletRepository: WalletRepository,
     private val passwordEncoder: PasswordEncoder,
     private val auditLogService: AuditLogService,
     private val emailService: EmailService
@@ -90,7 +87,6 @@ class StaffManagementController(
             forcePasswordChange = true
         )
         val saved = userRepository.save(staff)
-        walletRepository.save(Wallet(user = saved))
 
         emailService.sendStaffWelcome(req.email, req.fullName, req.myrabaHandle, tempPassword, role.name)
 
