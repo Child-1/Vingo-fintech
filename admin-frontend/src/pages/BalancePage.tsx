@@ -17,8 +17,7 @@ export default function BalancePage() {
     mutationFn: () =>
       api.post('/api/admin/balance/adjust', {
         myrabaHandle,
-        amount: Number(amount),
-        direction,
+        amount: direction === 'DEBIT' ? -Number(amount) : Number(amount),
         reason,
       }),
     onSuccess: () => {
