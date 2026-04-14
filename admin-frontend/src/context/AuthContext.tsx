@@ -90,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       isAdmin:      ['ADMIN', 'SUPER_ADMIN', 'STAFF'].includes(auth.role ?? ''),
       isSuperAdmin: auth.role === 'SUPER_ADMIN',
+      isValidating,
     }}>
       {children}
     </AuthContext.Provider>

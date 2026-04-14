@@ -32,3 +32,5 @@ admin-frontend/.env.local
 *.env
 .env
 .env.*
+# Allow production env (no secrets — just the public API URL)
+!admin-frontend/.env.production
