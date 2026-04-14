@@ -36,34 +36,33 @@ class _ThriftTabState extends State<ThriftTab>
 
   Future<void> _load() async {
     final auth = Provider.of<AuthService>(context, listen: false);
-    if (auth.token == null) return;
-    final api = ApiService(auth.token!);
-    setState(() {
-      _loading = true;
-      _loadError = false;
-    });
+    setState(() { _loading = true; _loadError = false; });
 
-    // Load categories independently — public endpoint, must succeed for the tab to be useful
+    // Categories are public — load regardless of auth state
+    final publicApi = ApiService(auth.token ?? '');
     List<dynamic> categories = [];
     bool catError = false;
     try {
-      final res = await api.getThriftCategories();
+      final res = await publicApi.getThriftCategories();
       categories = (res['categories'] as List?) ?? [];
     } catch (_) {
       catError = true;
     }
 
-    // Load user-specific data — best effort, failures don't block category display
+    // User-specific data only when authenticated
     List<dynamic> myThrifts = [];
     List<dynamic> myPrivate = [];
-    try {
-      final res = await api.getMyThrifts();
-      myThrifts = (res['thrifts'] as List?) ?? [];
-    } catch (_) {}
-    try {
-      final res = await api.getMyPrivateThrifts();
-      myPrivate = (res['memberships'] as List?) ?? [];
-    } catch (_) {}
+    if (auth.token != null) {
+      final api = ApiService(auth.token!);
+      try {
+        final res = await api.getMyThrifts();
+        myThrifts = (res['thrifts'] as List?) ?? [];
+      } catch (_) {}
+      try {
+        final res = await api.getMyPrivateThrifts();
+        myPrivate = (res['memberships'] as List?) ?? [];
+      } catch (_) {}
+    }
 
     if (!mounted) return;
     setState(() {

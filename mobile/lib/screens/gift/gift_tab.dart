@@ -451,7 +451,7 @@ class _SendGiftTabState extends State<_SendGiftTab> {
                         separatorBuilder: (_, __) => const SizedBox(height: 8),
                         itemBuilder: (ctx, i) {
                           final item = _items[i] as Map<String, dynamic>;
-                          final price = item['price']?.toString() ?? '0';
+                          final price = (item['nairaValue'] ?? item['price'])?.toString() ?? '0';
                           final catIdx = _categories.indexWhere(
                               (c) => c['id'] == _selCategory?['id']);
                           final color = catIdx >= 0

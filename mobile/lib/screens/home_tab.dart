@@ -118,7 +118,7 @@ class _HomeTabState extends State<HomeTab> {
         ),
         IconButton(
           icon: const Icon(Icons.notifications_outlined, color: MyrabaColors.textPrimary),
-          onPressed: () {},
+          onPressed: () => _showNotifications(),
         ),
         const SizedBox(width: 4),
       ],
@@ -409,4 +409,50 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   String _pad(int n) => n.toString().padLeft(2, '0');
+
+  void _showNotifications() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: MyrabaColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 36, height: 4,
+              decoration: BoxDecoration(
+                color: MyrabaColors.surfaceLine,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Row(
+              children: [
+                Icon(Icons.notifications_outlined, color: MyrabaColors.green, size: 22),
+                SizedBox(width: 10),
+                Text('Notifications',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700,
+                      color: MyrabaColors.textPrimary)),
+              ],
+            ),
+            const SizedBox(height: 32),
+            const Icon(Icons.notifications_off_outlined,
+                color: MyrabaColors.textHint, size: 48),
+            const SizedBox(height: 12),
+            const Text('No notifications yet',
+              style: TextStyle(fontSize: 15, color: MyrabaColors.textSecond,
+                  fontWeight: FontWeight.w500)),
+            const SizedBox(height: 6),
+            const Text("You're all caught up!",
+              style: TextStyle(fontSize: 13, color: MyrabaColors.textHint)),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
 }
