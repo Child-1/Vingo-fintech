@@ -220,6 +220,27 @@ class AdminUserController(
         return ResponseEntity.ok(saved.toAdminResponse())
     }
 
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    fun deleteUser(
+        @PathVariable id: Long,
+        auth: Authentication
+    ): ResponseEntity<Map<String, String>> {
+        val user = userRepository.findById(id).orElseThrow {
+            ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
+        }
+        val handle = user.myrabaHandle
+        userRepository.delete(user)
+        auditLogService.log(
+            adminHandle = (auth.principal as User).myrabaHandle,
+            action = "DELETE_USER",
+            targetType = "USER",
+            targetId = id.toString(),
+            details = "Deleted user @$handle"
+        )
+        return ResponseEntity.ok(mapOf("message" to "User @$handle deleted successfully"))
+    }
+
     // ── Stats ─────────────────────────────────────────────────────
 
     @GetMapping("/stats/overview")
