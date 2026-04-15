@@ -108,7 +108,7 @@ class ApiService {
   }) => _postStrict('/api/private-thrifts', {
     'name': name,
     if (description != null) 'description': description,
-    'contributionAmount': contributionAmount,
+    'contributionAmount': num.tryParse(contributionAmount) ?? 0,
     'frequency': frequency,
     'totalCycles': totalCycles,
     'positionAssignment': positionAssignment,
@@ -130,7 +130,7 @@ class ApiService {
     required int giftItemId,
     String? note,
     bool anonymous = false,
-  }) => _post('/api/gifts/send', {
+  }) => _postStrict('/api/gifts/send', {
     'recipientMyrabaHandle': recipientMyrabaHandle,
     'giftItemId': giftItemId,
     'note': note,
@@ -173,6 +173,20 @@ class ApiService {
   }) => _post('/api/bills/betting', {
     'bettingUserId': bettingUserId, 'provider': provider,
     'amount': amount, 'phone': phone,
+  });
+
+  Future<Map<String, dynamic>> payEducation({
+    required String examBody,      // WAEC, NECO, JAMB
+    required String profileCode,   // JAMB profile code or phone for WAEC/NECO
+    required String phone,
+    int quantity = 1,
+    required String amount,
+  }) => _postStrict('/api/bills/education', {
+    'examBody': examBody,
+    'profileCode': profileCode,
+    'phone': phone,
+    'quantity': quantity,
+    'amount': num.tryParse(amount) ?? 0,
   });
 
   Future<Map<String, dynamic>> getBillHistory({String? category}) =>

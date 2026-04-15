@@ -122,6 +122,42 @@ class VTpassService(
         return post("/pay", body)
     }
 
+    // ─── Education (WAEC / NECO / JAMB) ───────────────────────────
+
+    /**
+     * Purchase an exam e-PIN/checker.
+     * @param examBody  "waec", "neco", or "jamb"
+     * @param profileCode  For JAMB: JAMB registration profile code. For WAEC/NECO: phone.
+     * @param quantity  Number of PINs (WAEC/NECO); for JAMB always 1
+     * @param phone  Phone number for SMS delivery of PIN
+     */
+    fun payExamPin(
+        examBody: String,
+        profileCode: String,
+        quantity: Int,
+        phone: String,
+        amount: BigDecimal,
+        requestId: String
+    ): VTpassResult {
+        val serviceId = examBody.lowercase()  // "waec", "neco", "jamb"
+        val variationCode = when (serviceId) {
+            "waec" -> "waecdirect"
+            "neco" -> "neco-pin"
+            "jamb" -> "utme"
+            else   -> serviceId
+        }
+        val body = mapOf(
+            "request_id"     to requestId,
+            "serviceID"      to serviceId,
+            "billersCode"    to profileCode,
+            "variation_code" to variationCode,
+            "amount"         to amount.toPlainString(),
+            "phone"          to phone,
+            "quantity"       to quantity.toString()
+        )
+        return post("/pay", body)
+    }
+
     // ─── Verify a meter or smart card number before payment ───────
 
     fun verifyMeter(meterNumber: String, disco: String, meterType: String): Map<String, Any?> {

@@ -5,7 +5,7 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 
 enum class BillCategory {
-    AIRTIME, DATA, ELECTRICITY, CABLE_TV, WATER, BETTING
+    AIRTIME, DATA, ELECTRICITY, CABLE_TV, WATER, BETTING, EDUCATION
 }
 
 @Entity

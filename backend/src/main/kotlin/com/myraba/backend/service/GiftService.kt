@@ -2,8 +2,10 @@ package com.myraba.backend.service
 
 import com.myraba.backend.model.*
 import com.myraba.backend.repository.*
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.server.ResponseStatusException
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -40,14 +42,14 @@ class GiftService(
             ?: throw IllegalArgumentException("Recipient m₦$recipientVingHandle not found")
 
         if (sender.id == recipient.id)
-            throw IllegalStateException("You cannot gift yourself")
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot gift yourself")
 
         val item = giftItemRepo.findById(giftItemId).orElseThrow {
-            IllegalArgumentException("Gift item not found")
+            ResponseStatusException(HttpStatus.NOT_FOUND, "Gift item not found")
         }
-        if (!item.isActive) throw IllegalStateException("This gift item is no longer available")
+        if (!item.isActive) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "This gift item is no longer available")
         if (item.nairaValue <= BigDecimal.ZERO)
-            throw IllegalStateException("This gift item has no value configured yet. Contact support.")
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "This gift item has no value configured yet. Contact support.")
 
         val success = walletService.deductFromWallet(
             user = sender,
@@ -55,7 +57,7 @@ class GiftService(
             description = "Gift sent${if (anonymous) "" else " to m₦$recipientVingHandle"} — ${item.name}",
             type = com.myraba.backend.model.TransactionType.GIFT
         )
-        if (!success) throw IllegalStateException("Insufficient wallet balance")
+        if (!success) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient wallet balance. Please fund your wallet to send this gift.")
 
         val tx = giftTransactionRepo.save(
             GiftTransaction(

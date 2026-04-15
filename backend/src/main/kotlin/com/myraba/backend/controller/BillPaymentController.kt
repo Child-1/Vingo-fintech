@@ -52,6 +52,14 @@ data class BettingRequest(
     val phone: String
 )
 
+data class EducationRequest(
+    val examBody: String,       // WAEC, NECO, JAMB
+    val profileCode: String,    // JAMB profile code or phone for WAEC/NECO
+    val phone: String,          // phone for SMS delivery
+    val quantity: Int = 1,      // number of PINs (WAEC/NECO); ignored for JAMB
+    val amount: BigDecimal      // total amount to pay
+)
+
 @RestController
 @RequestMapping("/api/bills")
 class BillPaymentController(
@@ -192,6 +200,42 @@ class BillPaymentController(
             vtpassService.fundBettingWallet(
                 request.bettingUserId, request.provider,
                 request.amount, request.phone, requestId
+            )
+        }
+    }
+
+    @PostMapping("/education")
+    fun payEducation(
+        authentication: Authentication,
+        @RequestBody request: EducationRequest,
+        httpRequest: HttpServletRequest
+    ): ResponseEntity<Any> {
+        val user = authentication.principal as User
+        val examBody = request.examBody.uppercase()
+        if (examBody !in listOf("WAEC", "NECO", "JAMB"))
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported exam body. Use WAEC, NECO, or JAMB.")
+        val providerName = when (examBody) {
+            "WAEC" -> "WAEC e-PIN"
+            "NECO" -> "NECO e-PIN"
+            "JAMB" -> "JAMB ePIN/Scratch Card"
+            else   -> examBody
+        }
+        return processBill(
+            user = user,
+            category = BillCategory.EDUCATION,
+            serviceId = examBody.lowercase(),
+            providerName = providerName,
+            billIdentifier = request.profileCode,
+            amount = request.amount,
+            httpRequest = httpRequest
+        ) { requestId ->
+            vtpassService.payExamPin(
+                examBody = examBody,
+                profileCode = request.profileCode,
+                quantity = request.quantity,
+                phone = request.phone,
+                amount = request.amount,
+                requestId = requestId
             )
         }
     }

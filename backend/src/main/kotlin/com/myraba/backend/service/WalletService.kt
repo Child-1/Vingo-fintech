@@ -25,7 +25,8 @@ class WalletService(
     @Transactional
     fun deductFromWallet(user: User, amount: BigDecimal, description: String, type: TransactionType = TransactionType.WITHDRAWAL): Boolean {
         if (user.accountStatus != UserStatus.ACTIVE) return false
-        val wallet = user.wallet ?: return false
+        // Load wallet fresh from DB — the User principal from JWT is detached/stale and user.wallet may not be initialized
+        val wallet = walletRepo.findByUserVingHandle(user.myrabaHandle) ?: return false
         if (wallet.balance < amount) return false
 
         // AML velocity checks — only applied to user-initiated transfers

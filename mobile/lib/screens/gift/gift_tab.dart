@@ -269,10 +269,15 @@ class _SendGiftTabState extends State<_SendGiftTab> {
         _sent = true;
         _loading = false;
       });
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
+      String msg = 'Could not send gift. Please try again.';
+      final raw = e.toString();
+      if (raw.contains('Exception: ')) {
+        msg = raw.replaceFirst('Exception: ', '');
+      }
       setState(() {
-        _error = 'Could not send gift. Please try again.';
+        _error = msg;
         _loading = false;
       });
     }

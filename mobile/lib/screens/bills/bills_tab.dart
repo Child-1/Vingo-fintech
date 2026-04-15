@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
+import '../wallet/send_money_screen.dart';
 
 class BillsTab extends StatelessWidget {
   const BillsTab({super.key});
@@ -60,10 +61,46 @@ class BillsTab extends StatelessWidget {
                 onTap: () => _push(context, const _BettingScreen()),
               ),
               _BillTile(
+                icon: Icons.school_rounded,
+                label: 'Education',
+                color: MyrabaColors.teal,
+                onTap: () => _push(context, const _EducationScreen()),
+              ),
+              _BillTile(
                 icon: Icons.receipt_long_rounded,
                 label: 'History',
                 color: MyrabaColors.textSecond,
                 onTap: () => _push(context, const _BillHistoryScreen()),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          const Text('International & Others',
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+                color: MyrabaColors.textSecond)),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _IntlTile(
+                icon: Icons.flight_takeoff_rounded,
+                label: 'Flights',
+                comingSoon: true,
+                onTap: () {},
+              ),
+              const SizedBox(width: 12),
+              _IntlTile(
+                icon: Icons.school_outlined,
+                label: 'SAT Fees',
+                comingSoon: true,
+                onTap: () {},
+              ),
+              const SizedBox(width: 12),
+              _IntlTile(
+                icon: Icons.favorite_rounded,
+                label: 'Church / Tithe',
+                comingSoon: false,
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const SendMoneyScreen())),
               ),
             ],
           ),
@@ -106,6 +143,54 @@ class _BillTile extends StatelessWidget {
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500,
                   color: MyrabaColors.textSecond)),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _IntlTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool comingSoon;
+  final VoidCallback onTap;
+  const _IntlTile({required this.icon, required this.label,
+      required this.comingSoon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: comingSoon ? null : onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+          decoration: myrabaCard(),
+          child: Column(
+            children: [
+              Icon(icon,
+                color: comingSoon ? MyrabaColors.textHint : MyrabaColors.blue,
+                size: 26),
+              const SizedBox(height: 6),
+              Text(label,
+                style: TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.w500,
+                  color: comingSoon ? MyrabaColors.textHint : MyrabaColors.textSecond),
+                textAlign: TextAlign.center),
+              if (comingSoon) ...[
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: MyrabaColors.orange.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text('Soon',
+                    style: TextStyle(fontSize: 9, color: MyrabaColors.orange,
+                        fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
@@ -597,6 +682,137 @@ class _BettingScreenState extends State<_BettingScreen> {
   }
 }
 
+// ─── Education (WAEC / NECO / JAMB) ──────────────────────────────────────────
+
+class _EducationScreen extends StatefulWidget {
+  const _EducationScreen();
+
+  @override
+  State<_EducationScreen> createState() => _EducationScreenState();
+}
+
+class _EducationScreenState extends State<_EducationScreen> {
+  final _profileCtrl = TextEditingController();
+  final _phoneCtrl   = TextEditingController();
+  final _amountCtrl  = TextEditingController();
+  String _examBody   = 'WAEC';
+  bool _loading      = false;
+  bool _success      = false;
+  String? _pin;
+
+  static const _examBodies = ['WAEC', 'NECO', 'JAMB'];
+
+  // Suggested amounts per exam body
+  static const _suggestedAmounts = {
+    'WAEC': '3500',
+    'NECO': '3500',
+    'JAMB': '4700',
+  };
+
+  @override
+  void dispose() {
+    _profileCtrl.dispose();
+    _phoneCtrl.dispose();
+    _amountCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onExamBodyChanged(String body) {
+    setState(() {
+      _examBody = body;
+      _amountCtrl.text = _suggestedAmounts[body] ?? '';
+    });
+  }
+
+  String get _profileLabel {
+    switch (_examBody) {
+      case 'JAMB': return 'JAMB Profile Code';
+      default:     return 'Candidate Phone / Exam Number';
+    }
+  }
+
+  String get _profileHint {
+    switch (_examBody) {
+      case 'JAMB': return '10-digit JAMB profile code';
+      default:     return 'e.g. 08012345678';
+    }
+  }
+
+  Future<void> _pay() async {
+    if (_profileCtrl.text.trim().isEmpty ||
+        _phoneCtrl.text.trim().isEmpty ||
+        _amountCtrl.text.trim().isEmpty) { return; }
+    final auth = Provider.of<AuthService>(context, listen: false);
+    if (auth.token == null) return;
+    final api = ApiService(auth.token!);
+    setState(() => _loading = true);
+    try {
+      final res = await api.payEducation(
+        examBody: _examBody,
+        profileCode: _profileCtrl.text.trim(),
+        phone: _phoneCtrl.text.trim(),
+        amount: _amountCtrl.text.trim(),
+      );
+      if (!mounted) return;
+      if (res['status'] == 'SUCCESS' || res['code'] == '000') {
+        setState(() {
+          _success = true;
+          _loading = false;
+          _pin = res['vtpassCode'] as String?;
+        });
+      } else {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(res['message'] ?? 'Payment failed'),
+              backgroundColor: MyrabaColors.red),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: MyrabaColors.red,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _BillScaffold(
+      title: 'Exam PIN / Scratch Card',
+      icon: Icons.school_rounded,
+      color: MyrabaColors.teal,
+      success: _success,
+      successMessage: _pin != null
+          ? '$_examBody PIN: $_pin\n\nAlso sent via SMS to ${_phoneCtrl.text}'
+          : '$_examBody payment successful. PIN sent via SMS.',
+      onDone: () => Navigator.pop(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _networkRow(_examBodies, _examBody, _onExamBodyChanged),
+          const SizedBox(height: 20),
+          _field(_profileLabel, _profileCtrl, TextInputType.text, _profileHint),
+          const SizedBox(height: 16),
+          _field('Phone Number (for SMS delivery)', _phoneCtrl,
+              TextInputType.phone, 'e.g. 08012345678'),
+          const SizedBox(height: 16),
+          _field('Amount (₦)', _amountCtrl, TextInputType.number,
+              _suggestedAmounts[_examBody] ?? ''),
+          const SizedBox(height: 8),
+          Text('Suggested: ₦${_suggestedAmounts[_examBody] ?? '—'} for 1 PIN',
+            style: const TextStyle(fontSize: 11, color: MyrabaColors.textHint)),
+          const SizedBox(height: 32),
+          _payButton(_loading, _pay, 'Buy $_examBody PIN'),
+        ],
+      ),
+    );
+  }
+}
+
 // ─── Bill History ─────────────────────────────────────────────────────────────
 
 class _BillHistoryScreen extends StatefulWidget {
@@ -620,7 +836,7 @@ class _BillHistoryScreenState extends State<_BillHistoryScreen> {
     try {
       final res = await api.getBillHistory();
       if (!mounted) return;
-      setState(() { _history = (res['payments'] as List?) ?? []; _loading = false; });
+      setState(() { _history = (res['records'] as List?) ?? (res['payments'] as List?) ?? []; _loading = false; });
     } catch (_) {
       if (mounted) setState(() => _loading = false);
     }
@@ -662,11 +878,11 @@ class _BillHistoryScreenState extends State<_BillHistoryScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(b['description'] ?? (b['category'] ?? 'Bill'),
+                                Text(b['provider'] ?? b['category'] ?? 'Bill',
                                   style: const TextStyle(fontSize: 13,
                                       fontWeight: FontWeight.w600,
                                       color: MyrabaColors.textPrimary)),
-                                Text(b['recipient'] ?? '',
+                                Text(b['identifier'] ?? b['billIdentifier'] ?? '',
                                   style: const TextStyle(fontSize: 11,
                                       color: MyrabaColors.textHint)),
                               ],
