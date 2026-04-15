@@ -59,7 +59,8 @@ class WalletService(
 
     @Transactional
     fun creditWallet(user: User, amount: BigDecimal, description: String, type: TransactionType = TransactionType.FUNDED) {
-        val wallet = user.wallet ?: return
+        // Load wallet fresh from DB — stale JPA principal may have uninitialized wallet field
+        val wallet = walletRepo.findByUserVingHandle(user.myrabaHandle) ?: return
 
         wallet.balance = wallet.balance.add(amount)
         wallet.updatedAt = LocalDateTime.now()

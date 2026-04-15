@@ -211,7 +211,9 @@ class _HomeTabState extends State<HomeTab> {
           Row(
             children: [
               _cardChip(Icons.account_balance_outlined,
-                _wallet?['accountNumber'] ?? '──────────'),
+                _wallet?['accountNumber']?.toString().isNotEmpty == true
+                    ? _wallet!['accountNumber'].toString()
+                    : 'Loading...'),
               const Spacer(),
               _cardChip(Icons.person_outline_rounded, auth.myrabaHandle ?? ''),
             ],

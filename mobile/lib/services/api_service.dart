@@ -175,6 +175,22 @@ class ApiService {
     'amount': amount, 'phone': phone,
   });
 
+  Future<Map<String, dynamic>> paySchoolFees({
+    required String schoolName,
+    required String studentId,
+    required String studentName,
+    required String paymentType,
+    required String phone,
+    required String amount,
+  }) => _postStrict('/api/bills/school-fees', {
+    'schoolName': schoolName,
+    'studentId': studentId,
+    'studentName': studentName,
+    'paymentType': paymentType,
+    'phone': phone,
+    'amount': num.tryParse(amount) ?? 0,
+  });
+
   Future<Map<String, dynamic>> payEducation({
     required String examBody,      // WAEC, NECO, JAMB
     required String profileCode,   // JAMB profile code or phone for WAEC/NECO

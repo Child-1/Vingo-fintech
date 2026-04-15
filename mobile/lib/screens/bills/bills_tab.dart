@@ -19,9 +19,9 @@ class BillsTab extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text('What would you like to pay?',
-            style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-          const SizedBox(height: 16),
+          // ── Utilities ──────────────────────────────────────────
+          _sectionLabel('Utilities & Services'),
+          const SizedBox(height: 12),
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -60,24 +60,72 @@ class BillsTab extends StatelessWidget {
                 color: MyrabaColors.orange,
                 onTap: () => _push(context, const _BettingScreen()),
               ),
+            ],
+          ),
+
+          // ── Education ──────────────────────────────────────────
+          const SizedBox(height: 24),
+          _sectionLabel('Education'),
+          const SizedBox(height: 12),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 3,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 0.95,
+            children: [
               _BillTile(
-                icon: Icons.school_rounded,
-                label: 'Education',
+                icon: Icons.edit_document,
+                label: 'Exam PINs',
                 color: MyrabaColors.teal,
                 onTap: () => _push(context, const _EducationScreen()),
               ),
               _BillTile(
-                icon: Icons.receipt_long_rounded,
-                label: 'History',
-                color: MyrabaColors.textSecond,
-                onTap: () => _push(context, const _BillHistoryScreen()),
+                icon: Icons.account_balance_rounded,
+                label: 'School Fees',
+                color: MyrabaColors.blue,
+                onTap: () => _push(context, const _SchoolFeesScreen()),
               ),
             ],
           ),
+
+          // ── Government & Tax ───────────────────────────────────
           const SizedBox(height: 24),
-          const Text('International & Others',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
-                color: MyrabaColors.textSecond)),
+          _sectionLabel('Government & Tax'),
+          const SizedBox(height: 12),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 3,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 0.95,
+            children: [
+              _BillTile(
+                icon: Icons.account_balance_wallet_rounded,
+                label: 'Tax (FIRS)',
+                color: MyrabaColors.orange,
+                onTap: () => _push(context, const _ComingSoonScreen(title: 'Tax Payment (FIRS)', description: 'Pay your Federal Inland Revenue Service taxes directly from your wallet. Coming soon.')),
+              ),
+              _BillTile(
+                icon: Icons.directions_car_rounded,
+                label: 'Road Safety',
+                color: MyrabaColors.red,
+                onTap: () => _push(context, const _ComingSoonScreen(title: 'FRSC Road Safety', description: 'Pay Road Safety (FRSC) fees including drivers licence and vehicle renewals. Coming soon.')),
+              ),
+              _BillTile(
+                icon: Icons.local_police_rounded,
+                label: 'Govt. Levies',
+                color: MyrabaColors.gold,
+                onTap: () => _push(context, const _ComingSoonScreen(title: 'Government Levies', description: 'Pay state and federal government levies, permits and certificates. Coming soon.')),
+              ),
+            ],
+          ),
+
+          // ── International & Others ─────────────────────────────
+          const SizedBox(height: 24),
+          _sectionLabel('International & Others'),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -112,6 +160,10 @@ class BillsTab extends StatelessWidget {
   void _push(BuildContext context, Widget screen) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }
+
+  Widget _sectionLabel(String label) => Text(label,
+    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+        color: MyrabaColors.textSecond));
 }
 
 class _BillTile extends StatelessWidget {
@@ -807,6 +859,180 @@ class _EducationScreenState extends State<_EducationScreen> {
             style: const TextStyle(fontSize: 11, color: MyrabaColors.textHint)),
           const SizedBox(height: 32),
           _payButton(_loading, _pay, 'Buy $_examBody PIN'),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Coming Soon ──────────────────────────────────────────────────────────────
+
+class _ComingSoonScreen extends StatelessWidget {
+  final String title;
+  final String description;
+  const _ComingSoonScreen({required this.title, required this.description});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: MyrabaColors.bg,
+      appBar: AppBar(title: Text(title)),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80, height: 80,
+                decoration: BoxDecoration(
+                  color: MyrabaColors.orange.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.hourglass_top_rounded,
+                    color: MyrabaColors.orange, size: 38),
+              ),
+              const SizedBox(height: 24),
+              const Text('Coming Soon',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800,
+                    color: MyrabaColors.textPrimary)),
+              const SizedBox(height: 12),
+              Text(description,
+                style: const TextStyle(fontSize: 14, color: MyrabaColors.textSecond),
+                textAlign: TextAlign.center),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Go Back'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── School Fees ──────────────────────────────────────────────────────────────
+
+class _SchoolFeesScreen extends StatefulWidget {
+  const _SchoolFeesScreen();
+
+  @override
+  State<_SchoolFeesScreen> createState() => _SchoolFeesScreenState();
+}
+
+class _SchoolFeesScreenState extends State<_SchoolFeesScreen> {
+  final _schoolCtrl   = TextEditingController();
+  final _studentIdCtrl = TextEditingController();
+  final _nameCtrl     = TextEditingController();
+  final _phoneCtrl    = TextEditingController();
+  final _amountCtrl   = TextEditingController();
+  String _paymentType = 'TUITION';
+  bool _loading       = false;
+  bool _success       = false;
+  String? _reference;
+
+  static const _paymentTypes = ['TUITION', 'PTA', 'HOSTEL', 'APPLICATION', 'OTHERS'];
+  static const _paymentLabels = {
+    'TUITION': 'School Fees / Tuition',
+    'PTA': 'PTA Levy',
+    'HOSTEL': 'Hostel / Accommodation',
+    'APPLICATION': 'Application / Acceptance Fee',
+    'OTHERS': 'Other School Payment',
+  };
+
+  @override
+  void dispose() {
+    _schoolCtrl.dispose(); _studentIdCtrl.dispose();
+    _nameCtrl.dispose(); _phoneCtrl.dispose(); _amountCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pay() async {
+    if (_schoolCtrl.text.trim().isEmpty || _studentIdCtrl.text.trim().isEmpty ||
+        _nameCtrl.text.trim().isEmpty || _amountCtrl.text.trim().isEmpty) { return; }
+    final auth = Provider.of<AuthService>(context, listen: false);
+    if (auth.token == null) return;
+    final api = ApiService(auth.token!);
+    setState(() => _loading = true);
+    try {
+      final res = await api.paySchoolFees(
+        schoolName: _schoolCtrl.text.trim(),
+        studentId: _studentIdCtrl.text.trim(),
+        studentName: _nameCtrl.text.trim(),
+        paymentType: _paymentType,
+        phone: _phoneCtrl.text.trim(),
+        amount: _amountCtrl.text.trim(),
+      );
+      if (!mounted) return;
+      setState(() {
+        _success = true;
+        _loading = false;
+        _reference = res['reference'] as String?;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(e.toString().replaceFirst('Exception: ', '')),
+        backgroundColor: MyrabaColors.red,
+      ));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _BillScaffold(
+      title: 'School Fees',
+      icon: Icons.account_balance_rounded,
+      color: MyrabaColors.blue,
+      success: _success,
+      successMessage: 'Payment recorded.\nReference: ${_reference ?? '—'}\n\nKeep this reference for your records.',
+      onDone: () => Navigator.pop(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _field('Institution / School Name', _schoolCtrl, TextInputType.text,
+              'e.g. University of Lagos'),
+          const SizedBox(height: 16),
+          _field('Matric / Student ID', _studentIdCtrl, TextInputType.text,
+              'e.g. 190101001'),
+          const SizedBox(height: 16),
+          _field('Student Full Name', _nameCtrl, TextInputType.name,
+              'As on school record'),
+          const SizedBox(height: 16),
+          const Text('Payment Type',
+              style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8, runSpacing: 8,
+            children: _paymentTypes.map((t) {
+              final active = _paymentType == t;
+              return GestureDetector(
+                onTap: () => setState(() => _paymentType = t),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: active ? MyrabaColors.blue.withValues(alpha: 0.15) : MyrabaColors.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: active ? MyrabaColors.blue : MyrabaColors.surfaceLine),
+                  ),
+                  child: Text(_paymentLabels[t] ?? t,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
+                      color: active ? MyrabaColors.blue : MyrabaColors.textSecond)),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+          _field('Amount (₦)', _amountCtrl, TextInputType.number, '0.00'),
+          const SizedBox(height: 16),
+          _field('Phone Number (optional)', _phoneCtrl, TextInputType.phone,
+              'e.g. 08012345678'),
+          const SizedBox(height: 32),
+          _payButton(_loading, _pay, 'Pay School Fees'),
         ],
       ),
     );

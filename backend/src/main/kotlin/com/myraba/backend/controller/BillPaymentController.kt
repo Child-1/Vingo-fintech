@@ -60,6 +60,15 @@ data class EducationRequest(
     val amount: BigDecimal      // total amount to pay
 )
 
+data class SchoolFeesRequest(
+    val schoolName: String,
+    val studentId: String,      // matric number / student ID
+    val studentName: String,
+    val paymentType: String,    // TUITION, PTA, HOSTEL, APPLICATION, OTHERS
+    val phone: String = "",
+    val amount: BigDecimal
+)
+
 @RestController
 @RequestMapping("/api/bills")
 class BillPaymentController(
@@ -238,6 +247,58 @@ class BillPaymentController(
                 requestId = requestId
             )
         }
+    }
+
+    @PostMapping("/school-fees")
+    fun paySchoolFees(
+        authentication: Authentication,
+        @RequestBody request: SchoolFeesRequest,
+        httpRequest: HttpServletRequest
+    ): ResponseEntity<Any> {
+        val user = authentication.principal as User
+        val paymentType = request.paymentType.uppercase()
+        val validTypes = listOf("TUITION", "PTA", "HOSTEL", "APPLICATION", "OTHERS")
+        if (paymentType !in validTypes)
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid payment type. Use: ${validTypes.joinToString()}")
+
+        val description = "${request.schoolName} — $paymentType — ${request.studentName} (${request.studentId})"
+
+        // Deduct from wallet; record transaction. Actual remittance to institution
+        // requires Remita/school banking integration (to be added per institution onboarding).
+        val success = walletService.deductFromWallet(
+            user = user,
+            amount = request.amount,
+            description = description,
+            type = com.myraba.backend.model.TransactionType.BILL_PAYMENT
+        )
+        if (!success) throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient wallet balance")
+
+        val requestId = vtpassService.generateRequestId()
+        val record = billPaymentRepo.save(
+            com.myraba.backend.model.BillPayment(
+                user = user,
+                category = com.myraba.backend.model.BillCategory.SCHOOL_FEES,
+                serviceId = "school-fees",
+                providerName = request.schoolName,
+                billIdentifier = request.studentId,
+                amount = request.amount,
+                requestId = requestId,
+                status = "SUCCESS"
+            )
+        )
+
+        auditLogService.logUser(user.myrabaHandle, "SCHOOL_FEES_PAYMENT", "BILL", record.id.toString(),
+            details = description, request = httpRequest)
+
+        return ResponseEntity.ok(mapOf(
+            "status"        to "SUCCESS",
+            "school"        to request.schoolName,
+            "studentId"     to request.studentId,
+            "paymentType"   to paymentType,
+            "amount"        to request.amount.toPlainString(),
+            "reference"     to requestId,
+            "message"       to "$paymentType payment recorded for ${request.studentName}. Keep your reference: $requestId"
+        ))
     }
 
     // ─── History ──────────────────────────────────────────────────
