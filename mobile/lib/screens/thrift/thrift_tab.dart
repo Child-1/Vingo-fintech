@@ -966,6 +966,7 @@ class _CreateThriftDialogState extends State<_CreateThriftDialog> {
   String _frequency = 'MONTHLY';
   String _assignment = 'RAFFLE';
   bool _submitting = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -1005,13 +1006,10 @@ class _CreateThriftDialogState extends State<_CreateThriftDialog> {
       widget.onCreated(code, collateral);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _submitting = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: MyrabaColors.red,
-        ),
-      );
+      setState(() {
+        _submitting = false;
+        _error = e.toString().replaceFirst('Exception: ', '');
+      });
     }
   }
 
@@ -1083,6 +1081,30 @@ class _CreateThriftDialogState extends State<_CreateThriftDialog> {
             ),
             const SizedBox(height: 12),
             _field(_rulesCtrl, 'Group Rules (optional)', maxLines: 3),
+            if (_error != null) ...[
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: MyrabaColors.red.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: MyrabaColors.red.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.error_outline_rounded,
+                        color: MyrabaColors.red, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(_error!,
+                        style: const TextStyle(
+                            fontSize: 13, color: MyrabaColors.red)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
