@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*
 import java.math.BigDecimal
 
 data class SendGiftRequest(
-    val recipientVingHandle: String,   // without the m₦ prefix
+    val recipientMyrabaHandle: String,
     val giftItemId: Long,
     val note: String? = null,
     val anonymous: Boolean = false
@@ -64,13 +64,13 @@ class GiftController(
         val sender = authentication.principal as User
         val tx = giftService.sendGiftFromWallet(
             sender = sender,
-            recipientVingHandle = request.recipientVingHandle,
+            recipientVingHandle = request.recipientMyrabaHandle,
             giftItemId = request.giftItemId,
             note = request.note,
             anonymous = request.anonymous
         )
         auditLogService.logUser(sender.myrabaHandle, "GIFT_SEND", "GIFT_TRANSACTION", tx.id.toString(),
-            details = "Sent ${tx.giftItem.emoji} ${tx.giftItem.name} (₦${tx.nairaValue}) to @${request.recipientVingHandle}",
+            details = "Sent ${tx.giftItem.emoji} ${tx.giftItem.name} (₦${tx.nairaValue}) to @${request.recipientMyrabaHandle}",
             request = httpRequest)
         return ResponseEntity.status(HttpStatus.CREATED).body(
             mapOf(

@@ -131,7 +131,7 @@ class ApiService {
     String? note,
     bool anonymous = false,
   }) => _postStrict('/api/gifts/send', {
-    'recipientVingHandle': recipientMyrabaHandle,
+    'recipientMyrabaHandle': recipientMyrabaHandle,
     'giftItemId': giftItemId,
     'note': note,
     'anonymous': anonymous,
