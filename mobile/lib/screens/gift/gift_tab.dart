@@ -586,7 +586,7 @@ class _SendGiftTabState extends State<_SendGiftTab> {
                           ],
                         ),
                       ),
-                      Text('₦${_selItem!['price'] ?? '0'}',
+                      Text('₦${_selItem!['nairaValue'] ?? _selItem!['price'] ?? '0'}',
                           style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
