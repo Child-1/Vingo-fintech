@@ -47,8 +47,8 @@ export default function ThriftsPage() {
   const toggleCategory = useMutation({
     mutationFn: ({ id, active }: { id: number; active: boolean }) =>
       active
-        ? api.post(`/api/admin/thrifts/categories/${id}/deactivate`)
-        : api.post(`/api/admin/thrifts/categories/${id}/activate`),
+        ? api.post(`/api/admin/system/thrift-categories/${id}/deactivate`)
+        : api.post(`/api/admin/system/thrift-categories/${id}/activate`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-thrift-categories'] }),
   });
 

@@ -4,7 +4,7 @@ import { api } from '../lib/api';
 import { formatNaira, formatNumber } from '../lib/utils';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, Legend,
+  LineChart, Line, Legend, PieChart, Pie, Cell,
 } from 'recharts';
 import { Download } from 'lucide-react';
 
@@ -15,6 +15,16 @@ export default function ReportsPage() {
   const { data: totals } = useQuery({
     queryKey: ['report-totals'],
     queryFn: () => api.get('/api/admin/reports/totals').then(r => r.data),
+  });
+
+  const { data: txSummary } = useQuery({
+    queryKey: ['tx-summary'],
+    queryFn: () => api.get('/api/admin/transactions/summary').then(r => r.data),
+  });
+
+  const { data: userStats } = useQuery({
+    queryKey: ['user-stats-overview'],
+    queryFn: () => api.get('/api/admin/users/stats/overview').then(r => r.data),
   });
 
   useQuery({
@@ -46,12 +56,12 @@ export default function ReportsPage() {
     a.click();
   }
 
-  const chartData = breakdown?.dailyBreakdown?.map((d: any) => ({
+  const chartData = (breakdown?.data ?? breakdown?.dailyBreakdown ?? []).map((d: any) => ({
     date: d.date?.slice(5),   // MM-DD
-    volume: Number(d.totalAmount ?? 0),
-    txCount: Number(d.txCount ?? 0),
+    volume: Number(d.volume ?? d.totalAmount ?? 0),
+    txCount: Number(d.count ?? d.txCount ?? 0),
     fees: Number(d.fees ?? 0),
-  })) ?? [];
+  }));
 
   return (
     <div className="p-6 space-y-6">
@@ -69,10 +79,10 @@ export default function ReportsPage() {
       {totals && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Total Volume',      value: formatNaira(totals.totalVolume ?? 0),      accent: 'text-myraba-success' },
-            { label: 'Total Fees',        value: formatNaira(totals.totalFees ?? 0),        accent: 'text-brand' },
-            { label: 'Total Txns',        value: formatNumber(totals.totalTransactions ?? 0), accent: 'text-white' },
-            { label: 'Success Rate',      value: `${totals.successRate ?? 0}%`,             accent: 'text-myraba-success' },
+            { label: 'Total Volume',      value: formatNaira(totals.allTimeVolume ?? totals.totalVolume ?? 0),      accent: 'text-myraba-success' },
+            { label: 'Total Fees',        value: formatNaira(totals.allTimeFees ?? totals.totalFees ?? 0),          accent: 'text-brand' },
+            { label: 'Total Users',       value: formatNumber(totals.totalUsers ?? 0),                             accent: 'text-white' },
+            { label: 'System Liquidity',  value: formatNaira(totals.systemLiquidity ?? 0),                         accent: 'text-myraba-success' },
           ].map(({ label, value, accent }) => (
             <div key={label} className="card">
               <p className="text-myraba-second text-xs">{label}</p>
@@ -118,6 +128,83 @@ export default function ReportsPage() {
               <Line yAxisId="left" type="monotone" dataKey="txCount" stroke="#10B981" strokeWidth={2} dot={false} name="Txn count" />
               <Line yAxisId="right" type="monotone" dataKey="fees"    stroke="#F59E0B" strokeWidth={2} dot={false} name="Fees (₦)" />
             </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* ── Distribution pie charts ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {userStats && (
+          <div className="card">
+            <h2 className="text-white font-medium text-sm mb-4">User Status Distribution</h2>
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Active',    value: userStats.active    ?? 0 },
+                    { name: 'Suspended', value: userStats.suspended ?? 0 },
+                    { name: 'Frozen',    value: userStats.frozen    ?? 0 },
+                  ].filter(d => d.value > 0)}
+                  cx="50%" cy="50%" outerRadius={80} dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  labelLine={false}>
+                  {['#10B981','#F59E0B','#EF4444'].map((c, i) => <Cell key={i} fill={c} />)}
+                </Pie>
+                <Tooltip contentStyle={{ background: '#141128', border: '1px solid #3D3060', borderRadius: 8 }}
+                  formatter={(v: any) => [formatNumber(v), '']} />
+                <Legend wrapperStyle={{ color: '#B0A8C8', fontSize: 12 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {userStats && (
+          <div className="card">
+            <h2 className="text-white font-medium text-sm mb-4">KYC Status Distribution</h2>
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Approved', value: userStats.kycApproved ?? 0 },
+                    { name: 'Pending',  value: userStats.kycPending  ?? 0 },
+                    { name: 'Rejected', value: userStats.kycRejected ?? 0 },
+                    { name: 'No KYC',   value: Math.max(0, (userStats.total ?? 0) - (userStats.kycApproved ?? 0) - (userStats.kycPending ?? 0) - (userStats.kycRejected ?? 0)) },
+                  ].filter(d => d.value > 0)}
+                  cx="50%" cy="50%" outerRadius={80} dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  labelLine={false}>
+                  {['#10B981','#F59E0B','#EF4444','#6B6185'].map((c, i) => <Cell key={i} fill={c} />)}
+                </Pie>
+                <Tooltip contentStyle={{ background: '#141128', border: '1px solid #3D3060', borderRadius: 8 }}
+                  formatter={(v: any) => [formatNumber(v), '']} />
+                <Legend wrapperStyle={{ color: '#B0A8C8', fontSize: 12 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* ── Transaction breakdown: income vs fees bar ── */}
+      {txSummary && (
+        <div className="card">
+          <h2 className="text-white font-medium text-sm mb-4">Platform Financial Summary</h2>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart layout="vertical" margin={{ top: 0, right: 20, left: 20, bottom: 0 }}
+              data={[
+                { name: 'Total Volume',  value: Number(txSummary.totalVolume ?? 0) },
+                { name: 'Fees Collected', value: Number(txSummary.totalFees ?? 0) },
+                { name: 'Pending Payouts', value: Number(txSummary.pendingPayouts ?? 0) },
+              ]}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#3D3060" horizontal={false} />
+              <XAxis type="number" tick={{ fill: '#6B6185', fontSize: 11 }} tickLine={false} axisLine={false}
+                tickFormatter={v => `₦${(v/1000).toFixed(0)}k`} />
+              <YAxis type="category" dataKey="name" tick={{ fill: '#B0A8C8', fontSize: 12 }} tickLine={false} axisLine={false} width={110} />
+              <Tooltip contentStyle={{ background: '#141128', border: '1px solid #3D3060', borderRadius: 8 }}
+                formatter={(v: any) => [formatNaira(v), '']} />
+              <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                {['#10B981', '#F59E0B', '#6366F1'].map((c, i) => <Cell key={i} fill={c} />)}
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       )}

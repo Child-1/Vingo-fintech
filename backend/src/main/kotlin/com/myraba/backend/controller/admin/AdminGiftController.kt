@@ -69,6 +69,16 @@ class AdminGiftController(
 
     // ─── Gift items ───────────────────────────────────────────────
 
+    @GetMapping("/items")
+    fun listAllItems(): ResponseEntity<Any> {
+        val items = itemRepo.findAll().map { i ->
+            mapOf("id" to i.id, "name" to i.name, "emoji" to i.emoji,
+                  "nairaValue" to i.nairaValue.toPlainString(), "isActive" to i.isActive,
+                  "categoryName" to i.category.name, "categoryId" to i.category.id)
+        }
+        return ResponseEntity.ok(mapOf("items" to items))
+    }
+
     @GetMapping("/categories/{categoryId}/items")
     fun listItems(@PathVariable categoryId: Long): ResponseEntity<Any> {
         val items = itemRepo.findByCategoryIdAndIsActiveTrue(categoryId).map { i ->

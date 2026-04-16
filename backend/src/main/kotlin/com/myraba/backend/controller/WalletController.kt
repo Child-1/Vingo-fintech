@@ -260,6 +260,63 @@ class WalletController(
         return response
     }
 
+    /** Monthly income vs expense breakdown for the logged-in user (last N months) */
+    @GetMapping("/monthly-review")
+    fun getMonthlyReview(
+        authentication: Authentication,
+        @RequestParam(defaultValue = "12") months: Int
+    ): ResponseEntity<Any> {
+        val user = authentication.principal as User
+        val wallet = walletRepository.findByUserVingHandle(user.myrabaHandle)
+            ?: return ResponseEntity.notFound().build()
+
+        val now = java.time.LocalDateTime.now()
+        val incomingTypes = setOf(
+            TransactionType.FUNDED, TransactionType.PAYOUT,
+            TransactionType.ADMIN_CREDIT, TransactionType.TRANSFER, TransactionType.GIFT
+        )
+        val outgoingTypes = setOf(
+            TransactionType.TRANSFER, TransactionType.CONTRIBUTION, TransactionType.WITHDRAWAL,
+            TransactionType.PENALTY, TransactionType.BILL_PAYMENT, TransactionType.GIFT, TransactionType.ADMIN_DEBIT
+        )
+
+        // Fetch all transactions for this wallet in the window
+        val since = now.minusMonths(months.toLong())
+        val allTx = transactionRepository
+            .findBySenderWalletOrReceiverWalletOrderByCreatedAtDesc(wallet, wallet)
+            .filter { it.createdAt.isAfter(since) && it.status == "SUCCESS" }
+
+        val monthlyData = (months - 1 downTo 0).map { i ->
+            val monthStart = now.minusMonths(i.toLong()).withDayOfMonth(1).toLocalDate().atStartOfDay()
+            val monthEnd   = monthStart.plusMonths(1)
+            val label      = "${monthStart.month.name.take(3)} ${monthStart.year}"
+
+            val income = allTx.filter { tx ->
+                tx.createdAt >= monthStart && tx.createdAt < monthEnd &&
+                tx.receiverWallet?.id == wallet.id &&
+                tx.type in incomingTypes
+            }.sumOf { it.amount }
+
+            val expense = allTx.filter { tx ->
+                tx.createdAt >= monthStart && tx.createdAt < monthEnd &&
+                tx.senderWallet?.id == wallet.id &&
+                tx.type in outgoingTypes
+            }.sumOf { it.amount }
+
+            mapOf(
+                "label"   to label,
+                "income"  to income.toPlainString(),
+                "expense" to expense.toPlainString()
+            )
+        }
+
+        return ResponseEntity.ok(mapOf(
+            "months" to months,
+            "currency" to "NGN",
+            "data" to monthlyData
+        ))
+    }
+
     @PostMapping("/fund")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @Transactional

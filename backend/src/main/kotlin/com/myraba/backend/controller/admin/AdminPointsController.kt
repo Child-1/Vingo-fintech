@@ -1,6 +1,7 @@
 package com.myraba.backend.controller.admin
 
 import com.myraba.backend.model.PointReason
+import com.myraba.backend.repository.UserPointsRepository
 import com.myraba.backend.repository.UserRepository
 import com.myraba.backend.service.PointsService
 import org.springframework.http.HttpStatus
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 
 data class AdminGrantPointsRequest(
-    val userId: Long,
+    val myrabaHandle: String,
     val points: Long,
     val description: String? = null
 )
@@ -20,8 +21,45 @@ data class AdminGrantPointsRequest(
 @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
 class AdminPointsController(
     private val pointsService: PointsService,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val userPointsRepository: UserPointsRepository
 ) {
+
+    /** Platform-wide points stats */
+    @GetMapping("/stats")
+    fun getStats(): ResponseEntity<Any> {
+        val allPoints = userPointsRepository.findAll()
+        val totalIssued = allPoints.sumOf { it.totalPoints }
+        val totalLifetime = allPoints.sumOf { it.allTimePoints }
+        val usersWithPoints = allPoints.count { it.totalPoints > 0 }
+        val currentYear = java.time.LocalDateTime.now().year
+        val thisYearTotal = allPoints.sumOf { it.thisYearPoints }
+        return ResponseEntity.ok(mapOf(
+            "totalPointsIssued"  to totalIssued,
+            "totalLifetime"      to totalLifetime,
+            "thisYearTotal"      to thisYearTotal,
+            "usersWithPoints"    to usersWithPoints
+        ))
+    }
+
+    /** Top 20 users by this-year points */
+    @GetMapping("/leaderboard")
+    fun getLeaderboard(): ResponseEntity<Any> {
+        val all = userPointsRepository.findAll()
+        val top = all.sortedByDescending { it.thisYearPoints }.take(20)
+        return ResponseEntity.ok(mapOf(
+            "users" to top.map { p ->
+                mapOf(
+                    "id"           to p.user.id,
+                    "fullName"     to p.user.fullName,
+                    "myrabaHandle" to p.user.myrabaHandle,
+                    "thisYear"     to p.thisYearPoints,
+                    "allTime"      to p.allTimePoints,
+                    "updatedAt"    to p.lastEarnedAt?.toString()
+                )
+            }
+        ))
+    }
 
     /** Manually grant points to a user */
     @PostMapping("/grant")
@@ -29,8 +67,8 @@ class AdminPointsController(
         if (request.points <= 0)
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Points must be positive")
 
-        val user = userRepository.findById(request.userId).orElse(null)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
+        val user = userRepository.findByVingHandle(request.myrabaHandle)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: ${request.myrabaHandle}")
 
         val updated = pointsService.awardPoints(
             user = user,

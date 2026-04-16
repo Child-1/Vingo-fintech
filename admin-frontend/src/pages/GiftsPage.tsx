@@ -21,9 +21,9 @@ export default function GiftsPage() {
 
   const { data: items } = useQuery({
     queryKey: ['admin-gift-items', activeCategory],
-    queryFn: () => api.get('/api/admin/gifts/items', {
-      params: activeCategory ? { categoryId: activeCategory } : {},
-    }).then(r => r.data),
+    queryFn: () => activeCategory
+      ? api.get(`/api/admin/gifts/categories/${activeCategory}/items`).then(r => r.data)
+      : api.get('/api/admin/gifts/items').then(r => r.data),
   });
 
   /* ── Mutations ── */
@@ -33,14 +33,14 @@ export default function GiftsPage() {
   });
 
   const toggleCat = useMutation({
-    mutationFn: ({ id, active }: { id: number; active: boolean }) =>
-      api.patch(`/api/admin/gifts/categories/${id}`, { active: !active }),
+    mutationFn: ({ id }: { id: number; active: boolean }) =>
+      api.put(`/api/admin/gifts/categories/${id}/toggle`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-gift-categories'] }),
   });
 
   const createItem = useMutation({
-    mutationFn: (payload: typeof itemForm) => api.post('/api/admin/gifts/items', {
-      ...payload, valueNaira: Number(payload.valueNaira), categoryId: Number(payload.categoryId),
+    mutationFn: (payload: typeof itemForm) => api.post(`/api/admin/gifts/categories/${Number(payload.categoryId)}/items`, {
+      name: payload.name, emoji: payload.emoji, nairaValue: Number(payload.valueNaira),
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-gift-items'] });
@@ -50,15 +50,15 @@ export default function GiftsPage() {
   });
 
   const updateItem = useMutation({
-    mutationFn: ({ id, ...payload }: any) => api.put(`/api/admin/gifts/items/${id}`, {
-      ...payload, valueNaira: Number(payload.valueNaira),
+    mutationFn: ({ id, nairaValue }: any) => api.put(`/api/admin/gifts/items/${id}/price`, {
+      nairaValue: Number(nairaValue),
     }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-gift-items'] }); setEditingItem(null); },
   });
 
   const toggleItem = useMutation({
-    mutationFn: ({ id, active }: { id: number; active: boolean }) =>
-      api.patch(`/api/admin/gifts/items/${id}`, { active: !active }),
+    mutationFn: ({ id }: { id: number; active: boolean }) =>
+      api.put(`/api/admin/gifts/items/${id}/toggle`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-gift-items'] }),
   });
 
@@ -116,11 +116,11 @@ export default function GiftsPage() {
                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                   activeCategory === c.id ? 'bg-brand text-white border-brand' : 'border-surface-border text-myraba-second hover:text-white'
                 }`}>
-                {c.name} {!c.active && <span className="text-myraba-error">(off)</span>}
+                {c.name} {!c.isActive && <span className="text-myraba-error">(off)</span>}
               </button>
-              <button onClick={() => toggleCat.mutate({ id: c.id, active: c.active })}
+              <button onClick={() => toggleCat.mutate({ id: c.id, active: c.isActive })}
                 className="text-myraba-hint hover:text-myraba-second">
-                {c.active ? <ToggleRight size={14} className="text-myraba-success" /> : <ToggleLeft size={14} />}
+                {c.isActive ? <ToggleRight size={14} className="text-myraba-success" /> : <ToggleLeft size={14} />}
               </button>
             </div>
           ))}
@@ -216,12 +216,12 @@ export default function GiftsPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {giftItems.map((item: any) => (
-            <div key={item.id} className={`card flex items-center justify-between gap-3 ${!item.active ? 'opacity-50' : ''}`}>
+            <div key={item.id} className={`card flex items-center justify-between gap-3 ${!item.isActive ? 'opacity-50' : ''}`}>
               <div className="flex items-center gap-3">
                 <span className="text-2xl">{item.emoji}</span>
                 <div>
                   <p className="text-white text-sm font-medium">{item.name}</p>
-                  <p className="text-myraba-success text-xs font-semibold">{formatNaira(item.valueNaira)}</p>
+                  <p className="text-myraba-success text-xs font-semibold">{formatNaira(item.nairaValue)}</p>
                   {item.categoryName && <p className="text-myraba-hint text-xs">{item.categoryName}</p>}
                 </div>
               </div>
@@ -230,9 +230,9 @@ export default function GiftsPage() {
                   className="btn-ghost p-1.5 text-myraba-second hover:text-white">
                   <Pencil size={13} />
                 </button>
-                <button onClick={() => toggleItem.mutate({ id: item.id, active: item.active })}
+                <button onClick={() => toggleItem.mutate({ id: item.id, active: item.isActive })}
                   className="btn-ghost p-1.5">
-                  {item.active
+                  {item.isActive
                     ? <ToggleRight size={16} className="text-myraba-success" />
                     : <ToggleLeft size={16} className="text-myraba-hint" />}
                 </button>

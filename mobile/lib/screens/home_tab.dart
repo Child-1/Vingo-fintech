@@ -7,6 +7,7 @@ import 'wallet/send_money_screen.dart';
 import 'wallet/fund_wallet_screen.dart';
 import 'wallet/transaction_history_screen.dart';
 import 'qr_screen.dart';
+import 'wallet/monthly_review_screen.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -253,8 +254,8 @@ class _HomeTabState extends State<HomeTab> {
             _action(Icons.qr_code_rounded, 'Receive', MyrabaColors.purple, () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const QrScreen()));
             }),
-            _action(Icons.history_rounded, 'History', MyrabaColors.orange, () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const TransactionHistoryScreen()));
+            _action(Icons.bar_chart_rounded, 'Stats', MyrabaColors.orange, () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const MonthlyReviewScreen()));
             }),
           ],
         ),

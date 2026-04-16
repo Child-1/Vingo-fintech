@@ -24,7 +24,7 @@ export default function PointsPage() {
 
   const grantPoints = useMutation({
     mutationFn: (payload: typeof grantForm) =>
-      api.post('/api/admin/points/grant', { ...payload, points: Number(payload.points) }),
+      api.post('/api/admin/points/grant', { myrabaHandle: payload.myrabaHandle, points: Number(payload.points), description: payload.reason }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['points-stats'] });
       qc.invalidateQueries({ queryKey: ['points-leaderboard'] });
@@ -33,7 +33,7 @@ export default function PointsPage() {
   });
 
   const bulkConvert = useMutation({
-    mutationFn: () => api.post('/api/admin/points/convert-all'),
+    mutationFn: () => api.post('/api/admin/points/convert/all'),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['points-stats'] });
       setBulkConfirm(false);

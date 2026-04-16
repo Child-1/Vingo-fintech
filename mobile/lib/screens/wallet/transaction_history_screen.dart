@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
+import 'monthly_review_screen.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});
@@ -35,11 +36,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         _loading = false;
       });
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = 'Failed to load transactions';
           _loading = false;
         });
+      }
     }
   }
 
@@ -47,7 +49,17 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MyrabaColors.bg,
-      appBar: AppBar(title: const Text('Transaction History')),
+      appBar: AppBar(
+        title: const Text('Transaction History'),
+        actions: [
+          IconButton(
+            tooltip: 'Monthly Review',
+            icon: const Icon(Icons.bar_chart_rounded),
+            onPressed: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const MonthlyReviewScreen())),
+          ),
+        ],
+      ),
       body: _loading
           ? const Center(
               child: CircularProgressIndicator(color: MyrabaColors.green))

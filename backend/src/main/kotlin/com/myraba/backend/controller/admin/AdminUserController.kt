@@ -256,6 +256,47 @@ class AdminUserController(
         ))
     }
 
+    // ── User growth over time ──────────────────────────────────────
+
+    @GetMapping("/growth")
+    fun getUserGrowth(
+        @RequestParam(defaultValue = "daily") period: String,
+        @RequestParam(defaultValue = "30") count: Int
+    ): ResponseEntity<Any> {
+        val now = LocalDateTime.now()
+        val data = when (period.lowercase()) {
+            "hourly" -> (count - 1 downTo 0).map { i ->
+                val from = now.minusHours(i.toLong() + 1)
+                val to   = now.minusHours(i.toLong())
+                mapOf("label" to "${to.hour}:00", "count" to userRepository.countByCreatedAtBetween(from, to))
+            }
+            "weekly" -> (count - 1 downTo 0).map { i ->
+                val from = now.minusWeeks(i.toLong() + 1)
+                val to   = now.minusWeeks(i.toLong())
+                val label = "W${to.toLocalDate()}"
+                mapOf("label" to label, "count" to userRepository.countByCreatedAtBetween(from, to))
+            }
+            "monthly" -> (count - 1 downTo 0).map { i ->
+                val from = now.minusMonths(i.toLong() + 1)
+                val to   = now.minusMonths(i.toLong())
+                val label = "${from.month.name.take(3)} ${from.year}"
+                mapOf("label" to label, "count" to userRepository.countByCreatedAtBetween(from, to))
+            }
+            "yearly" -> (count - 1 downTo 0).map { i ->
+                val from = now.minusYears(i.toLong() + 1)
+                val to   = now.minusYears(i.toLong())
+                mapOf("label" to from.year.toString(), "count" to userRepository.countByCreatedAtBetween(from, to))
+            }
+            else -> // daily (default)
+                (count - 1 downTo 0).map { i ->
+                    val from = now.minusDays(i.toLong() + 1)
+                    val to   = now.minusDays(i.toLong())
+                    mapOf("label" to from.toLocalDate().toString().substring(5), "count" to userRepository.countByCreatedAtBetween(from, to))
+                }
+        }
+        return ResponseEntity.ok(mapOf("period" to period, "data" to data))
+    }
+
     // ── Helper ────────────────────────────────────────────────────
 
     private fun User.toAdminResponse(): AdminUserResponse {

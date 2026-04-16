@@ -36,4 +36,6 @@ interface UserRepository : JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u WHERE LOWER(u.myrabaHandle) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%', :q, '%')) OR u.phone LIKE CONCAT('%', :q, '%') OR u.accountNumber LIKE CONCAT('%', :q, '%')")
     fun searchUsers(@Param("q") query: String, pageable: Pageable): Page<User>
+
+    fun countByCreatedAtBetween(from: LocalDateTime, to: LocalDateTime): Long
 }
