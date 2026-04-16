@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
+import '../stats/monthly_review_screen.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -178,7 +179,8 @@ class _ProfileTabState extends State<ProfileTab> {
           _infoRow(Icons.phone_outlined, 'Phone', _profile?['phone'] ?? '—'),
           if ((_profile?['address'] as String?) != null) ...[
             const Divider(height: 24, color: MyrabaColors.surfaceLine),
-            _infoRow(Icons.location_on_outlined, 'Address', _profile!['address'] as String),
+            _infoRow(Icons.location_on_outlined, 'Address',
+                _profile!['address'] as String),
           ],
         ],
       ),
@@ -328,6 +330,10 @@ class _ProfileTabState extends State<ProfileTab> {
   Widget _buildMenuSection(AuthService auth) {
     return Column(
       children: [
+        _menuItem(Icons.bar_chart_rounded, 'Monthly Review', MyrabaColors.teal,
+            () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const MonthlyReviewScreen()))),
+        const SizedBox(height: 10),
         _menuItem(Icons.history_rounded, 'Year in Review', MyrabaColors.purple,
             () => _showYearInReview()),
         const SizedBox(height: 10),
@@ -383,7 +389,8 @@ class _ProfileTabState extends State<ProfileTab> {
     final phoneCtrl = TextEditingController(text: _profile?['phone'] ?? '');
     final emailCtrl = TextEditingController(text: _profile?['email'] ?? '');
     final addressCtrl = TextEditingController(text: _profile?['address'] ?? '');
-    final customIdCtrl = TextEditingController(text: _profile?['customAccountId'] ?? '');
+    final customIdCtrl =
+        TextEditingController(text: _profile?['customAccountId'] ?? '');
     bool saving = false;
     String? error;
 
@@ -449,19 +456,21 @@ class _ProfileTabState extends State<ProfileTab> {
               const SizedBox(height: 8),
               TextField(
                   controller: addressCtrl,
-                  decoration:
-                      const InputDecoration(hintText: 'e.g. 12 Lagos Street, Abuja')),
+                  decoration: const InputDecoration(
+                      hintText: 'e.g. 12 Lagos Street, Abuja')),
               const SizedBox(height: 16),
               const Text('Custom Account ID',
                   style:
                       TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
               const SizedBox(height: 4),
-              const Text('A short ID others can use to send you money (e.g. 5678-smith)',
+              const Text(
+                  'A short ID others can use to send you money (e.g. 5678-smith)',
                   style: TextStyle(fontSize: 11, color: MyrabaColors.textHint)),
               const SizedBox(height: 8),
               TextField(
                   controller: customIdCtrl,
-                  decoration: const InputDecoration(hintText: 'e.g. 5678-smith')),
+                  decoration:
+                      const InputDecoration(hintText: 'e.g. 5678-smith')),
               if (error != null) ...[
                 const SizedBox(height: 12),
                 Text(error!,
@@ -482,11 +491,21 @@ class _ProfileTabState extends State<ProfileTab> {
                         final api = ApiService(auth.token!);
                         try {
                           await api.updateMyProfile(
-                            fullName: nameCtrl.text.trim().isEmpty ? null : nameCtrl.text.trim(),
-                            phone: phoneCtrl.text.trim().isEmpty ? null : phoneCtrl.text.trim(),
-                            email: emailCtrl.text.trim().isEmpty ? null : emailCtrl.text.trim(),
-                            address: addressCtrl.text.trim().isEmpty ? null : addressCtrl.text.trim(),
-                            customAccountId: customIdCtrl.text.trim().isEmpty ? null : customIdCtrl.text.trim(),
+                            fullName: nameCtrl.text.trim().isEmpty
+                                ? null
+                                : nameCtrl.text.trim(),
+                            phone: phoneCtrl.text.trim().isEmpty
+                                ? null
+                                : phoneCtrl.text.trim(),
+                            email: emailCtrl.text.trim().isEmpty
+                                ? null
+                                : emailCtrl.text.trim(),
+                            address: addressCtrl.text.trim().isEmpty
+                                ? null
+                                : addressCtrl.text.trim(),
+                            customAccountId: customIdCtrl.text.trim().isEmpty
+                                ? null
+                                : customIdCtrl.text.trim(),
                           );
                           if (ctx.mounted) Navigator.pop(ctx);
                           _load();
@@ -795,11 +814,12 @@ class _SecuritySheetState extends State<_SecuritySheet> {
     try {
       await ApiService(auth.token!)
           .changePassword(_currentCtrl.text, _newCtrl.text);
-      if (mounted)
+      if (mounted) {
         setState(() {
           _success = true;
           _loading = false;
         });
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -961,17 +981,20 @@ class _KycSheetState extends State<_KycSheet> {
       _error = null;
     });
     try {
-      if (_bvnCtrl.text.trim().isNotEmpty)
+      if (_bvnCtrl.text.trim().isNotEmpty) {
         await api.submitBvn(_bvnCtrl.text.trim());
-      if (_ninCtrl.text.trim().isNotEmpty)
+      }
+      if (_ninCtrl.text.trim().isNotEmpty) {
         await api.submitNin(_ninCtrl.text.trim());
+      }
       if (mounted) widget.onDone();
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = 'Verification failed';
           _loading = false;
         });
+      }
     }
   }
 

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
 
@@ -12,7 +11,6 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen>
     with TickerProviderStateMixin {
-
   late final AnimationController _ctrl;
 
   late final Animation<double> _myFade;
@@ -31,36 +29,42 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2200),
+      duration: const Duration(milliseconds: 4500),
     );
 
-    _bgFade = CurvedAnimation(parent: _ctrl,
-        curve: const Interval(0.00, 0.22, curve: Curves.easeIn));
+    _bgFade = CurvedAnimation(
+        parent: _ctrl, curve: const Interval(0.00, 0.18, curve: Curves.easeIn));
 
-    _myFade = CurvedAnimation(parent: _ctrl,
-        curve: const Interval(0.05, 0.28, curve: Curves.easeOut));
-    _mySlide = Tween<double>(begin: -30, end: 0).animate(CurvedAnimation(
+    _myFade = CurvedAnimation(
         parent: _ctrl,
-        curve: const Interval(0.05, 0.28, curve: Curves.easeOut)));
-
-    _abaFade = CurvedAnimation(parent: _ctrl,
-        curve: const Interval(0.12, 0.35, curve: Curves.easeOut));
-    _abaSlide = Tween<double>(begin: 30, end: 0).animate(CurvedAnimation(
+        curve: const Interval(0.08, 0.26, curve: Curves.easeOut));
+    _mySlide = Tween<double>(begin: -40, end: 0).animate(CurvedAnimation(
         parent: _ctrl,
-        curve: const Interval(0.12, 0.35, curve: Curves.easeOut)));
+        curve: const Interval(0.08, 0.26, curve: Curves.easeOut)));
 
-    _RFade = CurvedAnimation(parent: _ctrl,
-        curve: const Interval(0.22, 0.44, curve: Curves.easeOut));
-    _RBounce = Tween<double>(begin: -70, end: 0).animate(CurvedAnimation(
+    _abaFade = CurvedAnimation(
         parent: _ctrl,
-        curve: const Interval(0.22, 0.55, curve: Curves.elasticOut)));
+        curve: const Interval(0.32, 0.50, curve: Curves.easeOut));
+    _abaSlide = Tween<double>(begin: 40, end: 0).animate(CurvedAnimation(
+        parent: _ctrl,
+        curve: const Interval(0.32, 0.50, curve: Curves.easeOut)));
 
-    _subFade = CurvedAnimation(parent: _ctrl,
-        curve: const Interval(0.50, 0.68, curve: Curves.easeOut));
-    _cardFade = CurvedAnimation(parent: _ctrl,
-        curve: const Interval(0.58, 0.76, curve: Curves.easeOut));
-    _btnFade = CurvedAnimation(parent: _ctrl,
-        curve: const Interval(0.70, 0.88, curve: Curves.easeOut));
+    _RFade = CurvedAnimation(
+        parent: _ctrl,
+        curve: const Interval(0.20, 0.36, curve: Curves.easeOut));
+    _RBounce = Tween<double>(begin: -80, end: 0).animate(CurvedAnimation(
+        parent: _ctrl,
+        curve: const Interval(0.20, 0.48, curve: Curves.elasticOut)));
+
+    _subFade = CurvedAnimation(
+        parent: _ctrl,
+        curve: const Interval(0.54, 0.68, curve: Curves.easeOut));
+    _cardFade = CurvedAnimation(
+        parent: _ctrl,
+        curve: const Interval(0.63, 0.76, curve: Curves.easeOut));
+    _btnFade = CurvedAnimation(
+        parent: _ctrl,
+        curve: const Interval(0.74, 0.88, curve: Curves.easeOut));
 
     _ctrl.forward();
   }
@@ -96,17 +100,23 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               ),
             ),
 
-            // ── Unicorn image — multiply blend removes white bg ───
+            // ── Soft centre glow (replaces unicorn) ──────────────
             Positioned.fill(
               child: Opacity(
-                opacity: _bgFade.value,
-                child: Image.asset(
-                  'assets/images/unicorn.jpg',
-                  fit: BoxFit.contain,
-                  alignment: Alignment.center,
-                  color: const Color(0xFF1A0535),
-                  colorBlendMode: BlendMode.multiply,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                opacity: _bgFade.value * 0.6,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: Alignment.center,
+                      radius: 0.9,
+                      colors: [
+                        const Color(0xFF9333EA).withValues(alpha: 0.18),
+                        const Color(0xFFFF6B00).withValues(alpha: 0.08),
+                        Colors.transparent,
+                      ],
+                      stops: const [0.0, 0.5, 1.0],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -213,7 +223,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       child: Column(children: [
                         // Create Account — solid orange gradient pill
                         GestureDetector(
-                          onTap: () => Navigator.push(context,
+                          onTap: () => Navigator.push(
+                              context,
                               MaterialPageRoute(
                                   builder: (_) => const RegisterScreen())),
                           child: Container(
@@ -226,7 +237,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               borderRadius: BorderRadius.circular(28),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFFFF6B00).withValues(alpha: 0.4),
+                                  color: const Color(0xFFFF6B00)
+                                      .withValues(alpha: 0.4),
                                   blurRadius: 20,
                                   offset: const Offset(0, 6),
                                 ),
@@ -248,7 +260,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
                         // Log In — outlined orange pill
                         GestureDetector(
-                          onTap: () => Navigator.push(context,
+                          onTap: () => Navigator.push(
+                              context,
                               MaterialPageRoute(
                                   builder: (_) => const LoginScreen())),
                           child: Container(
@@ -276,9 +289,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           'By continuing you agree to our Terms of Service\nand Privacy Policy.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.white38,
-                              height: 1.6),
+                              fontSize: 11, color: Colors.white38, height: 1.6),
                         ),
                         const SizedBox(height: 20),
                       ]),
@@ -322,16 +333,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             ),
           ),
 
-          // "R" — hot pink / magenta, bounces from above
+          // "R" — gold shimmer, bounces from above
           Opacity(
             opacity: _RFade.value,
             child: Transform.translate(
               offset: Offset(0, _RBounce.value),
               child: ShaderMask(
                 shaderCallback: (b) => const LinearGradient(
-                  colors: [Color(0xFFFF2DAB), Color(0xFFBF20FF)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFFFD700), Color(0xFFFFA500), Color(0xFFFFD700)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ).createShader(b),
                 blendMode: BlendMode.srcIn,
                 child: const Text('R', style: style),
@@ -363,7 +374,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 52, height: 52,
+          width: 52,
+          height: 52,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [Color(0xFFFF8C00), Color(0xFFE85D00)],
@@ -384,6 +396,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
-  Widget _featureDivider() =>
-      Container(width: 1, height: 44, color: Colors.white.withValues(alpha: 0.12));
+  Widget _featureDivider() => Container(
+      width: 1, height: 44, color: Colors.white.withValues(alpha: 0.12));
 }
