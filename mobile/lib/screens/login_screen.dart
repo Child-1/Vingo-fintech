@@ -60,10 +60,10 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        leading: const BackButton(color: MyrabaColors.textSecond),
+        leading: BackButton(color: context.mc.textSecond),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -71,48 +71,48 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Welcome back',
+              Text('Welcome back',
                   style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
-                      color: MyrabaColors.textPrimary)),
-              const SizedBox(height: 6),
-              const Text('Log in to your Myraba account',
+                      color: context.mc.textPrimary)),
+              SizedBox(height: 6),
+              Text('Log in to your Myraba account',
                   style:
-                      TextStyle(fontSize: 14, color: MyrabaColors.textSecond)),
-              const SizedBox(height: 40),
-              const Text('Phone number or Email',
+                      TextStyle(fontSize: 14, color: context.mc.textSecond)),
+              SizedBox(height: 40),
+              Text('Phone number or Email',
                   style:
-                      TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-              const SizedBox(height: 8),
+                      TextStyle(fontSize: 13, color: context.mc.textSecond)),
+              SizedBox(height: 8),
               TextField(
                 controller: _identifierCtrl,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'e.g. 08012345678 or you@email.com',
                   prefixIcon: Icon(Icons.person_outline_rounded,
-                      color: MyrabaColors.textHint, size: 20),
+                      color: context.mc.textHint, size: 20),
                 ),
               ),
-              const SizedBox(height: 20),
-              const Text('Password',
+              SizedBox(height: 20),
+              Text('Password',
                   style:
-                      TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-              const SizedBox(height: 8),
+                      TextStyle(fontSize: 13, color: context.mc.textSecond)),
+              SizedBox(height: 8),
               TextField(
                 controller: _passCtrl,
                 obscureText: !_passVisible,
                 onSubmitted: (_) => _login(),
                 decoration: InputDecoration(
                   hintText: 'Your password',
-                  prefixIcon: const Icon(Icons.lock_outline_rounded,
-                      color: MyrabaColors.textHint, size: 20),
+                  prefixIcon: Icon(Icons.lock_outline_rounded,
+                      color: context.mc.textHint, size: 20),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _passVisible
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
-                      color: MyrabaColors.textHint,
+                      color: context.mc.textHint,
                       size: 20,
                     ),
                     onPressed: () =>
@@ -161,12 +161,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   onTap: () => Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                          builder: (_) => const RegisterScreen())),
+                          builder: (_) => RegisterScreen())),
                   child: RichText(
-                    text: const TextSpan(
+                    text: TextSpan(
                       text: "Don't have an account? ",
                       style:
-                          TextStyle(color: MyrabaColors.textHint, fontSize: 13),
+                          TextStyle(color: context.mc.textHint, fontSize: 13),
                       children: [
                         TextSpan(
                             text: 'Create one',

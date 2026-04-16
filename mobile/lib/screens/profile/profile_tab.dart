@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
+import '../../services/theme_provider.dart';
 import '../stats/monthly_review_screen.dart';
 
 class ProfileTab extends StatefulWidget {
@@ -51,14 +52,14 @@ class _ProfileTabState extends State<ProfileTab> {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthService>(context);
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       body: _loading
-          ? const Center(
+          ? Center(
               child: CircularProgressIndicator(color: MyrabaColors.green))
           : RefreshIndicator(
               onRefresh: _load,
               color: MyrabaColors.green,
-              backgroundColor: MyrabaColors.surface,
+              backgroundColor: context.mc.surface,
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
                 children: [
@@ -98,7 +99,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 child: Center(
                   child: Text(
                     (auth.fullName ?? 'U').substring(0, 1).toUpperCase(),
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.w800,
                         color: MyrabaColors.green),
@@ -113,23 +114,23 @@ class _ProfileTabState extends State<ProfileTab> {
                   decoration: BoxDecoration(
                     color: MyrabaColors.green,
                     shape: BoxShape.circle,
-                    border: Border.all(color: MyrabaColors.bg, width: 2),
+                    border: Border.all(color: context.mc.bg, width: 2),
                   ),
-                  child: const Icon(Icons.edit_rounded,
+                  child: Icon(Icons.edit_rounded,
                       color: Colors.white, size: 13),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           Text(auth.fullName ?? 'User',
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
-                  color: MyrabaColors.textPrimary)),
+                  color: context.mc.textPrimary)),
           const SizedBox(height: 4),
           Text('m₦${auth.myrabaHandle ?? ''}',
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 15,
                   color: MyrabaColors.green,
                   fontWeight: FontWeight.w600)),
@@ -143,21 +144,21 @@ class _ProfileTabState extends State<ProfileTab> {
     final customId = _profile?['customAccountId'];
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: myrabaCard(),
+      decoration: context.mc.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Account Details',
+              Text('Account Details',
                   style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: MyrabaColors.textPrimary)),
+                      color: context.mc.textPrimary)),
               GestureDetector(
                 onTap: () => _showEditProfileSheet(),
-                child: const Text('Edit',
+                child: Text('Edit',
                     style: TextStyle(
                         fontSize: 12,
                         color: MyrabaColors.green,
@@ -165,20 +166,20 @@ class _ProfileTabState extends State<ProfileTab> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           _infoRow(
               Icons.account_balance_outlined, 'Account Number', accountNumber,
               copyable: true),
           if (customId != null) ...[
-            const Divider(height: 24, color: MyrabaColors.surfaceLine),
+            Divider(height: 24, color: context.mc.surfaceLine),
             _infoRow(Icons.tag_rounded, 'Custom ID', customId, copyable: true),
           ],
-          const Divider(height: 24, color: MyrabaColors.surfaceLine),
+          Divider(height: 24, color: context.mc.surfaceLine),
           _infoRow(Icons.email_outlined, 'Email', _profile?['email'] ?? '—'),
-          const Divider(height: 24, color: MyrabaColors.surfaceLine),
+          Divider(height: 24, color: context.mc.surfaceLine),
           _infoRow(Icons.phone_outlined, 'Phone', _profile?['phone'] ?? '—'),
           if ((_profile?['address'] as String?) != null) ...[
-            const Divider(height: 24, color: MyrabaColors.surfaceLine),
+            Divider(height: 24, color: context.mc.surfaceLine),
             _infoRow(Icons.location_on_outlined, 'Address',
                 _profile!['address'] as String),
           ],
@@ -191,21 +192,21 @@ class _ProfileTabState extends State<ProfileTab> {
       {bool copyable = false}) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: MyrabaColors.textHint),
-        const SizedBox(width: 10),
+        Icon(icon, size: 16, color: context.mc.textHint),
+        SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(label,
-                  style: const TextStyle(
-                      fontSize: 11, color: MyrabaColors.textHint)),
-              const SizedBox(height: 2),
+                  style: TextStyle(
+                      fontSize: 11, color: context.mc.textHint)),
+              SizedBox(height: 2),
               Text(value,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: MyrabaColors.textPrimary)),
+                      color: context.mc.textPrimary)),
             ],
           ),
         ),
@@ -214,14 +215,14 @@ class _ProfileTabState extends State<ProfileTab> {
             onTap: () {
               Clipboard.setData(ClipboardData(text: value));
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
+                SnackBar(
                     content: Text('Copied!'),
                     backgroundColor: MyrabaColors.green,
                     duration: Duration(seconds: 1)),
               );
             },
-            child: const Icon(Icons.copy_rounded,
-                size: 16, color: MyrabaColors.textHint),
+            child: Icon(Icons.copy_rounded,
+                size: 16, color: context.mc.textHint),
           ),
       ],
     );
@@ -244,7 +245,7 @@ class _ProfileTabState extends State<ProfileTab> {
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: myrabaCard(),
+      decoration: context.mc.card(),
       child: Row(
         children: [
           Container(
@@ -260,16 +261,16 @@ class _ProfileTabState extends State<ProfileTab> {
               size: 22,
             ),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('KYC Verification',
+                Text('KYC Verification',
                     style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: MyrabaColors.textPrimary)),
+                        color: context.mc.textPrimary)),
                 Text(label, style: TextStyle(fontSize: 12, color: color)),
               ],
             ),
@@ -277,7 +278,7 @@ class _ProfileTabState extends State<ProfileTab> {
           if (!isVerified)
             TextButton(
               onPressed: () => _showKycSheet(),
-              child: const Text('Verify Now', style: TextStyle(fontSize: 12)),
+              child: Text('Verify Now', style: TextStyle(fontSize: 12)),
             ),
         ],
       ),
@@ -288,7 +289,7 @@ class _ProfileTabState extends State<ProfileTab> {
     final pts = _points?['points'] ?? 0;
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: myrabaCard(),
+      decoration: context.mc.card(),
       child: Row(
         children: [
           Container(
@@ -298,22 +299,22 @@ class _ProfileTabState extends State<ProfileTab> {
               color: MyrabaColors.gold.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.star_rounded,
+            child: Icon(Icons.star_rounded,
                 color: MyrabaColors.gold, size: 22),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Myraba Points',
+                Text('Myraba Points',
                     style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: MyrabaColors.textPrimary)),
+                        color: context.mc.textPrimary)),
                 Text('$pts pts accumulated',
-                    style: const TextStyle(
-                        fontSize: 12, color: MyrabaColors.textHint)),
+                    style: TextStyle(
+                        fontSize: 12, color: context.mc.textHint)),
               ],
             ),
           ),
@@ -332,27 +333,65 @@ class _ProfileTabState extends State<ProfileTab> {
       children: [
         _menuItem(Icons.bar_chart_rounded, 'Monthly Review', MyrabaColors.teal,
             () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const MonthlyReviewScreen()))),
-        const SizedBox(height: 10),
+                MaterialPageRoute(builder: (_) => MonthlyReviewScreen()))),
+        SizedBox(height: 10),
         _menuItem(Icons.history_rounded, 'Year in Review', MyrabaColors.purple,
             () => _showYearInReview()),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
+        _buildThemeToggle(),
+        SizedBox(height: 10),
         _menuItem(Icons.security_rounded, 'Security Settings',
             MyrabaColors.blue, () => _showSecuritySettings()),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         _menuItem(Icons.help_outline_rounded, 'Help & Support',
-            MyrabaColors.textSecond, () => _showHelpSupport()),
+            context.mc.textSecond, () => _showHelpSupport()),
         const SizedBox(height: 24),
         OutlinedButton.icon(
           onPressed: () => _confirmLogout(auth),
           icon: const Icon(Icons.logout_rounded, color: MyrabaColors.red),
           label:
-              const Text('Log Out', style: TextStyle(color: MyrabaColors.red)),
+              Text('Log Out', style: TextStyle(color: MyrabaColors.red)),
           style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: MyrabaColors.red),
+            side: BorderSide(color: MyrabaColors.red),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildThemeToggle() {
+    final themeProvider = context.watch<ThemeProvider>();
+    final isDark = themeProvider.isDark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: context.mc.card(),
+      child: Row(
+        children: [
+          Icon(
+            isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+            color: isDark ? MyrabaColors.purple : MyrabaColors.gold,
+            size: 20,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              isDark ? 'Dark Mode' : 'Light Mode',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: context.mc.textPrimary,
+              ),
+            ),
+          ),
+          Switch(
+            value: isDark,
+            onChanged: (_) => themeProvider.toggle(),
+            activeThumbColor: MyrabaColors.purple,
+            inactiveThumbColor: MyrabaColors.gold,
+            inactiveTrackColor: MyrabaColors.gold.withValues(alpha: 0.3),
+          ),
+        ],
+      ),
     );
   }
 
@@ -362,20 +401,20 @@ class _ProfileTabState extends State<ProfileTab> {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: myrabaCard(),
+        decoration: context.mc.card(),
         child: Row(
           children: [
             Icon(icon, color: color, size: 20),
-            const SizedBox(width: 14),
+            SizedBox(width: 14),
             Expanded(
               child: Text(label,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: MyrabaColors.textPrimary)),
+                      color: context.mc.textPrimary)),
             ),
-            const Icon(Icons.chevron_right_rounded,
-                color: MyrabaColors.textHint, size: 20),
+            Icon(Icons.chevron_right_rounded,
+                color: context.mc.textHint, size: 20),
           ],
         ),
       ),
@@ -396,9 +435,9 @@ class _ProfileTabState extends State<ProfileTab> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: MyrabaColors.surface,
+      backgroundColor: context.mc.surface,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocal) => Padding(
@@ -413,59 +452,59 @@ class _ProfileTabState extends State<ProfileTab> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                          color: MyrabaColors.surfaceLine,
+                          color: context.mc.surfaceLine,
                           borderRadius: BorderRadius.circular(2)))),
-              const SizedBox(height: 20),
-              const Text('Edit Profile',
+              SizedBox(height: 20),
+              Text('Edit Profile',
                   style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: MyrabaColors.textPrimary)),
-              const SizedBox(height: 20),
-              const Text('Full Name',
+                      color: context.mc.textPrimary)),
+              SizedBox(height: 20),
+              Text('Full Name',
                   style:
-                      TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-              const SizedBox(height: 8),
+                      TextStyle(fontSize: 13, color: context.mc.textSecond)),
+              SizedBox(height: 8),
               TextField(
                   controller: nameCtrl,
                   decoration:
-                      const InputDecoration(hintText: 'Your full name')),
-              const SizedBox(height: 16),
-              const Text('Phone Number',
+                      InputDecoration(hintText: 'Your full name')),
+              SizedBox(height: 16),
+              Text('Phone Number',
                   style:
-                      TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-              const SizedBox(height: 8),
+                      TextStyle(fontSize: 13, color: context.mc.textSecond)),
+              SizedBox(height: 8),
               TextField(
                   controller: phoneCtrl,
                   keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(hintText: '08012345678')),
-              const SizedBox(height: 16),
-              const Text('Email Address',
+                  decoration: InputDecoration(hintText: '08012345678')),
+              SizedBox(height: 16),
+              Text('Email Address',
                   style:
-                      TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-              const SizedBox(height: 8),
+                      TextStyle(fontSize: 13, color: context.mc.textSecond)),
+              SizedBox(height: 8),
               TextField(
                   controller: emailCtrl,
                   keyboardType: TextInputType.emailAddress,
                   decoration:
-                      const InputDecoration(hintText: 'you@example.com')),
-              const SizedBox(height: 16),
-              const Text('Address',
+                      InputDecoration(hintText: 'you@example.com')),
+              SizedBox(height: 16),
+              Text('Address',
                   style:
-                      TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-              const SizedBox(height: 8),
+                      TextStyle(fontSize: 13, color: context.mc.textSecond)),
+              SizedBox(height: 8),
               TextField(
                   controller: addressCtrl,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                       hintText: 'e.g. 12 Lagos Street, Abuja')),
-              const SizedBox(height: 16),
-              const Text('Custom Account ID',
+              SizedBox(height: 16),
+              Text('Custom Account ID',
                   style:
-                      TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-              const SizedBox(height: 4),
-              const Text(
+                      TextStyle(fontSize: 13, color: context.mc.textSecond)),
+              SizedBox(height: 4),
+              Text(
                   'A short ID others can use to send you money (e.g. 5678-smith)',
-                  style: TextStyle(fontSize: 11, color: MyrabaColors.textHint)),
+                  style: TextStyle(fontSize: 11, color: context.mc.textHint)),
               const SizedBox(height: 8),
               TextField(
                   controller: customIdCtrl,
@@ -529,7 +568,7 @@ class _ProfileTabState extends State<ProfileTab> {
                         width: 22,
                         child: CircularProgressIndicator(
                             color: Colors.white, strokeWidth: 2))
-                    : const Text('Save Changes'),
+                    : Text('Save Changes'),
               ),
             ],
           ),
@@ -543,9 +582,9 @@ class _ProfileTabState extends State<ProfileTab> {
   void _showSecuritySettings() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: MyrabaColors.surface,
+      backgroundColor: context.mc.surface,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => _SecuritySheet(onDone: () {
         Navigator.pop(ctx);
@@ -558,9 +597,9 @@ class _ProfileTabState extends State<ProfileTab> {
   void _showHelpSupport() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: MyrabaColors.surface,
+      backgroundColor: context.mc.surface,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => Padding(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 48),
@@ -573,19 +612,19 @@ class _ProfileTabState extends State<ProfileTab> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                        color: MyrabaColors.surfaceLine,
+                        color: context.mc.surfaceLine,
                         borderRadius: BorderRadius.circular(2)))),
-            const SizedBox(height: 20),
-            const Text('Help & Support',
+            SizedBox(height: 20),
+            Text('Help & Support',
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: MyrabaColors.textPrimary)),
-            const SizedBox(height: 6),
-            const Text(
+                    color: context.mc.textPrimary)),
+            SizedBox(height: 6),
+            Text(
                 'We\'re here to help. Reach us through any of the channels below.',
                 style: TextStyle(
-                    fontSize: 13, color: MyrabaColors.textHint, height: 1.4)),
+                    fontSize: 13, color: context.mc.textHint, height: 1.4)),
             const SizedBox(height: 24),
             _supportItem(
                 Icons.email_outlined, 'Email Support', 'support@myraba.ng'),
@@ -632,33 +671,33 @@ class _ProfileTabState extends State<ProfileTab> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('$label copied'),
             backgroundColor: MyrabaColors.green,
-            duration: const Duration(seconds: 1)));
+            duration: Duration(seconds: 1)));
       },
       child: Container(
         padding: const EdgeInsets.all(14),
-        decoration: myrabaCard(),
+        decoration: context.mc.card(),
         child: Row(
           children: [
-            Icon(icon, color: MyrabaColors.textHint, size: 18),
-            const SizedBox(width: 14),
+            Icon(icon, color: context.mc.textHint, size: 18),
+            SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(label,
-                      style: const TextStyle(
-                          fontSize: 11, color: MyrabaColors.textHint)),
-                  const SizedBox(height: 2),
+                      style: TextStyle(
+                          fontSize: 11, color: context.mc.textHint)),
+                  SizedBox(height: 2),
                   Text(value,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: MyrabaColors.textPrimary)),
+                          color: context.mc.textPrimary)),
                 ],
               ),
             ),
-            const Icon(Icons.copy_rounded,
-                size: 14, color: MyrabaColors.textHint),
+            Icon(Icons.copy_rounded,
+                size: 14, color: context.mc.textHint),
           ],
         ),
       ),
@@ -670,9 +709,9 @@ class _ProfileTabState extends State<ProfileTab> {
   void _showYearInReview() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: MyrabaColors.surface,
+      backgroundColor: context.mc.surface,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => Padding(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 48),
@@ -684,40 +723,40 @@ class _ProfileTabState extends State<ProfileTab> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                        color: MyrabaColors.surfaceLine,
+                        color: context.mc.surfaceLine,
                         borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 32),
             Container(
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   colors: [Color(0xFF9333EA), Color(0xFFFF2DAB)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Icon(Icons.auto_awesome_rounded,
+              child: Icon(Icons.auto_awesome_rounded,
                   color: Colors.white, size: 36),
             ),
-            const SizedBox(height: 20),
-            const Text('Year in Review',
+            SizedBox(height: 20),
+            Text('Year in Review',
                 style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: MyrabaColors.textPrimary)),
-            const SizedBox(height: 8),
+                    color: context.mc.textPrimary)),
+            SizedBox(height: 8),
             Text(
               'Your ${DateTime.now().year} Myraba story is being prepared.\nCheck back at the end of the year!',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                  fontSize: 14, color: MyrabaColors.textHint, height: 1.5),
+              style: TextStyle(
+                  fontSize: 14, color: context.mc.textHint, height: 1.5),
             ),
-            const SizedBox(height: 32),
-            const Text('Coming soon — we\'ll notify you when it\'s ready.',
+            SizedBox(height: 32),
+            Text('Coming soon — we\'ll notify you when it\'s ready.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: MyrabaColors.textHint)),
+                style: TextStyle(fontSize: 12, color: context.mc.textHint)),
           ],
         ),
       ),
@@ -729,7 +768,7 @@ class _ProfileTabState extends State<ProfileTab> {
   void _showKycSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: MyrabaColors.surface,
+      backgroundColor: context.mc.surface,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       isScrollControlled: true,
@@ -746,15 +785,15 @@ class _ProfileTabState extends State<ProfileTab> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: MyrabaColors.surface,
-        title: const Text('Log Out'),
-        content: const Text('Are you sure you want to log out?',
-            style: TextStyle(color: MyrabaColors.textSecond)),
+        backgroundColor: context.mc.surface,
+        title: Text('Log Out'),
+        content: Text('Are you sure you want to log out?',
+            style: TextStyle(color: context.mc.textSecond)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel',
-                style: TextStyle(color: MyrabaColors.textSecond)),
+            child: Text('Cancel',
+                style: TextStyle(color: context.mc.textSecond)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -844,17 +883,17 @@ class _SecuritySheetState extends State<_SecuritySheet> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                      color: MyrabaColors.surfaceLine,
+                      color: context.mc.surfaceLine,
                       borderRadius: BorderRadius.circular(2)))),
-          const SizedBox(height: 20),
-          const Text('Security Settings',
+          SizedBox(height: 20),
+          Text('Security Settings',
               style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: MyrabaColors.textPrimary)),
-          const SizedBox(height: 6),
-          const Text('Change your account password',
-              style: TextStyle(fontSize: 13, color: MyrabaColors.textHint)),
+                  color: context.mc.textPrimary)),
+          SizedBox(height: 6),
+          Text('Change your account password',
+              style: TextStyle(fontSize: 13, color: context.mc.textHint)),
           const SizedBox(height: 24),
           if (_success) ...[
             Container(
@@ -877,15 +916,15 @@ class _SecuritySheetState extends State<_SecuritySheet> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             ElevatedButton(
               onPressed: widget.onDone,
-              child: const Text('Done'),
+              child: Text('Done'),
             ),
           ] else ...[
-            const Text('Current Password',
-                style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-            const SizedBox(height: 8),
+            Text('Current Password',
+                style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+            SizedBox(height: 8),
             TextField(
               controller: _currentCtrl,
               obscureText: !_visible,
@@ -896,25 +935,25 @@ class _SecuritySheetState extends State<_SecuritySheet> {
                       _visible
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
-                      color: MyrabaColors.textHint,
+                      color: context.mc.textHint,
                       size: 18),
                   onPressed: () => setState(() => _visible = !_visible),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            const Text('New Password',
-                style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-            const SizedBox(height: 8),
+            SizedBox(height: 16),
+            Text('New Password',
+                style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+            SizedBox(height: 8),
             TextField(
               controller: _newCtrl,
               obscureText: !_visible,
               decoration:
-                  const InputDecoration(hintText: 'At least 8 characters'),
+                  InputDecoration(hintText: 'At least 8 characters'),
             ),
-            const SizedBox(height: 16),
-            const Text('Confirm New Password',
-                style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
+            SizedBox(height: 16),
+            Text('Confirm New Password',
+                style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
             const SizedBox(height: 8),
             TextField(
               controller: _confirmCtrl,
@@ -1012,30 +1051,30 @@ class _KycSheetState extends State<_KycSheet> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                      color: MyrabaColors.surfaceLine,
+                      color: context.mc.surfaceLine,
                       borderRadius: BorderRadius.circular(2)))),
-          const SizedBox(height: 20),
-          const Text('KYC Verification',
+          SizedBox(height: 20),
+          Text('KYC Verification',
               style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: MyrabaColors.textPrimary)),
-          const SizedBox(height: 6),
-          const Text('Provide your BVN or NIN to verify your identity',
-              style: TextStyle(fontSize: 13, color: MyrabaColors.textHint)),
-          const SizedBox(height: 24),
-          const Text('BVN (optional)',
-              style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-          const SizedBox(height: 8),
+                  color: context.mc.textPrimary)),
+          SizedBox(height: 6),
+          Text('Provide your BVN or NIN to verify your identity',
+              style: TextStyle(fontSize: 13, color: context.mc.textHint)),
+          SizedBox(height: 24),
+          Text('BVN (optional)',
+              style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+          SizedBox(height: 8),
           TextField(
               controller: _bvnCtrl,
               keyboardType: TextInputType.number,
               maxLength: 11,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                   hintText: '11-digit BVN', counterText: '')),
-          const SizedBox(height: 16),
-          const Text('NIN (optional)',
-              style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
+          SizedBox(height: 16),
+          Text('NIN (optional)',
+              style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
           const SizedBox(height: 8),
           TextField(
               controller: _ninCtrl,

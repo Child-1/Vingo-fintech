@@ -36,14 +36,14 @@ class _QrScreenState extends State<QrScreen>
     final deepLink = 'myraba://pay/$myrabaHandle';
 
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       appBar: AppBar(
-        title: const Text('QR Code'),
+        title: Text('QR Code'),
         bottom: TabBar(
           controller: _tabs,
           indicatorColor: MyrabaColors.green,
           labelColor: MyrabaColors.green,
-          unselectedLabelColor: MyrabaColors.textHint,
+          unselectedLabelColor: context.mc.textHint,
           tabs: const [
             Tab(text: 'My QR Code'),
             Tab(text: 'Scan to Pay'),
@@ -72,10 +72,10 @@ class _MyQrTab extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          const SizedBox(height: 16),
-          const Text('Share your code to receive money',
-              style: TextStyle(color: MyrabaColors.textSecond, fontSize: 14)),
-          const SizedBox(height: 28),
+          SizedBox(height: 16),
+          Text('Share your code to receive money',
+              style: TextStyle(color: context.mc.textSecond, fontSize: 14)),
+          SizedBox(height: 28),
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -92,17 +92,17 @@ class _MyQrTab extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             'v\u20a6$myrabaHandle',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w800,
               color: MyrabaColors.green,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(deepLink,
               style:
-                  const TextStyle(fontSize: 12, color: MyrabaColors.textHint)),
-          const SizedBox(height: 28),
+                  TextStyle(fontSize: 12, color: context.mc.textHint)),
+          SizedBox(height: 28),
           OutlinedButton.icon(
             onPressed: () {
               Clipboard.setData(ClipboardData(text: deepLink));
@@ -188,12 +188,12 @@ class _ScanTabState extends State<_ScanTab> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
-                color: MyrabaColors.surface,
+                color: context.mc.surface,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Text('Scan a Myraba QR code',
+              child: Text('Scan a Myraba QR code',
                   style:
-                      TextStyle(color: MyrabaColors.textPrimary, fontSize: 14)),
+                      TextStyle(color: context.mc.textPrimary, fontSize: 14)),
             ),
           ),
         ),

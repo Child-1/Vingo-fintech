@@ -7,7 +7,7 @@ import 'wallet/send_money_screen.dart';
 import 'wallet/fund_wallet_screen.dart';
 import 'wallet/transaction_history_screen.dart';
 import 'qr_screen.dart';
-import 'wallet/monthly_review_screen.dart';
+import 'stats/monthly_review_screen.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -54,11 +54,11 @@ class _HomeTabState extends State<HomeTab> {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthService>(context);
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       body: RefreshIndicator(
         onRefresh: _load,
         color: MyrabaColors.green,
-        backgroundColor: MyrabaColors.surface,
+        backgroundColor: context.mc.surface,
         child: CustomScrollView(
           slivers: [
             _buildAppBar(auth),
@@ -90,7 +90,7 @@ class _HomeTabState extends State<HomeTab> {
 
   SliverAppBar _buildAppBar(AuthService auth) {
     return SliverAppBar(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       floating: true,
       snap: true,
       titleSpacing: 20,
@@ -100,7 +100,7 @@ class _HomeTabState extends State<HomeTab> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Good ${_greeting()},',
-                style: const TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
+                style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
               Text(
                 auth.myrabaTag ?? 'Welcome',
                 style: const TextStyle(
@@ -114,11 +114,11 @@ class _HomeTabState extends State<HomeTab> {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.qr_code_scanner_rounded, color: MyrabaColors.textPrimary),
-          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QrScreen())),
+          icon: Icon(Icons.qr_code_scanner_rounded, color: context.mc.textPrimary),
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => QrScreen())),
         ),
         IconButton(
-          icon: const Icon(Icons.notifications_outlined, color: MyrabaColors.textPrimary),
+          icon: Icon(Icons.notifications_outlined, color: context.mc.textPrimary),
           onPressed: () => _showNotifications(),
         ),
         const SizedBox(width: 4),
@@ -229,7 +229,7 @@ class _HomeTabState extends State<HomeTab> {
       children: [
         Icon(icon, size: 13, color: Colors.white54),
         const SizedBox(width: 5),
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.white60)),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.white60)),
       ],
     );
   }
@@ -238,9 +238,9 @@ class _HomeTabState extends State<HomeTab> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Quick Actions',
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: MyrabaColors.textSecond)),
-        const SizedBox(height: 14),
+        Text('Quick Actions',
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: context.mc.textSecond)),
+        SizedBox(height: 14),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -277,10 +277,10 @@ class _HomeTabState extends State<HomeTab> {
             ),
             child: Icon(icon, color: color, size: 26),
           ),
-          const SizedBox(height: 7),
+          SizedBox(height: 7),
           Text(label,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500,
-                color: MyrabaColors.textSecond)),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500,
+                color: context.mc.textSecond)),
         ],
       ),
     );
@@ -293,9 +293,9 @@ class _HomeTabState extends State<HomeTab> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Recent Transactions',
+            Text('Recent Transactions',
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600,
-                  color: MyrabaColors.textSecond)),
+                  color: context.mc.textSecond)),
             GestureDetector(
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const TransactionHistoryScreen())),
@@ -305,24 +305,24 @@ class _HomeTabState extends State<HomeTab> {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         if (_transactions.isEmpty)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 40),
-            decoration: myrabaCard(),
-            child: const Column(
+            decoration: context.mc.card(),
+            child: Column(
               children: [
-                Icon(Icons.receipt_long_outlined, color: MyrabaColors.textHint, size: 40),
+                Icon(Icons.receipt_long_outlined, color: context.mc.textHint, size: 40),
                 SizedBox(height: 10),
                 Text('No transactions yet',
-                  style: TextStyle(color: MyrabaColors.textHint, fontSize: 14)),
+                  style: TextStyle(color: context.mc.textHint, fontSize: 14)),
               ],
             ),
           )
         else
           Container(
-            decoration: myrabaCard(),
+            decoration: context.mc.card(),
             child: Column(
               children: _transactions.asMap().entries.map((e) {
                 final tx = e.value as Map<String, dynamic>;
@@ -356,18 +356,18 @@ class _HomeTabState extends State<HomeTab> {
                 ),
                 child: Icon(icon, color: color, size: 20),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(tx['description'] ?? type,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500,
-                          color: MyrabaColors.textPrimary),
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500,
+                          color: context.mc.textPrimary),
                       maxLines: 1, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 3),
+                    SizedBox(height: 3),
                     Text(_formatDate(tx['date'] as String?),
-                      style: const TextStyle(fontSize: 12, color: MyrabaColors.textHint)),
+                      style: TextStyle(fontSize: 12, color: context.mc.textHint)),
                   ],
                 ),
               ),
@@ -377,8 +377,8 @@ class _HomeTabState extends State<HomeTab> {
           ),
         ),
         if (!isLast)
-          const Divider(height: 1, indent: 70, endIndent: 16,
-              color: MyrabaColors.surfaceLine),
+          Divider(height: 1, indent: 70, endIndent: 16,
+              color: context.mc.surfaceLine),
       ],
     );
   }
@@ -416,8 +416,8 @@ class _HomeTabState extends State<HomeTab> {
   void _showNotifications() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: MyrabaColors.surface,
-      shape: const RoundedRectangleBorder(
+      backgroundColor: context.mc.surface,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => Padding(
@@ -428,31 +428,31 @@ class _HomeTabState extends State<HomeTab> {
             Container(
               width: 36, height: 4,
               decoration: BoxDecoration(
-                color: MyrabaColors.surfaceLine,
+                color: context.mc.surfaceLine,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: 20),
-            const Row(
+            SizedBox(height: 20),
+            Row(
               children: [
                 Icon(Icons.notifications_outlined, color: MyrabaColors.green, size: 22),
                 SizedBox(width: 10),
                 Text('Notifications',
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700,
-                      color: MyrabaColors.textPrimary)),
+                      color: context.mc.textPrimary)),
               ],
             ),
-            const SizedBox(height: 32),
-            const Icon(Icons.notifications_off_outlined,
-                color: MyrabaColors.textHint, size: 48),
-            const SizedBox(height: 12),
-            const Text('No notifications yet',
-              style: TextStyle(fontSize: 15, color: MyrabaColors.textSecond,
+            SizedBox(height: 32),
+            Icon(Icons.notifications_off_outlined,
+                color: context.mc.textHint, size: 48),
+            SizedBox(height: 12),
+            Text('No notifications yet',
+              style: TextStyle(fontSize: 15, color: context.mc.textSecond,
                   fontWeight: FontWeight.w500)),
-            const SizedBox(height: 6),
-            const Text("You're all caught up!",
-              style: TextStyle(fontSize: 13, color: MyrabaColors.textHint)),
-            const SizedBox(height: 20),
+            SizedBox(height: 6),
+            Text("You're all caught up!",
+              style: TextStyle(fontSize: 13, color: context.mc.textHint)),
+            SizedBox(height: 20),
           ],
         ),
       ),

@@ -111,8 +111,8 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
-      appBar: AppBar(title: const Text('Send Money')),
+      backgroundColor: context.mc.bg,
+      appBar: AppBar(title: Text('Send Money')),
       body: _success ? _buildSuccess() : _buildForm(),
     );
   }
@@ -124,9 +124,9 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Who are you sending to? ──────────────────────────────
-          const Text('Sending to',
-            style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-          const SizedBox(height: 10),
+          Text('Sending to',
+            style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+          SizedBox(height: 10),
           Row(
             children: [
               Expanded(child: _modeCard(
@@ -153,10 +153,10 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
 
           // ── If App User: sub-method selector ─────────────────────
           if (_sendMode == 'app_user') ...[
-            const SizedBox(height: 20),
-            const Text('Find recipient by',
-              style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-            const SizedBox(height: 10),
+            SizedBox(height: 20),
+            Text('Find recipient by',
+              style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+            SizedBox(height: 10),
             Row(
               children: [
                 _subChip('myrabatag', 'MyrabaTag'),
@@ -166,14 +166,14 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
             ),
           ],
 
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           Text(
             _sendMode == 'bank'
               ? '10-digit Account Number'
               : _appMethod == 'custom'
                 ? 'Custom Account ID'
                 : 'MyrabaTag',
-            style: const TextStyle(fontSize: 13, color: MyrabaColors.textSecond),
+            style: TextStyle(fontSize: 13, color: context.mc.textSecond),
           ),
           const SizedBox(height: 8),
           TextField(
@@ -214,14 +214,14 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.check_circle_rounded, color: MyrabaColors.green, size: 18),
-                  const SizedBox(width: 10),
+                  Icon(Icons.check_circle_rounded, color: MyrabaColors.green, size: 18),
+                  SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(_verifiedAccount!['fullName'] as String? ?? '',
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: MyrabaColors.textPrimary)),
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: context.mc.textPrimary)),
                         Text('m₦${_verifiedAccount!['myrabaHandle']}',
                           style: const TextStyle(fontSize: 11, color: MyrabaColors.green)),
                       ],
@@ -231,10 +231,10 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
               ),
             ),
           ],
-          const SizedBox(height: 20),
-          const Text('Amount (₦)',
-            style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-          const SizedBox(height: 8),
+          SizedBox(height: 20),
+          Text('Amount (₦)',
+            style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+          SizedBox(height: 8),
           TextField(
             controller: _amountCtrl,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -243,12 +243,12 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
               prefixText: '₦ ',
               prefixStyle: TextStyle(color: MyrabaColors.gold, fontWeight: FontWeight.w700, fontSize: 16),
             ),
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
           ),
-          const SizedBox(height: 20),
-          const Text('Note (optional)',
-            style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-          const SizedBox(height: 8),
+          SizedBox(height: 20),
+          Text('Note (optional)',
+            style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+          SizedBox(height: 8),
           TextField(
             controller: _noteCtrl,
             decoration: const InputDecoration(hintText: 'What is this for?'),
@@ -303,26 +303,26 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: active ? MyrabaColors.greenGlow : MyrabaColors.surface,
+          color: active ? MyrabaColors.greenGlow : context.mc.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: active ? MyrabaColors.green : MyrabaColors.surfaceLine,
+            color: active ? MyrabaColors.green : context.mc.surfaceLine,
             width: active ? 1.5 : 1,
           ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: active ? MyrabaColors.green : MyrabaColors.textHint, size: 20),
-            const SizedBox(height: 8),
+            Icon(icon, color: active ? MyrabaColors.green : context.mc.textHint, size: 20),
+            SizedBox(height: 8),
             Text(label,
               style: TextStyle(
                 fontSize: 12, fontWeight: FontWeight.w700,
-                color: active ? MyrabaColors.green : MyrabaColors.textPrimary,
+                color: active ? MyrabaColors.green : context.mc.textPrimary,
               )),
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             Text(subtitle,
-              style: const TextStyle(fontSize: 10, color: MyrabaColors.textHint, height: 1.3)),
+              style: TextStyle(fontSize: 10, color: context.mc.textHint, height: 1.3)),
           ],
         ),
       ),
@@ -336,14 +336,14 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: active ? MyrabaColors.greenGlow : MyrabaColors.surface,
+          color: active ? MyrabaColors.greenGlow : context.mc.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: active ? MyrabaColors.green : MyrabaColors.surfaceLine),
+          border: Border.all(color: active ? MyrabaColors.green : context.mc.surfaceLine),
         ),
         child: Text(label,
           style: TextStyle(
             fontSize: 12, fontWeight: FontWeight.w600,
-            color: active ? MyrabaColors.green : MyrabaColors.textSecond,
+            color: active ? MyrabaColors.green : context.mc.textSecond,
           )),
       ),
     );
@@ -363,15 +363,15 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                 shape: BoxShape.circle,
                 border: Border.all(color: MyrabaColors.green),
               ),
-              child: const Icon(Icons.check_rounded, color: MyrabaColors.green, size: 40),
+              child: Icon(Icons.check_rounded, color: MyrabaColors.green, size: 40),
             ),
-            const SizedBox(height: 24),
-            const Text('Money Sent!',
+            SizedBox(height: 24),
+            Text('Money Sent!',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800,
-                  color: MyrabaColors.textPrimary)),
-            const SizedBox(height: 10),
+                  color: context.mc.textPrimary)),
+            SizedBox(height: 10),
             Text('₦${_amountCtrl.text} sent to ${_recipientCtrl.text}',
-              style: const TextStyle(color: MyrabaColors.textSecond, fontSize: 15),
+              style: TextStyle(color: context.mc.textSecond, fontSize: 15),
               textAlign: TextAlign.center),
             const SizedBox(height: 40),
             ElevatedButton(

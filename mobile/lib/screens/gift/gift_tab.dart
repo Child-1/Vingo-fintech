@@ -54,7 +54,7 @@ class _GiftTabState extends State<GiftTab> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       body: Column(
         children: [
           _GiftHeader(tabController: _tabs),
@@ -142,23 +142,23 @@ class _GiftHeader extends StatelessWidget {
               margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
               height: 44,
               decoration: BoxDecoration(
-                color: MyrabaColors.surface,
+                color: context.mc.surface,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: MyrabaColors.surfaceLine),
+                border: Border.all(color: context.mc.surfaceLine),
               ),
               child: TabBar(
                 controller: tabController,
                 indicator: BoxDecoration(
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                       colors: [Color(0xFF9333EA), Color(0xFFF26522)]),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
                 dividerColor: Colors.transparent,
                 labelColor: Colors.white,
-                unselectedLabelColor: MyrabaColors.textHint,
+                unselectedLabelColor: context.mc.textHint,
                 labelStyle:
-                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                    TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                 tabs: const [
                   Tab(text: '🎁 Send'),
                   Tab(text: '💌 Received'),
@@ -322,12 +322,12 @@ class _SendGiftTabState extends State<_SendGiftTab> {
             children: [
               TextField(
                 controller: _recipCtrl,
-                style: const TextStyle(color: MyrabaColors.textPrimary),
-                decoration: const InputDecoration(
+                style: TextStyle(color: context.mc.textPrimary),
+                decoration: InputDecoration(
                   hintText: 'Enter VingTag (e.g. Davinci96)',
-                  hintStyle: TextStyle(color: MyrabaColors.textHint),
+                  hintStyle: TextStyle(color: context.mc.textHint),
                   prefixIcon:
-                      Icon(Icons.search_rounded, color: MyrabaColors.textHint),
+                      Icon(Icons.search_rounded, color: context.mc.textHint),
                   prefixText: 'v₦ ',
                   prefixStyle: TextStyle(
                       color: MyrabaColors.purple, fontWeight: FontWeight.w700),
@@ -487,28 +487,28 @@ class _SendGiftTabState extends State<_SendGiftTab> {
                                     child: Center(
                                         child: Text(
                                       _catEmojis[i % _catEmojis.length],
-                                      style: const TextStyle(fontSize: 24),
+                                      style: TextStyle(fontSize: 24),
                                     )),
                                   ),
-                                  const SizedBox(width: 14),
+                                  SizedBox(width: 14),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(item['name']?.toString() ?? '—',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w700,
                                                 color:
-                                                    MyrabaColors.textPrimary)),
+                                                    context.mc.textPrimary)),
                                         if ((item['description'] ?? '')
                                             .toString()
                                             .isNotEmpty)
                                           Text(item['description'].toString(),
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                   fontSize: 12,
-                                                  color: MyrabaColors.textHint),
+                                                  color: context.mc.textHint),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis),
                                       ],
@@ -522,8 +522,8 @@ class _SendGiftTabState extends State<_SendGiftTab> {
                                               fontSize: 16,
                                               fontWeight: FontWeight.w800,
                                               color: color)),
-                                      const Icon(Icons.chevron_right_rounded,
-                                          color: MyrabaColors.textHint,
+                                      Icon(Icons.chevron_right_rounded,
+                                          color: context.mc.textHint,
                                           size: 18),
                                     ],
                                   ),
@@ -560,25 +560,25 @@ class _SendGiftTabState extends State<_SendGiftTab> {
                   ),
                   child: Row(
                     children: [
-                      const Text('🎁', style: TextStyle(fontSize: 36)),
-                      const SizedBox(width: 14),
+                      Text('🎁', style: TextStyle(fontSize: 36)),
+                      SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(_selItem!['name']?.toString() ?? '—',
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w800,
-                                    color: MyrabaColors.textPrimary)),
-                            const SizedBox(height: 4),
+                                    color: context.mc.textPrimary)),
+                            SizedBox(height: 4),
                             Row(children: [
-                              const Text('To: ',
+                              Text('To: ',
                                   style: TextStyle(
                                       fontSize: 13,
-                                      color: MyrabaColors.textHint)),
+                                      color: context.mc.textHint)),
                               Text('v₦$_recipient',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
                                       color: MyrabaColors.purple)),
@@ -587,55 +587,55 @@ class _SendGiftTabState extends State<_SendGiftTab> {
                         ),
                       ),
                       Text('₦${_selItem!['nairaValue'] ?? _selItem!['price'] ?? '0'}',
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
                               color: MyrabaColors.orange)),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text('Add a message (optional)',
+                SizedBox(height: 16),
+                Text('Add a message (optional)',
                     style: TextStyle(
                         fontSize: 13,
-                        color: MyrabaColors.textSecond,
+                        color: context.mc.textSecond,
                         fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 TextField(
                   controller: _noteCtrl,
                   maxLines: 3,
                   maxLength: 140,
-                  style: const TextStyle(
-                      color: MyrabaColors.textPrimary, fontSize: 14),
-                  decoration: const InputDecoration(
+                  style: TextStyle(
+                      color: context.mc.textPrimary, fontSize: 14),
+                  decoration: InputDecoration(
                     hintText: 'Write something heartfelt… 💬',
-                    hintStyle: TextStyle(color: MyrabaColors.textHint),
-                    counterStyle: TextStyle(color: MyrabaColors.textHint),
+                    hintStyle: TextStyle(color: context.mc.textHint),
+                    counterStyle: TextStyle(color: context.mc.textHint),
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 // Anonymous toggle
                 GestureDetector(
                   onTap: () => setState(() => _anonymous = !_anonymous),
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
+                    duration: Duration(milliseconds: 200),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: _anonymous
                           ? MyrabaColors.purple.withValues(alpha: 0.12)
-                          : MyrabaColors.surfaceHigh,
+                          : context.mc.surfaceHigh,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: _anonymous
                             ? MyrabaColors.purple.withValues(alpha: 0.5)
-                            : MyrabaColors.surfaceLine,
+                            : context.mc.surfaceLine,
                       ),
                     ),
                     child: Row(
                       children: [
                         Text(_anonymous ? '🕵️' : '😊',
-                            style: const TextStyle(fontSize: 20)),
-                        const SizedBox(width: 12),
+                            style: TextStyle(fontSize: 20)),
+                        SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -646,11 +646,11 @@ class _SendGiftTabState extends State<_SendGiftTab> {
                                       fontWeight: FontWeight.w700,
                                       color: _anonymous
                                           ? MyrabaColors.purple
-                                          : MyrabaColors.textPrimary)),
-                              const Text("They won't see your name",
+                                          : context.mc.textPrimary)),
+                              Text("They won't see your name",
                                   style: TextStyle(
                                       fontSize: 11,
-                                      color: MyrabaColors.textHint)),
+                                      color: context.mc.textHint)),
                             ],
                           ),
                         ),
@@ -661,7 +661,7 @@ class _SendGiftTabState extends State<_SendGiftTab> {
                           trackColor: WidgetStateProperty.resolveWith((s) =>
                               s.contains(WidgetState.selected)
                                   ? MyrabaColors.purple.withValues(alpha: 0.3)
-                                  : MyrabaColors.surfaceLine),
+                                  : context.mc.surfaceLine),
                         ),
                       ],
                     ),
@@ -762,24 +762,24 @@ class _SentSuccessState extends State<_SentSuccess>
                 ),
                 const SizedBox(height: 28),
                 ShaderMask(
-                  shaderCallback: (b) => const LinearGradient(
+                  shaderCallback: (b) => LinearGradient(
                     colors: [Color(0xFF9333EA), Color(0xFFF26522)],
                   ).createShader(b),
-                  child: const Text('Gift Sent! 🎉',
+                  child: Text('Gift Sent! 🎉',
                       style: TextStyle(
                           fontSize: 30,
                           fontWeight: FontWeight.w900,
                           color: Colors.white)),
                 ),
-                const SizedBox(height: 12),
-                const Text(
+                SizedBox(height: 12),
+                Text(
                     "Your gift is on its way.\nThey're going to love it! ✨",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: 15,
-                        color: MyrabaColors.textSecond,
+                        color: context.mc.textSecond,
                         height: 1.5)),
-                const SizedBox(height: 36),
+                SizedBox(height: 36),
                 _GradientButton(
                     label: 'Send Another Gift', onTap: widget.onSendAnother),
               ],
@@ -834,7 +834,7 @@ class _ReceivedGiftsTabState extends State<_ReceivedGiftsTab> {
           child: CircularProgressIndicator(color: MyrabaColors.purple));
     }
     if (_gifts.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -846,12 +846,12 @@ class _ReceivedGiftsTabState extends State<_ReceivedGiftsTab> {
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: MyrabaColors.textPrimary)),
+                    color: context.mc.textPrimary)),
             SizedBox(height: 8),
             Text('When someone sends you a gift,\nit will appear here ✨',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    fontSize: 14, color: MyrabaColors.textHint, height: 1.5)),
+                    fontSize: 14, color: context.mc.textHint, height: 1.5)),
           ],
         ),
       );
@@ -859,18 +859,18 @@ class _ReceivedGiftsTabState extends State<_ReceivedGiftsTab> {
     return RefreshIndicator(
       onRefresh: _load,
       color: MyrabaColors.purple,
-      backgroundColor: MyrabaColors.surface,
+      backgroundColor: context.mc.surface,
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         itemCount: _gifts.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        separatorBuilder: (_, __) => SizedBox(height: 12),
         itemBuilder: (ctx, i) {
           final g = _gifts[i] as Map<String, dynamic>;
           final color = _catColors[i % _catColors.length];
           return Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: MyrabaColors.surface,
+              color: context.mc.surface,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: color.withValues(alpha: 0.3)),
               boxShadow: [
@@ -890,19 +890,19 @@ class _ReceivedGiftsTabState extends State<_ReceivedGiftsTab> {
                       borderRadius: BorderRadius.circular(16)),
                   child: Center(
                       child: Text(_catEmojis[i % _catEmojis.length],
-                          style: const TextStyle(fontSize: 28))),
+                          style: TextStyle(fontSize: 28))),
                 ),
-                const SizedBox(width: 14),
+                SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(g['giftItemName']?.toString() ?? 'Gift',
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
-                              color: MyrabaColors.textPrimary)),
-                      const SizedBox(height: 4),
+                              color: context.mc.textPrimary)),
+                      SizedBox(height: 4),
                       Text(
                         g['anonymous'] == true
                             ? 'From: 🕵️ Anonymous'
@@ -913,11 +913,11 @@ class _ReceivedGiftsTabState extends State<_ReceivedGiftsTab> {
                             fontWeight: FontWeight.w600),
                       ),
                       if ((g['note'] ?? '').toString().isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Text('"${g['note']}"',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 12,
-                                color: MyrabaColors.textHint,
+                                color: context.mc.textHint,
                                 fontStyle: FontStyle.italic),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis),
@@ -1030,12 +1030,12 @@ class _GiftBalanceTabState extends State<_GiftBalanceTab> {
               BoxShadow(
                   color: MyrabaColors.purple.withValues(alpha: 0.2),
                   blurRadius: 30,
-                  offset: const Offset(0, 8))
+                  offset: Offset(0, 8))
             ],
           ),
           child: Column(
             children: [
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(
@@ -1044,32 +1044,32 @@ class _GiftBalanceTabState extends State<_GiftBalanceTab> {
                       Text('🎀 Gift Balance',
                           style: TextStyle(
                               fontSize: 14,
-                              color: MyrabaColors.textHint,
+                              color: context.mc.textHint,
                               fontWeight: FontWeight.w500)),
                       SizedBox(height: 4),
                       Text('Available to convert',
                           style: TextStyle(
-                              fontSize: 12, color: MyrabaColors.textHint)),
+                              fontSize: 12, color: context.mc.textHint)),
                     ],
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               ShaderMask(
-                shaderCallback: (b) => const LinearGradient(
+                shaderCallback: (b) => LinearGradient(
                   colors: [Color(0xFF9333EA), Color(0xFFF26522)],
                 ).createShader(b),
                 child: Text('₦$balance',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 44,
                         fontWeight: FontWeight.w900,
                         color: Colors.white)),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text('Total received: ₦$totalReceived',
-                  style: const TextStyle(
-                      fontSize: 13, color: MyrabaColors.textHint)),
-              const SizedBox(height: 24),
+                  style: TextStyle(
+                      fontSize: 13, color: context.mc.textHint)),
+              SizedBox(height: 24),
               if (_msg != null) ...[
                 Container(
                   margin: const EdgeInsets.only(bottom: 16),
@@ -1098,20 +1098,20 @@ class _GiftBalanceTabState extends State<_GiftBalanceTab> {
             ],
           ),
         ),
-        const SizedBox(height: 24),
-        const Text('What is Gift Balance?',
+        SizedBox(height: 24),
+        Text('What is Gift Balance?',
             style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: MyrabaColors.textPrimary)),
-        const SizedBox(height: 10),
+                color: context.mc.textPrimary)),
+        SizedBox(height: 10),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-              color: MyrabaColors.surface,
+              color: context.mc.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: MyrabaColors.surfaceLine)),
-          child: const Column(
+              border: Border.all(color: context.mc.surfaceLine)),
+          child: Column(
             children: [
               _InfoPoint('🎁',
                   'When someone sends you a gift, its value is added to your Gift Balance.'),
@@ -1147,7 +1147,7 @@ class _StepIndicator extends StatelessWidget {
             ? MyrabaColors.orange
             : done
                 ? MyrabaColors.teal
-                : MyrabaColors.surfaceLine;
+                : context.mc.surfaceLine;
         return Expanded(
           child: Row(children: [
             if (i > 0)
@@ -1155,7 +1155,7 @@ class _StepIndicator extends StatelessWidget {
                   child: Container(
                       height: 2,
                       color:
-                          done ? MyrabaColors.teal : MyrabaColors.surfaceLine)),
+                          done ? MyrabaColors.teal : context.mc.surfaceLine)),
             Container(
               width: 28,
               height: 28,
@@ -1166,7 +1166,7 @@ class _StepIndicator extends StatelessWidget {
               ),
               child: Center(
                   child: done
-                      ? const Icon(Icons.check_rounded,
+                      ? Icon(Icons.check_rounded,
                           size: 14, color: MyrabaColors.teal)
                       : Text('${i + 1}',
                           style: TextStyle(
@@ -1179,7 +1179,7 @@ class _StepIndicator extends StatelessWidget {
                   child: Container(
                       height: 2,
                       color:
-                          done ? MyrabaColors.teal : MyrabaColors.surfaceLine)),
+                          done ? MyrabaColors.teal : context.mc.surfaceLine)),
           ]),
         );
       }),
@@ -1207,16 +1207,16 @@ class _StepCard extends StatelessWidget {
     final isActive = step == currentStep;
     final isDone = doneLabel != null && step < currentStep;
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+      duration: Duration(milliseconds: 300),
       decoration: BoxDecoration(
-        color: MyrabaColors.surface,
+        color: context.mc.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isActive
               ? MyrabaColors.orange.withValues(alpha: 0.5)
               : isDone
                   ? MyrabaColors.teal.withValues(alpha: 0.3)
-                  : MyrabaColors.surfaceLine,
+                  : context.mc.surfaceLine,
           width: isActive ? 1.5 : 1,
         ),
         boxShadow: isActive
@@ -1234,14 +1234,14 @@ class _StepCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
-              Text(emoji, style: const TextStyle(fontSize: 18)),
-              const SizedBox(width: 8),
+              Text(emoji, style: TextStyle(fontSize: 18)),
+              SizedBox(width: 8),
               Text(title,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: MyrabaColors.textPrimary)),
-              const Spacer(),
+                      color: context.mc.textPrimary)),
+              Spacer(),
               if (isDone && onEdit != null)
                 GestureDetector(
                   onTap: onEdit,
@@ -1339,7 +1339,7 @@ class _EmptyPlaceholder extends StatelessWidget {
         child: Center(
             child: Text(message,
                 style:
-                    const TextStyle(color: MyrabaColors.textHint, fontSize: 14),
+                    TextStyle(color: context.mc.textHint, fontSize: 14),
                 textAlign: TextAlign.center)),
       );
 }
@@ -1351,13 +1351,13 @@ class _InfoPoint extends StatelessWidget {
   Widget build(BuildContext context) => Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 16)),
-          const SizedBox(width: 10),
+          Text(emoji, style: TextStyle(fontSize: 16)),
+          SizedBox(width: 10),
           Expanded(
               child: Text(text,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 13,
-                      color: MyrabaColors.textSecond,
+                      color: context.mc.textSecond,
                       height: 1.4))),
         ],
       );

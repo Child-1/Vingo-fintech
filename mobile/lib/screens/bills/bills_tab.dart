@@ -20,7 +20,7 @@ class BillsTab extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         children: [
           // ── Utilities ──────────────────────────────────────────
-          _sectionLabel('Utilities & Services'),
+          _sectionLabel(context, 'Utilities & Services'),
           const SizedBox(height: 12),
           GridView.count(
             shrinkWrap: true,
@@ -65,7 +65,7 @@ class BillsTab extends StatelessWidget {
 
           // ── Education ──────────────────────────────────────────
           const SizedBox(height: 24),
-          _sectionLabel('Education'),
+          _sectionLabel(context, 'Education'),
           const SizedBox(height: 12),
           GridView.count(
             shrinkWrap: true,
@@ -92,7 +92,7 @@ class BillsTab extends StatelessWidget {
 
           // ── Government & Tax ───────────────────────────────────
           const SizedBox(height: 24),
-          _sectionLabel('Government & Tax'),
+          _sectionLabel(context, 'Government & Tax'),
           const SizedBox(height: 12),
           GridView.count(
             shrinkWrap: true,
@@ -125,7 +125,7 @@ class BillsTab extends StatelessWidget {
 
           // ── International & Others ─────────────────────────────
           const SizedBox(height: 24),
-          _sectionLabel('International & Others'),
+          _sectionLabel(context, 'International & Others'),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -161,9 +161,9 @@ class BillsTab extends StatelessWidget {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }
 
-  Widget _sectionLabel(String label) => Text(label,
-    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
-        color: MyrabaColors.textSecond));
+  Widget _sectionLabel(BuildContext context, String label) => Text(label,
+    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+        color: context.mc.textSecond));
 }
 
 class _BillTile extends StatelessWidget {
@@ -178,7 +178,7 @@ class _BillTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        decoration: myrabaCard(),
+        decoration: context.mc.card(),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -216,7 +216,7 @@ class _IntlTile extends StatelessWidget {
         onTap: comingSoon ? null : onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-          decoration: myrabaCard(),
+          decoration: context.mc.card(),
           child: Column(
             children: [
               Icon(icon,
@@ -856,7 +856,7 @@ class _EducationScreenState extends State<_EducationScreen> {
               _suggestedAmounts[_examBody] ?? ''),
           const SizedBox(height: 8),
           Text('Suggested: ₦${_suggestedAmounts[_examBody] ?? '—'} for 1 PIN',
-            style: const TextStyle(fontSize: 11, color: MyrabaColors.textHint)),
+            style: TextStyle(fontSize: 11, color: MyrabaColors.textHint)),
           const SizedBox(height: 32),
           _payButton(_loading, _pay, 'Buy $_examBody PIN'),
         ],
@@ -898,7 +898,7 @@ class _ComingSoonScreen extends StatelessWidget {
                     color: MyrabaColors.textPrimary)),
               const SizedBox(height: 12),
               Text(description,
-                style: const TextStyle(fontSize: 14, color: MyrabaColors.textSecond),
+                style: TextStyle(fontSize: 14, color: MyrabaColors.textSecond),
                 textAlign: TextAlign.center),
               const SizedBox(height: 32),
               ElevatedButton(
@@ -1087,7 +1087,7 @@ class _BillHistoryScreenState extends State<_BillHistoryScreen> {
                     final b = _history[i] as Map<String, dynamic>;
                     return Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: myrabaCard(),
+                      decoration: context.mc.card(),
                       child: Row(
                         children: [
                           Container(
@@ -1168,7 +1168,7 @@ class _BillScaffold extends StatelessWidget {
                       style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 10),
                     Text(successMessage,
-                      style: const TextStyle(fontSize: 14, color: MyrabaColors.textSecond),
+                      style: TextStyle(fontSize: 14, color: MyrabaColors.textSecond),
                       textAlign: TextAlign.center),
                     const SizedBox(height: 40),
                     ElevatedButton(onPressed: onDone, child: const Text('Done')),
@@ -1222,7 +1222,7 @@ Widget _field(String label, TextEditingController ctrl, TextInputType type, Stri
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(label, style: const TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
+      Text(label, style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
       const SizedBox(height: 8),
       TextField(
         controller: ctrl,

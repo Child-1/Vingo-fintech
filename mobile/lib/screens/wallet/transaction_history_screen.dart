@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
-import 'monthly_review_screen.dart';
+import '../stats/monthly_review_screen.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});
@@ -48,7 +48,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       appBar: AppBar(
         title: const Text('Transaction History'),
         actions: [
@@ -66,13 +66,13 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           : _error != null
               ? Center(
                   child: Text(_error!,
-                      style: const TextStyle(color: MyrabaColors.red)))
+                      style: TextStyle(color: MyrabaColors.red)))
               : _transactions.isEmpty
                   ? _buildEmpty()
                   : RefreshIndicator(
                       onRefresh: _load,
                       color: MyrabaColors.green,
-                      backgroundColor: MyrabaColors.surface,
+                      backgroundColor: context.mc.surface,
                       child: ListView.separated(
                         padding: const EdgeInsets.all(20),
                         itemCount: _transactions.length,
@@ -85,18 +85,18 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   }
 
   Widget _buildEmpty() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.receipt_long_outlined,
-              color: MyrabaColors.textHint, size: 64),
+              color: context.mc.textHint, size: 64),
           SizedBox(height: 16),
           Text('No transactions yet',
-              style: TextStyle(fontSize: 16, color: MyrabaColors.textSecond)),
+              style: TextStyle(fontSize: 16, color: context.mc.textSecond)),
           SizedBox(height: 8),
           Text('Your transaction history will appear here',
-              style: TextStyle(fontSize: 13, color: MyrabaColors.textHint)),
+              style: TextStyle(fontSize: 13, color: context.mc.textHint)),
         ],
       ),
     );
@@ -111,7 +111,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: myrabaCard(),
+      decoration: context.mc.card(),
       child: Row(
         children: [
           Container(
@@ -129,21 +129,21 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(tx['description'] ?? type,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: MyrabaColors.textPrimary),
+                        color: context.mc.textPrimary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(_formatDate(tx['date'] as String?),
-                    style: const TextStyle(
-                        fontSize: 12, color: MyrabaColors.textHint)),
+                    style: TextStyle(
+                        fontSize: 12, color: context.mc.textHint)),
                 if (tx['reference'] != null) ...[
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text('Ref: ${tx['reference']}',
-                      style: const TextStyle(
-                          fontSize: 11, color: MyrabaColors.textHint)),
+                      style: TextStyle(
+                          fontSize: 11, color: context.mc.textHint)),
                 ],
               ],
             ),
@@ -205,7 +205,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       case 'PENDING':
         return MyrabaColors.gold;
       default:
-        return MyrabaColors.textSecond;
+        return context.mc.textSecond;
     }
   }
 

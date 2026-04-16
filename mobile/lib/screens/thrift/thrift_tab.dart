@@ -77,15 +77,15 @@ class _ThriftTabState extends State<ThriftTab>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       appBar: AppBar(
-        backgroundColor: MyrabaColors.bg,
-        title: const Text('Thrift'),
+        backgroundColor: context.mc.bg,
+        title: Text('Thrift'),
         bottom: TabBar(
           controller: _tabs,
           indicatorColor: MyrabaColors.green,
           labelColor: MyrabaColors.green,
-          unselectedLabelColor: MyrabaColors.textHint,
+          unselectedLabelColor: context.mc.textHint,
           tabs: const [
             Tab(text: 'Savings Plans'),
             Tab(text: 'Private Groups'),
@@ -93,25 +93,25 @@ class _ThriftTabState extends State<ThriftTab>
         ),
       ),
       body: _loading
-          ? const Center(
+          ? Center(
               child: CircularProgressIndicator(color: MyrabaColors.green))
           : _loadError
               ? Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.cloud_off_rounded,
-                          color: MyrabaColors.textHint, size: 48),
-                      const SizedBox(height: 16),
-                      const Text('Could not load thrift data',
-                          style: TextStyle(color: MyrabaColors.textSecond)),
-                      const SizedBox(height: 8),
-                      const Text(
+                      Icon(Icons.cloud_off_rounded,
+                          color: context.mc.textHint, size: 48),
+                      SizedBox(height: 16),
+                      Text('Could not load thrift data',
+                          style: TextStyle(color: context.mc.textSecond)),
+                      SizedBox(height: 8),
+                      Text(
                           'The server may be waking up — try again in a moment.',
                           style: TextStyle(
-                              color: MyrabaColors.textHint, fontSize: 12),
+                              color: context.mc.textHint, fontSize: 12),
                           textAlign: TextAlign.center),
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20),
                       ElevatedButton.icon(
                         onPressed: _load,
                         icon: const Icon(Icons.refresh_rounded, size: 16),
@@ -164,7 +164,7 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
     return RefreshIndicator(
       onRefresh: () async => widget.onRefresh(),
       color: MyrabaColors.green,
-      backgroundColor: MyrabaColors.surface,
+      backgroundColor: context.mc.surface,
       child: ListView(
         padding: const EdgeInsets.all(0),
         children: [
@@ -185,7 +185,7 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
               border:
                   Border.all(color: MyrabaColors.green.withValues(alpha: 0.2)),
             ),
-            child: const Row(
+            child: Row(
               children: [
                 Text('🏦', style: TextStyle(fontSize: 28)),
                 SizedBox(width: 12),
@@ -197,13 +197,13 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
                           style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
-                              color: MyrabaColors.textPrimary)),
+                              color: context.mc.textPrimary)),
                       SizedBox(height: 4),
                       Text(
                           'Join a group · Contribute each cycle · Collect your full payout when it\'s your turn. Everyone wins.',
                           style: TextStyle(
                               fontSize: 11,
-                              color: MyrabaColors.textSecond,
+                              color: context.mc.textSecond,
                               height: 1.4)),
                     ],
                   ),
@@ -214,26 +214,26 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
 
           // ── My active plans ──────────────────────────────────────
           if (widget.myThrifts.isNotEmpty) ...[
-            const Padding(
+            Padding(
               padding: EdgeInsets.fromLTRB(16, 20, 16, 10),
               child: Text('My Active Plans',
                   style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: MyrabaColors.textSecond)),
+                      color: context.mc.textSecond)),
             ),
             ...widget.myThrifts
                 .map((t) => _myThriftCard(t as Map<String, dynamic>)),
           ],
 
           // ── Frequency filter chips ───────────────────────────────
-          const Padding(
+          Padding(
             padding: EdgeInsets.fromLTRB(16, 20, 16, 12),
             child: Text('Available Plans',
                 style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: MyrabaColors.textSecond)),
+                    color: context.mc.textSecond)),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -250,12 +250,12 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
                           horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
                         color:
-                            active ? MyrabaColors.green : MyrabaColors.surface,
+                            active ? MyrabaColors.green : context.mc.surface,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: active
                               ? MyrabaColors.green
-                              : MyrabaColors.surfaceLine,
+                              : context.mc.surfaceLine,
                         ),
                       ),
                       child: Text(
@@ -266,7 +266,7 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color:
-                              active ? Colors.white : MyrabaColors.textSecond,
+                              active ? Colors.white : context.mc.textSecond,
                         ),
                       ),
                     ),
@@ -275,24 +275,24 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
 
           // ── Plan cards ───────────────────────────────────────────
           if (_filtered.isEmpty)
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.symmetric(vertical: 40),
-              decoration: myrabaCard(),
-              child: const Center(
+              decoration: context.mc.card(),
+              child: Center(
                 child: Text('No plans available',
-                    style: TextStyle(color: MyrabaColors.textHint)),
+                    style: TextStyle(color: context.mc.textHint)),
               ),
             )
           else
             ..._filtered
                 .map((c) => _categoryCard(context, c as Map<String, dynamic>)),
 
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
         ],
       ),
     );
@@ -308,7 +308,7 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
       padding: const EdgeInsets.all(16),
-      decoration: myrabaCard(),
+      decoration: context.mc.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -317,50 +317,48 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
             children: [
               Expanded(
                 child: Text(t['categoryName'] ?? 'Savings Plan',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: MyrabaColors.textPrimary)),
+                        color: context.mc.textPrimary)),
               ),
               _statusBadge(t['status'] as String? ?? 'ACTIVE'),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Row(
             children: [
               _infoPill(
                   '₦${t['contributionAmount']} / $freq', MyrabaColors.green),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _infoPill('Payout ₦${t['estimatedPayout']}', MyrabaColors.gold),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Cycles: $cyclesDone / $cyclesReq',
-                  style: const TextStyle(
-                      fontSize: 11, color: MyrabaColors.textHint)),
+                  style: TextStyle(fontSize: 11, color: context.mc.textHint)),
               Text('Contributed: ₦${t['totalContributed'] ?? '0'}',
-                  style: const TextStyle(
-                      fontSize: 11, color: MyrabaColors.textSecond)),
+                  style: TextStyle(fontSize: 11, color: context.mc.textSecond)),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: MyrabaColors.surfaceLine,
+              backgroundColor: context.mc.surfaceLine,
               valueColor:
                   const AlwaysStoppedAnimation<Color>(MyrabaColors.green),
               minHeight: 5,
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Text('${progressPercent.toStringAsFixed(0)}% complete',
               style:
-                  const TextStyle(fontSize: 10, color: MyrabaColors.textHint)),
+                  TextStyle(fontSize: 10, color: context.mc.textHint)),
         ],
       ),
     );
@@ -382,7 +380,7 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       padding: const EdgeInsets.all(16),
-      decoration: myrabaCard(),
+      decoration: context.mc.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -398,8 +396,8 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(freqIcon, style: const TextStyle(fontSize: 13)),
-                    const SizedBox(width: 4),
+                    Text(freqIcon, style: TextStyle(fontSize: 13)),
+                    SizedBox(width: 4),
                     Text(freq[0].toUpperCase() + freq.substring(1),
                         style: TextStyle(
                             fontSize: 11,
@@ -408,23 +406,22 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
                   ],
                 ),
               ),
-              const Spacer(),
+              Spacer(),
               Text('${c['currentMemberCount'] ?? 0} members',
-                  style: const TextStyle(
-                      fontSize: 11, color: MyrabaColors.textHint)),
+                  style: TextStyle(fontSize: 11, color: context.mc.textHint)),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Text(c['name'] ?? '',
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: MyrabaColors.textPrimary)),
-          const SizedBox(height: 4),
+                  color: context.mc.textPrimary)),
+          SizedBox(height: 4),
           Text(c['description'] ?? '',
-              style: const TextStyle(
-                  fontSize: 12, color: MyrabaColors.textHint, height: 1.4)),
-          const SizedBox(height: 12),
+              style: TextStyle(
+                  fontSize: 12, color: context.mc.textHint, height: 1.4)),
+          SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -452,7 +449,7 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
               child: Text('Join ${c['name']}',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 13, fontWeight: FontWeight.w600)),
             ),
           ),
@@ -465,7 +462,7 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: MyrabaColors.bg,
+        color: context.mc.bg,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -473,19 +470,19 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
         children: [
           Text(label,
               style:
-                  const TextStyle(fontSize: 10, color: MyrabaColors.textHint)),
-          const SizedBox(height: 3),
+                  TextStyle(fontSize: 10, color: context.mc.textHint)),
+          SizedBox(height: 3),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: MyrabaColors.textPrimary),
+                color: context.mc.textPrimary),
             overflow: TextOverflow.ellipsis,
           ),
           Text(sub,
               style:
-                  const TextStyle(fontSize: 10, color: MyrabaColors.textHint)),
+                  TextStyle(fontSize: 10, color: context.mc.textHint)),
         ],
       ),
     );
@@ -527,7 +524,7 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: MyrabaColors.surface,
+        backgroundColor: context.mc.surface,
         title: Text('Join ${c['name']}?'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -537,11 +534,11 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
                 'You will contribute ₦${c['contributionAmount']} every '
                 '${(c['frequency'] as String).toLowerCase()} for '
                 '${c['cyclesRequired']} cycles.',
-                style: const TextStyle(
-                    color: MyrabaColors.textSecond, fontSize: 13, height: 1.5)),
-            const SizedBox(height: 8),
+                style: TextStyle(
+                    color: context.mc.textSecond, fontSize: 13, height: 1.5)),
+            SizedBox(height: 8),
             Text('When it\'s your turn, you collect ₦${c['estimatedPayout']}.',
-                style: const TextStyle(
+                style: TextStyle(
                     color: MyrabaColors.green,
                     fontSize: 13,
                     fontWeight: FontWeight.w600)),
@@ -550,8 +547,8 @@ class _SavingsPlansTabState extends State<_SavingsPlansTab> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel',
-                style: TextStyle(color: MyrabaColors.textSecond)),
+            child: Text('Cancel',
+                style: TextStyle(color: context.mc.textSecond)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -618,7 +615,7 @@ class _PrivateGroupsTab extends StatelessWidget {
             border:
                 Border.all(color: MyrabaColors.purple.withValues(alpha: 0.2)),
           ),
-          child: const Row(
+          child: Row(
             children: [
               Text('🤝', style: TextStyle(fontSize: 28)),
               SizedBox(width: 12),
@@ -630,13 +627,13 @@ class _PrivateGroupsTab extends StatelessWidget {
                         style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: MyrabaColors.textPrimary)),
+                            color: context.mc.textPrimary)),
                     SizedBox(height: 4),
                     Text(
                         'Save with friends, family or colleagues. You set the rules — amount, frequency, and payout order.',
                         style: TextStyle(
                             fontSize: 11,
-                            color: MyrabaColors.textSecond,
+                            color: context.mc.textSecond,
                             height: 1.4)),
                   ],
                 ),
@@ -672,33 +669,33 @@ class _PrivateGroupsTab extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
 
         // ── My groups ──────────────────────────────────────────────
         if (myPrivate.isNotEmpty) ...[
-          const Text('My Groups',
+          Text('My Groups',
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: MyrabaColors.textSecond)),
-          const SizedBox(height: 12),
-          ...myPrivate.map((g) => _groupCard(g as Map<String, dynamic>)),
+                  color: context.mc.textSecond)),
+          SizedBox(height: 12),
+          ...myPrivate.map((g) => _groupCard(context, g as Map<String, dynamic>)),
         ] else
           Container(
             padding: const EdgeInsets.symmetric(vertical: 40),
-            decoration: myrabaCard(),
-            child: const Column(
+            decoration: context.mc.card(),
+            child: Column(
               children: [
                 Icon(Icons.group_outlined,
-                    color: MyrabaColors.textHint, size: 48),
+                    color: context.mc.textHint, size: 48),
                 SizedBox(height: 12),
                 Text('No private groups yet',
                     style:
-                        TextStyle(color: MyrabaColors.textHint, fontSize: 14)),
+                        TextStyle(color: context.mc.textHint, fontSize: 14)),
                 SizedBox(height: 4),
                 Text('Create a group or join one with an invite code',
                     style:
-                        TextStyle(color: MyrabaColors.textHint, fontSize: 12)),
+                        TextStyle(color: context.mc.textHint, fontSize: 12)),
               ],
             ),
           ),
@@ -727,32 +724,31 @@ class _PrivateGroupsTab extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(icon, color: color, size: 24),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Text(label,
                 style: TextStyle(
                     fontSize: 13, fontWeight: FontWeight.w700, color: color)),
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             Text(subtitle,
-                style: const TextStyle(
-                    fontSize: 11, color: MyrabaColors.textHint)),
+                style: TextStyle(fontSize: 11, color: context.mc.textHint)),
           ],
         ),
       ),
     );
   }
 
-  Widget _groupCard(Map<String, dynamic> g) {
+  Widget _groupCard(BuildContext context, Map<String, dynamic> g) {
     final status = g['status'] as String? ?? '';
     final statusColor = status == 'ACTIVE'
         ? MyrabaColors.green
         : status == 'PENDING'
             ? MyrabaColors.gold
-            : MyrabaColors.textHint;
+            : context.mc.textHint;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: myrabaCard(),
+      decoration: context.mc.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -761,10 +757,10 @@ class _PrivateGroupsTab extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(g['thriftName'] ?? 'Private Group',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: MyrabaColors.textPrimary)),
+                        color: context.mc.textPrimary)),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -780,30 +776,27 @@ class _PrivateGroupsTab extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.person_outline,
-                  size: 13, color: MyrabaColors.textHint),
-              const SizedBox(width: 4),
+              Icon(Icons.person_outline,
+                  size: 13, color: context.mc.textHint),
+              SizedBox(width: 4),
               Text('by ${g['creator'] ?? '—'}',
-                  style: const TextStyle(
-                      fontSize: 11, color: MyrabaColors.textHint)),
-              const SizedBox(width: 14),
-              const Icon(Icons.payments_outlined,
-                  size: 13, color: MyrabaColors.textHint),
-              const SizedBox(width: 4),
+                  style: TextStyle(fontSize: 11, color: context.mc.textHint)),
+              SizedBox(width: 14),
+              Icon(Icons.payments_outlined,
+                  size: 13, color: context.mc.textHint),
+              SizedBox(width: 4),
               Text('₦${g['contributionAmount'] ?? '—'} / cycle',
-                  style: const TextStyle(
-                      fontSize: 11, color: MyrabaColors.textHint)),
+                  style: TextStyle(fontSize: 11, color: context.mc.textHint)),
             ],
           ),
           if (g['position'] != null) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
                 'Position #${g['position']}  ·  Cycle ${g['currentCycle'] ?? '—'} of ${g['totalCycles'] ?? '—'}',
-                style: const TextStyle(
-                    fontSize: 11, color: MyrabaColors.textHint)),
+                style: TextStyle(fontSize: 11, color: context.mc.textHint)),
           ],
         ],
       ),
@@ -815,11 +808,11 @@ class _PrivateGroupsTab extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: MyrabaColors.surface,
-        title: const Text('Join Private Group'),
+        backgroundColor: context.mc.surface,
+        title: Text('Join Private Group'),
         content: TextField(
           controller: ctrl,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: 'Enter invite code',
             prefixIcon: Icon(Icons.vpn_key_outlined),
           ),
@@ -828,8 +821,8 @@ class _PrivateGroupsTab extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel',
-                style: TextStyle(color: MyrabaColors.textSecond)),
+            child: Text('Cancel',
+                style: TextStyle(color: context.mc.textSecond)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -887,15 +880,15 @@ class _PrivateGroupsTab extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: MyrabaColors.surface,
-        title: const Text('Group Created! 🎉'),
+        backgroundColor: context.mc.surface,
+        title: Text('Group Created! 🎉'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Share this invite code with your members:',
-                style: TextStyle(color: MyrabaColors.textSecond, fontSize: 13)),
-            const SizedBox(height: 12),
+            Text('Share this invite code with your members:',
+                style: TextStyle(color: context.mc.textSecond, fontSize: 13)),
+            SizedBox(height: 12),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -907,17 +900,16 @@ class _PrivateGroupsTab extends StatelessWidget {
               ),
               child: Text(code,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: MyrabaColors.green,
                       letterSpacing: 4)),
             ),
             if (collateral.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Text(collateral,
-                  style: const TextStyle(
-                      fontSize: 11, color: MyrabaColors.textHint, height: 1.4)),
+                  style: TextStyle(fontSize: 11, color: context.mc.textHint, height: 1.4)),
             ],
           ],
         ),
@@ -1016,8 +1008,8 @@ class _CreateThriftDialogState extends State<_CreateThriftDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: MyrabaColors.surface,
-      title: const Text('Create Private Group'),
+      backgroundColor: context.mc.surface,
+      title: Text('Create Private Group'),
       scrollable: true,
       content: Form(
         key: _formKey,
@@ -1025,9 +1017,9 @@ class _CreateThriftDialogState extends State<_CreateThriftDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _field(_nameCtrl, 'Group Name', required: true),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             _field(_descCtrl, 'Description (optional)'),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             _field(
               _amtCtrl,
               'Contribution Amount (₦)',
@@ -1041,10 +1033,10 @@ class _CreateThriftDialogState extends State<_CreateThriftDialog> {
                 return null;
               },
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             DropdownButtonFormField<String>(
               initialValue: _frequency,
-              dropdownColor: MyrabaColors.surface,
+              dropdownColor: context.mc.surface,
               decoration: _inputDec('Frequency'),
               items: const [
                 DropdownMenuItem(value: 'DAILY', child: Text('Daily')),
@@ -1053,7 +1045,7 @@ class _CreateThriftDialogState extends State<_CreateThriftDialog> {
               ],
               onChanged: (v) => setState(() => _frequency = v!),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             _field(
               _cycCtrl,
               'Number of Members / Cycles',
@@ -1066,10 +1058,10 @@ class _CreateThriftDialogState extends State<_CreateThriftDialog> {
                 return null;
               },
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             DropdownButtonFormField<String>(
               initialValue: _assignment,
-              dropdownColor: MyrabaColors.surface,
+              dropdownColor: context.mc.surface,
               decoration: _inputDec('Payout Order'),
               items: const [
                 DropdownMenuItem(
@@ -1093,12 +1085,12 @@ class _CreateThriftDialogState extends State<_CreateThriftDialog> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.error_outline_rounded,
+                    Icon(Icons.error_outline_rounded,
                         color: MyrabaColors.red, size: 16),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text(_error!,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 13, color: MyrabaColors.red)),
                     ),
                   ],
@@ -1111,8 +1103,8 @@ class _CreateThriftDialogState extends State<_CreateThriftDialog> {
       actions: [
         TextButton(
           onPressed: _submitting ? null : () => Navigator.pop(context),
-          child: const Text('Cancel',
-              style: TextStyle(color: MyrabaColors.textSecond)),
+          child: Text('Cancel',
+              style: TextStyle(color: context.mc.textSecond)),
         ),
         ElevatedButton(
           onPressed: _submitting ? null : _submit,
@@ -1150,7 +1142,7 @@ class _CreateThriftDialogState extends State<_CreateThriftDialog> {
 
   InputDecoration _inputDec(String label) => InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: MyrabaColors.textHint, fontSize: 13),
+        labelStyle: TextStyle(color: context.mc.textHint, fontSize: 13),
         isDense: true,
       );
 }

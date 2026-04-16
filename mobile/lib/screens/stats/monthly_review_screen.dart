@@ -58,24 +58,24 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       appBar: AppBar(
-        backgroundColor: MyrabaColors.surface,
-        title: const Text('Monthly Review',
+        backgroundColor: context.mc.surface,
+        title: Text('Monthly Review',
             style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: MyrabaColors.textPrimary)),
+                color: context.mc.textPrimary)),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded,
-              color: MyrabaColors.textPrimary),
+          icon: Icon(Icons.arrow_back_rounded,
+              color: context.mc.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           PopupMenuButton<int>(
-            color: MyrabaColors.surface,
-            icon: const Icon(Icons.date_range_rounded,
-                color: MyrabaColors.textSecond),
+            color: context.mc.surface,
+            icon: Icon(Icons.date_range_rounded,
+                color: context.mc.textSecond),
             onSelected: (v) {
               setState(() => _months = v);
               _load();
@@ -89,14 +89,14 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
         ],
       ),
       body: _loading
-          ? const Center(
+          ? Center(
               child: CircularProgressIndicator(color: MyrabaColors.green))
           : _error != null
               ? _buildError()
               : RefreshIndicator(
                   onRefresh: _load,
                   color: MyrabaColors.green,
-                  backgroundColor: MyrabaColors.surface,
+                  backgroundColor: context.mc.surface,
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
                     children: [
@@ -117,7 +117,7 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
             style: TextStyle(
                 color: _months == v
                     ? MyrabaColors.green
-                    : MyrabaColors.textPrimary)),
+                    : context.mc.textPrimary)),
       );
 
   Widget _buildError() {
@@ -125,14 +125,14 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.cloud_off_rounded,
-              size: 48, color: MyrabaColors.textHint),
-          const SizedBox(height: 12),
+          Icon(Icons.cloud_off_rounded,
+              size: 48, color: context.mc.textHint),
+          SizedBox(height: 12),
           Text(_error!,
-              style: const TextStyle(
-                  color: MyrabaColors.textHint, fontSize: 13)),
-          const SizedBox(height: 16),
-          ElevatedButton(onPressed: _load, child: const Text('Retry')),
+              style: TextStyle(
+                  color: context.mc.textHint, fontSize: 13)),
+          SizedBox(height: 16),
+          ElevatedButton(onPressed: _load, child: Text('Retry')),
         ],
       ),
     );
@@ -189,7 +189,7 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       decoration: BoxDecoration(
-        color: MyrabaColors.surface,
+        color: context.mc.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
@@ -202,11 +202,11 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
             decoration: BoxDecoration(color: glow, shape: BoxShape.circle),
             child: Icon(icon, color: color, size: 16),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           Text(label,
-              style: const TextStyle(
-                  fontSize: 11, color: MyrabaColors.textHint)),
-          const SizedBox(height: 4),
+              style: TextStyle(
+                  fontSize: 11, color: context.mc.textHint)),
+          SizedBox(height: 4),
           Text(value,
               style: TextStyle(
                   fontSize: 13,
@@ -231,19 +231,19 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
       decoration: BoxDecoration(
-        color: MyrabaColors.surface,
+        color: context.mc.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: MyrabaColors.surfaceLine),
+        border: Border.all(color: context.mc.surfaceLine),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Income vs Expenses',
+          Text('Income vs Expenses',
               style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: MyrabaColors.textPrimary)),
-          const SizedBox(height: 6),
+                  color: context.mc.textPrimary)),
+          SizedBox(height: 6),
           Row(
             children: [
               _legend(MyrabaColors.teal, 'Income'),
@@ -251,7 +251,7 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
               _legend(MyrabaColors.red, 'Expenses'),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           SizedBox(
             height: 200,
             child: BarChart(
@@ -260,7 +260,7 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
                 maxY: maxVal * 1.25 == 0 ? 1000 : maxVal * 1.25,
                 barTouchData: BarTouchData(
                   touchTooltipData: BarTouchTooltipData(
-                    getTooltipColor: (_) => MyrabaColors.surfaceHigh,
+                    getTooltipColor: (_) => context.mc.surfaceHigh,
                     tooltipPadding: const EdgeInsets.all(8),
                     tooltipMargin: 6,
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
@@ -300,9 +300,9 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
                         return Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: Text(parts.isNotEmpty ? parts[0] : '',
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 10,
-                                  color: MyrabaColors.textHint)),
+                                  color: context.mc.textHint)),
                         );
                       },
                       reservedSize: 28,
@@ -314,10 +314,10 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
                       reservedSize: 44,
                       getTitlesWidget: (v, meta) {
                         if (v == 0) {
-                          return const Text('0',
+                          return Text('0',
                               style: TextStyle(
                                   fontSize: 9,
-                                  color: MyrabaColors.textHint));
+                                  color: context.mc.textHint));
                         }
                         final formatted = v >= 1000000
                             ? '${(v / 1000000).toStringAsFixed(1)}M'
@@ -325,22 +325,22 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
                                 ? '${(v / 1000).toStringAsFixed(0)}K'
                                 : v.toStringAsFixed(0);
                         return Text(formatted,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 9,
-                                color: MyrabaColors.textHint));
+                                color: context.mc.textHint));
                       },
                     ),
                   ),
-                  topTitles: const AxisTitles(
+                  topTitles: AxisTitles(
                       sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(
+                  rightTitles: AxisTitles(
                       sideTitles: SideTitles(showTitles: false)),
                 ),
                 gridData: FlGridData(
                   show: true,
                   drawVerticalLine: false,
-                  getDrawingHorizontalLine: (_) => const FlLine(
-                    color: MyrabaColors.surfaceLine,
+                  getDrawingHorizontalLine: (_) => FlLine(
+                    color: context.mc.surfaceLine,
                     strokeWidth: 0.5,
                   ),
                 ),
@@ -389,10 +389,10 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
             width: 10,
             height: 10,
             decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-        const SizedBox(width: 5),
+        SizedBox(width: 5),
         Text(label,
-            style: const TextStyle(
-                fontSize: 11, color: MyrabaColors.textSecond)),
+            style: TextStyle(
+                fontSize: 11, color: context.mc.textSecond)),
       ],
     );
   }
@@ -402,12 +402,12 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Breakdown by Month',
+        Text('Breakdown by Month',
             style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
-                color: MyrabaColors.textPrimary)),
-        const SizedBox(height: 12),
+                color: context.mc.textPrimary)),
+        SizedBox(height: 12),
         ...List.generate(_data.length, (i) {
           // Show latest month first
           final d = _data[_data.length - 1 - i];
@@ -426,9 +426,9 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: MyrabaColors.surface,
+                color: context.mc.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: MyrabaColors.surfaceLine),
+                border: Border.all(color: context.mc.surfaceLine),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -437,10 +437,10 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(label,
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: MyrabaColors.textPrimary)),
+                              color: context.mc.textPrimary)),
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 4),
@@ -509,13 +509,13 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
     return Row(
       children: [
         Icon(icon, size: 12, color: color),
-        const SizedBox(width: 4),
+        SizedBox(width: 4),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(label,
-                style: const TextStyle(
-                    fontSize: 10, color: MyrabaColors.textHint)),
+                style: TextStyle(
+                    fontSize: 10, color: context.mc.textHint)),
             Text('₦${_nfmt.format(amount)}',
                 style: TextStyle(
                     fontSize: 13,
@@ -533,12 +533,12 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen> {
         padding: const EdgeInsets.symmetric(vertical: 40),
         child: Column(
           children: [
-            const Icon(Icons.bar_chart_rounded,
-                size: 48, color: MyrabaColors.textHint),
-            const SizedBox(height: 12),
+            Icon(Icons.bar_chart_rounded,
+                size: 48, color: context.mc.textHint),
+            SizedBox(height: 12),
             Text(msg,
-                style: const TextStyle(
-                    color: MyrabaColors.textHint, fontSize: 13)),
+                style: TextStyle(
+                    color: context.mc.textHint, fontSize: 13)),
           ],
         ),
       ),

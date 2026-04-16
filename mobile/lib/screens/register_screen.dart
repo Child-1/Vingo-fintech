@@ -122,7 +122,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } else {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const MainScreen()),
+        MaterialPageRoute(builder: (_) => MainScreen()),
         (_) => false,
       );
     }
@@ -131,12 +131,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        leading: const BackButton(color: MyrabaColors.textSecond),
+        leading: BackButton(color: context.mc.textSecond),
         title: Text('Step $_step of 2',
-            style: const TextStyle(fontSize: 14, color: MyrabaColors.textHint)),
+            style: TextStyle(fontSize: 14, color: context.mc.textHint)),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -151,21 +151,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Create your account',
+        Text('Create your account',
             style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
-                color: MyrabaColors.textPrimary)),
-        const SizedBox(height: 6),
-        const Text("We'll send you a code to verify your identity",
-            style: TextStyle(fontSize: 14, color: MyrabaColors.textSecond)),
-        const SizedBox(height: 32),
+                color: context.mc.textPrimary)),
+        SizedBox(height: 6),
+        Text("We'll send you a code to verify your identity",
+            style: TextStyle(fontSize: 14, color: context.mc.textSecond)),
+        SizedBox(height: 32),
         // Toggle phone / email
         Container(
           decoration: BoxDecoration(
-            color: MyrabaColors.surface,
+            color: context.mc.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: MyrabaColors.surfaceLine),
+            border: Border.all(color: context.mc.surfaceLine),
           ),
           child: Row(
             children: [
@@ -188,11 +188,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
         Text(_useEmail ? 'Email Address' : 'Phone Number',
             style:
-                const TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-        const SizedBox(height: 8),
+                TextStyle(fontSize: 13, color: context.mc.textSecond)),
+        SizedBox(height: 8),
         TextField(
           controller: _contactCtrl,
           keyboardType:
@@ -202,7 +202,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             hintText: _useEmail ? 'you@example.com' : '08012345678',
             prefixIcon: Icon(
               _useEmail ? Icons.email_outlined : Icons.phone_outlined,
-              color: MyrabaColors.textHint,
+              color: context.mc.textHint,
               size: 20,
             ),
             suffixIcon: TextButton(
@@ -212,7 +212,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color:
-                        _loading ? MyrabaColors.textHint : MyrabaColors.green,
+                        _loading ? context.mc.textHint : MyrabaColors.green,
                   )),
             ),
           ),
@@ -231,17 +231,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 const Icon(Icons.check_circle_outline_rounded,
                     color: MyrabaColors.green, size: 16),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text('OTP sent to ${_contactCtrl.text.trim()}',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 12, color: MyrabaColors.green)),
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          const Text('Enter OTP',
-              style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-          const SizedBox(height: 8),
+          SizedBox(height: 16),
+          Text('Enter OTP',
+              style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+          SizedBox(height: 8),
           TextField(
             controller: _otpCtrl,
             keyboardType: TextInputType.number,
@@ -275,15 +275,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       color: Colors.white, strokeWidth: 2))
               : Text(_otpSent ? 'Continue' : 'Send OTP'),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
         Center(
           child: GestureDetector(
             onTap: () => Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (_) => const LoginScreen())),
+                MaterialPageRoute(builder: (_) => LoginScreen())),
             child: RichText(
-              text: const TextSpan(
+              text: TextSpan(
                 text: 'Already have an account? ',
-                style: TextStyle(color: MyrabaColors.textHint, fontSize: 13),
+                style: TextStyle(color: context.mc.textHint, fontSize: 13),
                 children: [
                   TextSpan(
                       text: 'Log in',
@@ -303,32 +303,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Set up your profile',
+        Text('Set up your profile',
             style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
-                color: MyrabaColors.textPrimary)),
-        const SizedBox(height: 6),
-        const Text(
+                color: context.mc.textPrimary)),
+        SizedBox(height: 6),
+        Text(
             'Choose your MyrabaTag — this is how people find and pay you',
-            style: TextStyle(fontSize: 14, color: MyrabaColors.textSecond)),
-        const SizedBox(height: 32),
-        const Text('Full Name',
-            style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-        const SizedBox(height: 8),
+            style: TextStyle(fontSize: 14, color: context.mc.textSecond)),
+        SizedBox(height: 32),
+        Text('Full Name',
+            style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+        SizedBox(height: 8),
         TextField(
           controller: _nameCtrl,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: 'e.g. Davinci Okafor',
             prefixIcon: Icon(Icons.person_outline_rounded,
-                color: MyrabaColors.textHint, size: 20),
+                color: context.mc.textHint, size: 20),
           ),
         ),
-        const SizedBox(height: 20),
-        const Text('MyrabaTag (your unique ID)',
-            style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-        const SizedBox(height: 8),
+        SizedBox(height: 20),
+        Text('MyrabaTag (your unique ID)',
+            style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+        SizedBox(height: 8),
         TextField(
           controller: _handleCtrl,
           decoration: const InputDecoration(
@@ -340,39 +340,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 fontSize: 16),
           ),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
 
         // ── Account number ────────────────────────────────────────
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: MyrabaColors.surface,
+            color: context.mc.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: MyrabaColors.surfaceLine),
+            border: Border.all(color: context.mc.surfaceLine),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
+              Row(
                 children: [
                   Icon(Icons.account_balance_outlined,
-                      size: 16, color: MyrabaColors.textHint),
+                      size: 16, color: context.mc.textHint),
                   SizedBox(width: 8),
                   Text('Account Number',
                       style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: MyrabaColors.textPrimary)),
+                          color: context.mc.textPrimary)),
                 ],
               ),
               if (!_useEmail) ...[
-                const SizedBox(height: 10),
-                const Divider(height: 1, color: MyrabaColors.surfaceLine),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
+                Divider(height: 1, color: context.mc.surfaceLine),
+                SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -380,12 +380,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: MyrabaColors.textPrimary)),
+                                  color: context.mc.textPrimary)),
                           SizedBox(height: 2),
                           Text('Off = a unique 10-digit number is auto-generated',
                               style: TextStyle(
                                   fontSize: 11,
-                                  color: MyrabaColors.textHint,
+                                  color: context.mc.textHint,
                                   height: 1.3)),
                         ],
                       ),
@@ -398,19 +398,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                 ),
               ] else ...[
-                const SizedBox(height: 6),
-                const Text(
+                SizedBox(height: 6),
+                Text(
                   'A unique 10-digit number will be auto-generated for you.',
-                  style: TextStyle(fontSize: 12, color: MyrabaColors.textHint, height: 1.4),
+                  style: TextStyle(fontSize: 12, color: context.mc.textHint, height: 1.4),
                 ),
               ],
-              const SizedBox(height: 10),
-              const Divider(height: 1, color: MyrabaColors.surfaceLine),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
+              Divider(height: 1, color: context.mc.surfaceLine),
+              SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -418,12 +418,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: MyrabaColors.textPrimary)),
+                                color: context.mc.textPrimary)),
                         SizedBox(height: 2),
                         Text('e.g. 5678-smith — an easier way to receive money',
                             style: TextStyle(
                                 fontSize: 11,
-                                color: MyrabaColors.textHint,
+                                color: context.mc.textHint,
                                 height: 1.3)),
                       ],
                     ),
@@ -438,40 +438,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 20),
-        const Text('Password',
-            style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-        const SizedBox(height: 8),
+        SizedBox(height: 20),
+        Text('Password',
+            style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+        SizedBox(height: 8),
         TextField(
           controller: _passCtrl,
           obscureText: !_passVisible,
           decoration: InputDecoration(
             hintText: 'At least 8 characters',
-            prefixIcon: const Icon(Icons.lock_outline_rounded,
-                color: MyrabaColors.textHint, size: 20),
+            prefixIcon: Icon(Icons.lock_outline_rounded,
+                color: context.mc.textHint, size: 20),
             suffixIcon: IconButton(
               icon: Icon(
                 _passVisible
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
-                color: MyrabaColors.textHint,
+                color: context.mc.textHint,
                 size: 20,
               ),
               onPressed: () => setState(() => _passVisible = !_passVisible),
             ),
           ),
         ),
-        const SizedBox(height: 20),
-        const Text('Confirm Password',
-            style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-        const SizedBox(height: 8),
+        SizedBox(height: 20),
+        Text('Confirm Password',
+            style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+        SizedBox(height: 8),
         TextField(
           controller: _confirmCtrl,
           obscureText: !_passVisible,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: 'Repeat your password',
             prefixIcon: Icon(Icons.lock_outline_rounded,
-                color: MyrabaColors.textHint, size: 20),
+                color: context.mc.textHint, size: 20),
           ),
         ),
         if (_error != null) ...[
@@ -526,7 +526,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: active ? MyrabaColors.green : MyrabaColors.textHint,
+                  color: active ? MyrabaColors.green : context.mc.textHint,
                 )),
           ),
         ),

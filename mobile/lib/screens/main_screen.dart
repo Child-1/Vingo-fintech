@@ -27,7 +27,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       body: IndexedStack(index: _index, children: _tabs),
       bottomNavigationBar: _BottomNav(
         current: _index,
@@ -46,8 +46,8 @@ class _BottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: MyrabaColors.surface,
-        border: Border(top: BorderSide(color: MyrabaColors.surfaceLine.withValues(alpha: 0.5))),
+        color: context.mc.surface,
+        border: Border(top: BorderSide(color: context.mc.surfaceLine.withValues(alpha: 0.5))),
       ),
       child: SafeArea(
         top: false,
@@ -55,11 +55,11 @@ class _BottomNav extends StatelessWidget {
           height: 62,
           child: Row(
             children: [
-              _item(0, Icons.home_rounded,        Icons.home_outlined,        'Home'),
-              _item(1, Icons.savings_rounded,     Icons.savings_outlined,     'Thrift'),
-              _item(2, Icons.card_giftcard_rounded,Icons.card_giftcard_outlined,'Gift'),
-              _item(3, Icons.receipt_long_rounded, Icons.receipt_long_outlined,'Bills'),
-              _item(4, Icons.person_rounded,      Icons.person_outline_rounded,'Profile'),
+              _item(context, 0, Icons.home_rounded,        Icons.home_outlined,        'Home'),
+              _item(context, 1, Icons.savings_rounded,     Icons.savings_outlined,     'Thrift'),
+              _item(context, 2, Icons.card_giftcard_rounded,Icons.card_giftcard_outlined,'Gift'),
+              _item(context, 3, Icons.receipt_long_rounded, Icons.receipt_long_outlined,'Bills'),
+              _item(context, 4, Icons.person_rounded,      Icons.person_outline_rounded,'Profile'),
             ],
           ),
         ),
@@ -67,7 +67,7 @@ class _BottomNav extends StatelessWidget {
     );
   }
 
-  Widget _item(int index, IconData activeIcon, IconData inactiveIcon, String label) {
+  Widget _item(BuildContext context, int index, IconData activeIcon, IconData inactiveIcon, String label) {
     final active = current == index;
     return Expanded(
       child: InkWell(
@@ -78,7 +78,7 @@ class _BottomNav extends StatelessWidget {
           children: [
             Icon(
               active ? activeIcon : inactiveIcon,
-              color: active ? MyrabaColors.green : MyrabaColors.textHint,
+              color: active ? MyrabaColors.green : context.mc.textHint,
               size: 24,
             ),
             const SizedBox(height: 3),
@@ -86,7 +86,7 @@ class _BottomNav extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: active ? FontWeight.w700 : FontWeight.w400,
-                color: active ? MyrabaColors.green : MyrabaColors.textHint,
+                color: active ? MyrabaColors.green : context.mc.textHint,
               ),
             ),
           ],

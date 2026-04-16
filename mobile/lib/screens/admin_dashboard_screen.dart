@@ -25,7 +25,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+        MaterialPageRoute(builder: (_) => WelcomeScreen()),
         (_) => false,
       );
     });
@@ -37,34 +37,34 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
     if (!auth.isLoggedIn) {
       _goToLogin();
-      return const Scaffold(
-        backgroundColor: MyrabaColors.bg,
+      return Scaffold(
+        backgroundColor: context.mc.bg,
         body:
             Center(child: CircularProgressIndicator(color: MyrabaColors.orange)),
       );
     }
     if (!auth.isAdmin) {
       return Scaffold(
-        backgroundColor: MyrabaColors.bg,
+        backgroundColor: context.mc.bg,
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.lock_rounded, color: MyrabaColors.red, size: 48),
-              const SizedBox(height: 12),
-              const Text('Access Denied',
+              Icon(Icons.lock_rounded, color: MyrabaColors.red, size: 48),
+              SizedBox(height: 12),
+              Text('Access Denied',
                   style: TextStyle(
                       color: MyrabaColors.red,
                       fontSize: 18,
                       fontWeight: FontWeight.w700)),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               TextButton(
                 onPressed: () {
                   auth.logout();
                   _goToLogin();
                 },
-                child: const Text('Sign Out',
-                    style: TextStyle(color: MyrabaColors.textHint)),
+                child: Text('Sign Out',
+                    style: TextStyle(color: context.mc.textHint)),
               ),
             ],
           ),
@@ -82,7 +82,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       body: IndexedStack(index: _tab, children: tabs),
       bottomNavigationBar: _AdminBottomNav(
         current: _tab,
@@ -111,9 +111,9 @@ class _AdminBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: MyrabaColors.surface,
-        border: Border(top: BorderSide(color: MyrabaColors.surfaceLine)),
+      decoration: BoxDecoration(
+        color: context.mc.surface,
+        border: Border(top: BorderSide(color: context.mc.surfaceLine)),
       ),
       child: SafeArea(
         top: false,
@@ -131,15 +131,15 @@ class _AdminBottomNav extends StatelessWidget {
                     children: [
                       Icon(sel ? _items[i].$1 : _items[i].$2,
                           color:
-                              sel ? MyrabaColors.orange : MyrabaColors.textHint,
+                              sel ? MyrabaColors.orange : context.mc.textHint,
                           size: 22),
-                      const SizedBox(height: 3),
+                      SizedBox(height: 3),
                       Text(_items[i].$3,
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                             color:
-                                sel ? MyrabaColors.orange : MyrabaColors.textHint,
+                                sel ? MyrabaColors.orange : context.mc.textHint,
                           )),
                     ],
                   ),
@@ -225,36 +225,36 @@ class _OverviewTabState extends State<_OverviewTab> {
     return RefreshIndicator(
       onRefresh: _load,
       color: MyrabaColors.orange,
-      backgroundColor: MyrabaColors.surface,
+      backgroundColor: context.mc.surface,
       child: CustomScrollView(
         slivers: [
           // ── App bar ──────────────────────────────────────────────
           SliverAppBar(
             pinned: true,
-            backgroundColor: MyrabaColors.bg,
+            backgroundColor: context.mc.bg,
             expandedHeight: 110,
             flexibleSpace: FlexibleSpaceBar(
               background: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 48, 20, 0),
                 child: Row(
                   children: [
-                    const MyrabaLogoMark(size: 40),
-                    const SizedBox(width: 12),
+                    MyrabaLogoMark(size: 40),
+                    SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('Admin Console',
+                          Text('Admin Console',
                               style: TextStyle(
                                   fontSize: 12,
-                                  color: MyrabaColors.textHint,
+                                  color: context.mc.textHint,
                                   fontWeight: FontWeight.w500)),
                           Text(name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w700,
-                                  color: MyrabaColors.textPrimary)),
+                                  color: context.mc.textPrimary)),
                         ],
                       ),
                     ),
@@ -265,7 +265,7 @@ class _OverviewTabState extends State<_OverviewTab> {
             ),
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(1),
-              child: Container(height: 1, color: MyrabaColors.surfaceLine),
+              child: Container(height: 1, color: context.mc.surfaceLine),
             ),
           ),
 
@@ -361,8 +361,8 @@ class _OverviewTabState extends State<_OverviewTab> {
                     if (summary != null)
                       Text(
                           'Vol: ₦${_fmtMoney(summary['totalVolume'])}  ·  Fees: ₦${_fmtMoney(summary['totalFees'])}',
-                          style: const TextStyle(
-                              fontSize: 11, color: MyrabaColors.textHint)),
+                          style: TextStyle(
+                              fontSize: 11, color: context.mc.textHint)),
                   ],
                 ),
               ),
@@ -371,11 +371,11 @@ class _OverviewTabState extends State<_OverviewTab> {
               delegate: SliverChildBuilderDelegate(
                 (ctx, i) {
                   if (_recentTx.isEmpty) {
-                    return const Padding(
+                    return Padding(
                       padding: EdgeInsets.symmetric(vertical: 32),
                       child: Center(
                           child: Text('No transactions yet',
-                              style: TextStyle(color: MyrabaColors.textHint))),
+                              style: TextStyle(color: context.mc.textHint))),
                     );
                   }
                   final tx = _recentTx[i] as Map<String, dynamic>;
@@ -467,15 +467,15 @@ class _UsersTabState extends State<_UsersTab> {
 
   void _onSearch(String val) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () => _load(val));
+    _debounce = Timer(Duration(milliseconds: 500), () => _load(val));
   }
 
   void _showUserSheet(Map<String, dynamic> user) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: MyrabaColors.surface,
-      shape: const RoundedRectangleBorder(
+      backgroundColor: context.mc.surface,
+      shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => _UserDetailSheet(
         user: user,
@@ -489,7 +489,7 @@ class _UsersTabState extends State<_UsersTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -498,21 +498,21 @@ class _UsersTabState extends State<_UsersTab> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: Row(
                 children: [
-                  const Text('Users',
+                  Text('Users',
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
-                          color: MyrabaColors.textPrimary)),
-                  const Spacer(),
+                          color: context.mc.textPrimary)),
+                  Spacer(),
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: MyrabaColors.surfaceHigh,
+                      color: context.mc.surfaceHigh,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text('${_filtered.length}',
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 13,
                             color: MyrabaColors.orange,
                             fontWeight: FontWeight.w700)),
@@ -526,18 +526,18 @@ class _UsersTabState extends State<_UsersTab> {
               child: TextField(
                 controller: _ctrl,
                 onChanged: _onSearch,
-                style: const TextStyle(
-                    color: MyrabaColors.textPrimary, fontSize: 14),
+                style: TextStyle(
+                    color: context.mc.textPrimary, fontSize: 14),
                 decoration: InputDecoration(
                   hintText: 'Search by MyrabaHandle or account…',
-                  hintStyle: const TextStyle(
-                      color: MyrabaColors.textHint, fontSize: 14),
-                  prefixIcon: const Icon(Icons.search_rounded,
-                      color: MyrabaColors.textHint, size: 20),
+                  hintStyle: TextStyle(
+                      color: context.mc.textHint, fontSize: 14),
+                  prefixIcon: Icon(Icons.search_rounded,
+                      color: context.mc.textHint, size: 20),
                   suffixIcon: _ctrl.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear_rounded,
-                              color: MyrabaColors.textHint, size: 18),
+                          icon: Icon(Icons.clear_rounded,
+                              color: context.mc.textHint, size: 18),
                           onPressed: () {
                             _ctrl.clear();
                             _load();
@@ -545,7 +545,7 @@ class _UsersTabState extends State<_UsersTab> {
                         )
                       : null,
                   filled: true,
-                  fillColor: MyrabaColors.surfaceHigh,
+                  fillColor: context.mc.surfaceHigh,
                   contentPadding:
                       const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
                   border: OutlineInputBorder(
@@ -565,13 +565,13 @@ class _UsersTabState extends State<_UsersTab> {
                           child: GestureDetector(
                             onTap: () => setState(() => _filter = f),
                             child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
+                              duration: Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 14, vertical: 6),
                               decoration: BoxDecoration(
                                 color: _filter == f
                                     ? MyrabaColors.orange
-                                    : MyrabaColors.surfaceHigh,
+                                    : context.mc.surfaceHigh,
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(f,
@@ -580,7 +580,7 @@ class _UsersTabState extends State<_UsersTab> {
                                     fontWeight: FontWeight.w600,
                                     color: _filter == f
                                         ? Colors.white
-                                        : MyrabaColors.textSecond,
+                                        : context.mc.textSecond,
                                   )),
                             ),
                           ),
@@ -588,21 +588,21 @@ class _UsersTabState extends State<_UsersTab> {
                     .toList(),
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Expanded(
               child: _loading
-                  ? const Center(
+                  ? Center(
                       child:
                           CircularProgressIndicator(color: MyrabaColors.orange))
                   : RefreshIndicator(
                       onRefresh: _load,
                       color: MyrabaColors.orange,
-                      backgroundColor: MyrabaColors.surface,
+                      backgroundColor: context.mc.surface,
                       child: _filtered.isEmpty
-                          ? const Center(
+                          ? Center(
                               child: Text('No users found',
                                   style:
-                                      TextStyle(color: MyrabaColors.textHint)))
+                                      TextStyle(color: context.mc.textHint)))
                           : ListView.separated(
                               padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                               itemCount: _filtered.length,
@@ -723,9 +723,9 @@ class _UserDetailSheetState extends State<_UserDetailSheet> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                      color: MyrabaColors.surfaceLine,
+                      color: context.mc.surfaceLine,
                       borderRadius: BorderRadius.circular(2)))),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           // Avatar + name
           Row(
             children: [
@@ -733,24 +733,24 @@ class _UserDetailSheetState extends State<_UserDetailSheet> {
                 radius: 28,
                 backgroundColor: MyrabaColors.orange.withValues(alpha: 0.15),
                 child: Text((u['fullName'] as String? ?? 'U')[0].toUpperCase(),
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
                         color: MyrabaColors.orange)),
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(u['fullName'] ?? '—',
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
-                            color: MyrabaColors.textPrimary)),
+                            color: context.mc.textPrimary)),
                     Text('v₦${u['myrabaHandle']}',
-                        style: const TextStyle(
-                            fontSize: 13, color: MyrabaColors.textHint)),
+                        style: TextStyle(
+                            fontSize: 13, color: context.mc.textHint)),
                   ],
                 ),
               ),
@@ -788,13 +788,13 @@ class _UserDetailSheetState extends State<_UserDetailSheet> {
           ],
 
           if (_canEdit) ...[
-            const SizedBox(height: 20),
-            const Text('Change Role',
+            SizedBox(height: 20),
+            Text('Change Role',
                 style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: MyrabaColors.textSecond)),
-            const SizedBox(height: 8),
+                    color: context.mc.textSecond)),
+            SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -807,7 +807,7 @@ class _UserDetailSheetState extends State<_UserDetailSheet> {
                           decoration: BoxDecoration(
                             color: role == r
                                 ? MyrabaColors.orange.withValues(alpha: 0.15)
-                                : MyrabaColors.surfaceHigh,
+                                : context.mc.surfaceHigh,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                                 color: role == r
@@ -820,18 +820,18 @@ class _UserDetailSheetState extends State<_UserDetailSheet> {
                                   fontWeight: FontWeight.w600,
                                   color: role == r
                                       ? MyrabaColors.orange
-                                      : MyrabaColors.textSecond)),
+                                      : context.mc.textSecond)),
                         ),
                       ))
                   .toList(),
             ),
-            const SizedBox(height: 20),
-            const Text('Update KYC Status',
+            SizedBox(height: 20),
+            Text('Update KYC Status',
                 style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: MyrabaColors.textSecond)),
-            const SizedBox(height: 8),
+                    color: context.mc.textSecond)),
+            SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -844,7 +844,7 @@ class _UserDetailSheetState extends State<_UserDetailSheet> {
                           decoration: BoxDecoration(
                             color: kyc == s
                                 ? _kycColor(s).withValues(alpha: 0.15)
-                                : MyrabaColors.surfaceHigh,
+                                : context.mc.surfaceHigh,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                                 color: kyc == s
@@ -857,7 +857,7 @@ class _UserDetailSheetState extends State<_UserDetailSheet> {
                                   fontWeight: FontWeight.w600,
                                   color: kyc == s
                                       ? _kycColor(s)
-                                      : MyrabaColors.textSecond)),
+                                      : context.mc.textSecond)),
                         ),
                       ))
                   .toList(),
@@ -883,8 +883,8 @@ class _UserDetailSheetState extends State<_UserDetailSheet> {
           SizedBox(
               width: 80,
               child: Text(label,
-                  style: const TextStyle(
-                      fontSize: 12, color: MyrabaColors.textHint))),
+                  style: TextStyle(
+                      fontSize: 12, color: context.mc.textHint))),
           Expanded(
             child: badge != null
                 ? Row(children: [
@@ -893,7 +893,7 @@ class _UserDetailSheetState extends State<_UserDetailSheet> {
                         height: 8,
                         decoration: BoxDecoration(
                             color: badge, shape: BoxShape.circle)),
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6),
                     Text(value,
                         style: TextStyle(
                             fontSize: 13,
@@ -901,16 +901,16 @@ class _UserDetailSheetState extends State<_UserDetailSheet> {
                             fontWeight: FontWeight.w600)),
                   ])
                 : Text(value,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 13,
-                        color: MyrabaColors.textPrimary,
+                        color: context.mc.textPrimary,
                         fontWeight: FontWeight.w500)),
           ),
           if (copyable)
             GestureDetector(
               onTap: () => Clipboard.setData(ClipboardData(text: value)),
-              child: const Icon(Icons.copy_rounded,
-                  size: 14, color: MyrabaColors.textHint),
+              child: Icon(Icons.copy_rounded,
+                  size: 14, color: context.mc.textHint),
             ),
         ],
       ),
@@ -970,8 +970,8 @@ class _TransactionsTabState extends State<_TransactionsTab> {
   void _showTxSheet(Map<String, dynamic> tx) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: MyrabaColors.surface,
-      shape: const RoundedRectangleBorder(
+      backgroundColor: context.mc.surface,
+      shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       isScrollControlled: true,
       builder: (ctx) =>
@@ -982,7 +982,7 @@ class _TransactionsTabState extends State<_TransactionsTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -990,17 +990,17 @@ class _TransactionsTabState extends State<_TransactionsTab> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
               child: Row(
                 children: [
-                  const Text('Transactions',
+                  Text('Transactions',
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
-                          color: MyrabaColors.textPrimary)),
-                  const Spacer(),
+                          color: context.mc.textPrimary)),
+                  Spacer(),
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                        color: MyrabaColors.surfaceHigh,
+                        color: context.mc.surfaceHigh,
                         borderRadius: BorderRadius.circular(20)),
                     child: Text('${_txs.length}',
                         style: const TextStyle(
@@ -1026,13 +1026,13 @@ class _TransactionsTabState extends State<_TransactionsTab> {
                               _load();
                             },
                             child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
+                              duration: Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 14, vertical: 7),
                               decoration: BoxDecoration(
                                 color: _filter == f
                                     ? MyrabaColors.orange
-                                    : MyrabaColors.surfaceHigh,
+                                    : context.mc.surfaceHigh,
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(f,
@@ -1041,28 +1041,28 @@ class _TransactionsTabState extends State<_TransactionsTab> {
                                       fontWeight: FontWeight.w600,
                                       color: _filter == f
                                           ? Colors.white
-                                          : MyrabaColors.textSecond)),
+                                          : context.mc.textSecond)),
                             ),
                           ),
                         ))
                     .toList(),
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Expanded(
               child: _loading
-                  ? const Center(
+                  ? Center(
                       child:
                           CircularProgressIndicator(color: MyrabaColors.orange))
                   : RefreshIndicator(
                       onRefresh: _load,
                       color: MyrabaColors.orange,
-                      backgroundColor: MyrabaColors.surface,
+                      backgroundColor: context.mc.surface,
                       child: _txs.isEmpty
-                          ? const Center(
+                          ? Center(
                               child: Text('No transactions',
                                   style:
-                                      TextStyle(color: MyrabaColors.textHint)))
+                                      TextStyle(color: context.mc.textHint)))
                           : ListView.separated(
                               padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                               itemCount: _txs.length,
@@ -1139,17 +1139,17 @@ class _TxDetailSheetState extends State<_TxDetailSheet> {
     return showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: MyrabaColors.surface,
-        title: const Text('Reversal Reason',
-            style: TextStyle(color: MyrabaColors.textPrimary)),
+        backgroundColor: context.mc.surface,
+        title: Text('Reversal Reason',
+            style: TextStyle(color: context.mc.textPrimary)),
         content: TextField(
           controller: ctrl,
-          style: const TextStyle(color: MyrabaColors.textPrimary),
-          decoration: const InputDecoration(
+          style: TextStyle(color: context.mc.textPrimary),
+          decoration: InputDecoration(
             hintText: 'Enter reason…',
-            hintStyle: TextStyle(color: MyrabaColors.textHint),
+            hintStyle: TextStyle(color: context.mc.textHint),
             enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: MyrabaColors.surfaceLine)),
+                borderSide: BorderSide(color: context.mc.surfaceLine)),
             focusedBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: MyrabaColors.orange)),
           ),
@@ -1190,9 +1190,9 @@ class _TxDetailSheetState extends State<_TxDetailSheet> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                        color: MyrabaColors.surfaceLine,
+                        color: context.mc.surfaceLine,
                         borderRadius: BorderRadius.circular(2)))),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             Row(
               children: [
                 Container(
@@ -1207,19 +1207,19 @@ class _TxDetailSheetState extends State<_TxDetailSheet> {
                       color: isSent ? MyrabaColors.orange : MyrabaColors.teal,
                       size: 22),
                 ),
-                const SizedBox(width: 14),
+                SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(type,
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w700,
-                              color: MyrabaColors.textPrimary)),
+                              color: context.mc.textPrimary)),
                       Text('ID: #${tx['id']}',
-                          style: const TextStyle(
-                              fontSize: 12, color: MyrabaColors.textHint)),
+                          style: TextStyle(
+                              fontSize: 12, color: context.mc.textHint)),
                     ],
                   ),
                 ),
@@ -1300,13 +1300,13 @@ class _TxDetailSheetState extends State<_TxDetailSheet> {
             SizedBox(
                 width: 90,
                 child: Text(label,
-                    style: const TextStyle(
-                        fontSize: 12, color: MyrabaColors.textHint))),
+                    style: TextStyle(
+                        fontSize: 12, color: context.mc.textHint))),
             Expanded(
                 child: Text(value,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 13,
-                        color: MyrabaColors.textPrimary,
+                        color: context.mc.textPrimary,
                         fontWeight: FontWeight.w500))),
           ],
         ),
@@ -1389,7 +1389,7 @@ class _KycTabState extends State<_KycTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1398,12 +1398,12 @@ class _KycTabState extends State<_KycTab> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: Row(
                 children: [
-                  const Text('KYC Review',
+                  Text('KYC Review',
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
-                          color: MyrabaColors.textPrimary)),
-                  const Spacer(),
+                          color: context.mc.textPrimary)),
+                  Spacer(),
                   if (!_loading)
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -1411,7 +1411,7 @@ class _KycTabState extends State<_KycTab> {
                       decoration: BoxDecoration(
                         color: _pending.isNotEmpty
                             ? MyrabaColors.gold.withValues(alpha: 0.15)
-                            : MyrabaColors.surfaceHigh,
+                            : context.mc.surfaceHigh,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text('${_pending.length} pending',
@@ -1420,23 +1420,23 @@ class _KycTabState extends State<_KycTab> {
                               fontWeight: FontWeight.w600,
                               color: _pending.isNotEmpty
                                   ? MyrabaColors.gold
-                                  : MyrabaColors.textHint)),
+                                  : context.mc.textHint)),
                     ),
                 ],
               ),
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: 14),
             Expanded(
               child: _loading
-                  ? const Center(
+                  ? Center(
                       child:
                           CircularProgressIndicator(color: MyrabaColors.orange))
                   : RefreshIndicator(
                       onRefresh: _load,
                       color: MyrabaColors.orange,
-                      backgroundColor: MyrabaColors.surface,
+                      backgroundColor: context.mc.surface,
                       child: _pending.isEmpty
-                          ? const Center(
+                          ? Center(
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -1451,7 +1451,7 @@ class _KycTabState extends State<_KycTab> {
                                   SizedBox(height: 6),
                                   Text('No pending submissions',
                                       style: TextStyle(
-                                          color: MyrabaColors.textHint,
+                                          color: context.mc.textHint,
                                           fontSize: 13)),
                                 ],
                               ),
@@ -1460,7 +1460,7 @@ class _KycTabState extends State<_KycTab> {
                               padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                               itemCount: _pending.length,
                               separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 10),
+                                  SizedBox(height: 10),
                               itemBuilder: (ctx, i) {
                                 final u = _pending[i] as Map<String, dynamic>;
                                 final uid = (u['id'] as num).toInt();
@@ -1468,7 +1468,7 @@ class _KycTabState extends State<_KycTab> {
                                 final busy = _processing[uid] == true;
                                 return Container(
                                   padding: const EdgeInsets.all(16),
-                                  decoration: _myrabaCard(),
+                                  decoration: context.mc.card(),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -1513,7 +1513,7 @@ class _KycTabState extends State<_KycTab> {
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 12),
+                                      SizedBox(height: 12),
                                       if (result != null) ...[
                                         Container(
                                           padding: const EdgeInsets.symmetric(
@@ -1525,7 +1525,7 @@ class _KycTabState extends State<_KycTab> {
                                                 : result == 'REJECTED'
                                                     ? MyrabaColors.red
                                                         .withValues(alpha: 0.12)
-                                                    : MyrabaColors.surfaceHigh,
+                                                    : context.mc.surfaceHigh,
                                             borderRadius:
                                                 BorderRadius.circular(10),
                                           ),
@@ -1540,7 +1540,7 @@ class _KycTabState extends State<_KycTab> {
                                                   ? MyrabaColors.teal
                                                   : result == 'REJECTED'
                                                       ? MyrabaColors.red
-                                                      : MyrabaColors.textHint,
+                                                      : context.mc.textHint,
                                             ),
                                           ),
                                         ),
@@ -1685,21 +1685,21 @@ class _ConsoleTabState extends State<_ConsoleTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       body: RefreshIndicator(
         onRefresh: _load,
         color: MyrabaColors.orange,
-        backgroundColor: MyrabaColors.surface,
+        backgroundColor: context.mc.surface,
         child: CustomScrollView(
           slivers: [
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(16, 52, 16, 8),
                 child: Text('Console',
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
-                        color: MyrabaColors.textPrimary)),
+                        color: context.mc.textPrimary)),
               ),
             ),
             if (_loading)
@@ -1787,10 +1787,10 @@ class _ConsoleTabState extends State<_ConsoleTab> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const _SectionHeader('Liquidity Report'),
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10),
                         Container(
                           padding: const EdgeInsets.all(16),
-                          decoration: _myrabaCard(),
+                          decoration: context.mc.card(),
                           child: Column(
                             children: [
                               _consoleStat('Total System Balance',
@@ -1836,22 +1836,22 @@ class _ConsoleTabState extends State<_ConsoleTab> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text('${_tagRequests.length}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 11,
                                       color: MyrabaColors.gold,
                                       fontWeight: FontWeight.w700)),
                             ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10),
                       if (_tagRequests.isEmpty)
                         Container(
                           padding: const EdgeInsets.all(16),
-                          decoration: _myrabaCard(),
-                          child: const Center(
+                          decoration: context.mc.card(),
+                          child: Center(
                             child: Text('No pending tag requests',
                                 style: TextStyle(
-                                    color: MyrabaColors.textHint, fontSize: 13)),
+                                    color: context.mc.textHint, fontSize: 13)),
                           ),
                         )
                       else
@@ -1860,7 +1860,7 @@ class _ConsoleTabState extends State<_ConsoleTab> {
                           return Container(
                             margin: const EdgeInsets.only(bottom: 10),
                             padding: const EdgeInsets.all(14),
-                            decoration: _myrabaCard(),
+                            decoration: context.mc.card(),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -1874,21 +1874,21 @@ class _ConsoleTabState extends State<_ConsoleTab> {
                                           Row(
                                             children: [
                                               Text('v₦${req['currentTag']}',
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                       fontSize: 13,
                                                       color: MyrabaColors
                                                           .textSecond)),
-                                              const Padding(
+                                              Padding(
                                                 padding: EdgeInsets.symmetric(
                                                     horizontal: 8),
                                                 child: Icon(
                                                     Icons.arrow_forward_rounded,
                                                     size: 14,
                                                     color:
-                                                        MyrabaColors.textHint),
+                                                        context.mc.textHint),
                                               ),
                                               Text('v₦${req['requestedTag']}',
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                       fontSize: 13,
                                                       fontWeight:
                                                           FontWeight.w700,
@@ -1896,11 +1896,11 @@ class _ConsoleTabState extends State<_ConsoleTab> {
                                                           MyrabaColors.orange)),
                                             ],
                                           ),
-                                          const SizedBox(height: 4),
+                                          SizedBox(height: 4),
                                           Text(req['reason'] ?? '—',
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                   fontSize: 11,
-                                                  color: MyrabaColors.textHint)),
+                                                  color: context.mc.textHint)),
                                         ],
                                       ),
                                     ),
@@ -1971,7 +1971,7 @@ class _ConsoleTabState extends State<_ConsoleTab> {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(16),
-                        decoration: _myrabaCard(),
+                        decoration: context.mc.card(),
                         child: Column(
                           children: [
                             _consoleStat(
@@ -2020,12 +2020,12 @@ class _ConsoleTabState extends State<_ConsoleTab> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(label,
-                style: const TextStyle(
-                    fontSize: 13, color: MyrabaColors.textSecond)),
+                style: TextStyle(
+                    fontSize: 13, color: context.mc.textSecond)),
             Text(value,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 13,
-                    color: MyrabaColors.textPrimary,
+                    color: context.mc.textPrimary,
                     fontWeight: FontWeight.w600)),
           ],
         ),
@@ -2041,10 +2041,10 @@ class _SectionHeader extends StatelessWidget {
   const _SectionHeader(this.text);
   @override
   Widget build(BuildContext context) => Text(text,
-      style: const TextStyle(
+      style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w700,
-          color: MyrabaColors.textSecond,
+          color: context.mc.textSecond,
           letterSpacing: 0.3));
 }
 
@@ -2097,26 +2097,26 @@ class _LiquidityPanel extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Liquidity',
+              Text('Liquidity',
                   style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: MyrabaColors.textSecond)),
+                      color: context.mc.textSecond)),
               Text('${(avail * 100).toStringAsFixed(1)}% available',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 12,
                       color: MyrabaColors.teal,
                       fontWeight: FontWeight.w600)),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: avail.clamp(0.0, 1.0),
               minHeight: 6,
-              backgroundColor: MyrabaColors.surfaceLine,
-              valueColor: const AlwaysStoppedAnimation(MyrabaColors.teal),
+              backgroundColor: context.mc.surfaceLine,
+              valueColor: AlwaysStoppedAnimation(MyrabaColors.teal),
             ),
           ),
           const SizedBox(height: 10),
@@ -2149,8 +2149,8 @@ class _LiquidityPanel extends StatelessWidget {
         children: [
           Text(label,
               style:
-                  const TextStyle(fontSize: 10, color: MyrabaColors.textHint)),
-          const SizedBox(height: 2),
+                  TextStyle(fontSize: 10, color: MyrabaColors.textHint)),
+          SizedBox(height: 2),
           Text(val,
               style: TextStyle(
                   fontSize: 12, fontWeight: FontWeight.w700, color: c)),
@@ -2167,7 +2167,7 @@ class _KpiCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: MyrabaColors.surface,
+          color: context.mc.surface,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: color.withValues(alpha: 0.25)),
           boxShadow: [
@@ -2204,18 +2204,18 @@ class _KpiCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(value,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
-                        color: MyrabaColors.textPrimary),
+                        color: context.mc.textPrimary),
                     overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 2),
+                SizedBox(height: 2),
                 Text(label,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 11,
-                        color: MyrabaColors.textHint,
+                        color: context.mc.textHint,
                         fontWeight: FontWeight.w500)),
-                const SizedBox(height: 2),
+                SizedBox(height: 2),
                 Text(sub,
                     style: TextStyle(
                         fontSize: 10,
@@ -2241,33 +2241,33 @@ class _UserListTile extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(14),
-        decoration: _myrabaCard(),
+        decoration: context.mc.card(),
         child: Row(
           children: [
             CircleAvatar(
               radius: 22,
               backgroundColor: MyrabaColors.orange.withValues(alpha: 0.12),
               child: Text((user['fullName'] as String? ?? 'U')[0].toUpperCase(),
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
                       color: MyrabaColors.orange)),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(user['fullName'] ?? '—',
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: MyrabaColors.textPrimary)),
-                  const SizedBox(height: 2),
+                          color: context.mc.textPrimary)),
+                  SizedBox(height: 2),
                   Text(
                       'v₦${user['myrabaHandle']}  ·  ${user['phone'] ?? user['email'] ?? '—'}',
-                      style: const TextStyle(
-                          fontSize: 12, color: MyrabaColors.textHint)),
+                      style: TextStyle(
+                          fontSize: 12, color: context.mc.textHint)),
                 ],
               ),
             ),
@@ -2302,7 +2302,7 @@ class _TxListTile extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(14),
-        decoration: _myrabaCard(),
+        decoration: context.mc.card(),
         child: Row(
           children: [
             Container(
@@ -2314,21 +2314,21 @@ class _TxListTile extends StatelessWidget {
               ),
               child: Icon(_txIcon(type), color: color, size: 18),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(type,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: MyrabaColors.textPrimary)),
-                  const SizedBox(height: 2),
+                          color: context.mc.textPrimary)),
+                  SizedBox(height: 2),
                   Text(
                     '${tx['senderHandle'] ?? '—'} → ${tx['receiverHandle'] ?? '—'}',
-                    style: const TextStyle(
-                        fontSize: 11, color: MyrabaColors.textHint),
+                    style: TextStyle(
+                        fontSize: 11, color: context.mc.textHint),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],

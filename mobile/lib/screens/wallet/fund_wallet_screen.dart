@@ -66,8 +66,8 @@ class _FundWalletScreenState extends State<FundWalletScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
-      appBar: AppBar(title: const Text('Fund Wallet')),
+      backgroundColor: context.mc.bg,
+      appBar: AppBar(title: Text('Fund Wallet')),
       body: _success ? _buildSuccess() : _buildForm(),
     );
   }
@@ -80,8 +80,8 @@ class _FundWalletScreenState extends State<FundWalletScreen> {
         children: [
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: myrabaCard(),
-            child: const Row(
+            decoration: context.mc.card(),
+            child: Row(
               children: [
                 Icon(Icons.info_outline_rounded,
                     color: MyrabaColors.blue, size: 18),
@@ -91,16 +91,16 @@ class _FundWalletScreenState extends State<FundWalletScreen> {
                     'Funds are added to your Myraba wallet. '
                     'For live funding via card/bank, Flutterwave integration applies.',
                     style:
-                        TextStyle(fontSize: 12, color: MyrabaColors.textSecond),
+                        TextStyle(fontSize: 12, color: context.mc.textSecond),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 28),
-          const Text('Quick amounts',
-              style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-          const SizedBox(height: 12),
+          SizedBox(height: 28),
+          Text('Quick amounts',
+              style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+          SizedBox(height: 12),
           Wrap(
             spacing: 10,
             runSpacing: 10,
@@ -113,12 +113,12 @@ class _FundWalletScreenState extends State<FundWalletScreen> {
                         decoration: BoxDecoration(
                           color: _amountCtrl.text == a
                               ? MyrabaColors.greenGlow
-                              : MyrabaColors.surface,
+                              : context.mc.surface,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                               color: _amountCtrl.text == a
                                   ? MyrabaColors.green
-                                  : MyrabaColors.surfaceLine),
+                                  : context.mc.surfaceLine),
                         ),
                         child: Text(
                           '₦${_fmt(a)}',
@@ -127,17 +127,17 @@ class _FundWalletScreenState extends State<FundWalletScreen> {
                             fontWeight: FontWeight.w600,
                             color: _amountCtrl.text == a
                                 ? MyrabaColors.green
-                                : MyrabaColors.textPrimary,
+                                : context.mc.textPrimary,
                           ),
                         ),
                       ),
                     ))
                 .toList(),
           ),
-          const SizedBox(height: 24),
-          const Text('Or enter amount',
-              style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
-          const SizedBox(height: 8),
+          SizedBox(height: 24),
+          Text('Or enter amount',
+              style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+          SizedBox(height: 8),
           TextField(
             controller: _amountCtrl,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -191,14 +191,14 @@ class _FundWalletScreenState extends State<FundWalletScreen> {
               child: const Icon(Icons.check_rounded,
                   color: MyrabaColors.green, size: 40),
             ),
-            const SizedBox(height: 24),
-            const Text('Wallet Funded!',
+            SizedBox(height: 24),
+            Text('Wallet Funded!',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Text('₦${_amountCtrl.text} added to your wallet',
-                style: const TextStyle(
-                    color: MyrabaColors.textSecond, fontSize: 15)),
-            const SizedBox(height: 40),
+                style: TextStyle(
+                    color: context.mc.textSecond, fontSize: 15)),
+            SizedBox(height: 40),
             ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 child: const Text('Done')),
