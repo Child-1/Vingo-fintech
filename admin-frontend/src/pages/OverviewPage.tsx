@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import type { DashboardStats } from '../types';
-import { formatNaira, formatNumber, formatDate } from '../lib/utils';
+import { formatNaira, formatNumber, formatDate, txStatusBadge } from '../lib/utils';
 import StatCard from '../components/StatCard';
 import {
   Users, Wallet, TrendingUp, PiggyBank, ShieldAlert,
@@ -256,11 +256,7 @@ function RecentTransactions() {
               <td className="text-myraba-second">{tx.senderHandle ?? '—'}</td>
               <td className="text-myraba-second">{tx.receiverHandle ?? '—'}</td>
               <td className="text-white font-medium">{formatNaira(tx.amount)}</td>
-              <td>
-                <span className={tx.status === 'SUCCESS' ? 'badge-green' : tx.status === 'FAILED' ? 'badge-red' : 'badge-yellow'}>
-                  {tx.status}
-                </span>
-              </td>
+              <td><span className={txStatusBadge(tx.status)}>{tx.status}</span></td>
               <td className="text-myraba-hint text-xs">{formatDate(tx.createdAt)}</td>
             </tr>
           ))}

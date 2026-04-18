@@ -11,9 +11,9 @@ class BillsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       appBar: AppBar(
-        backgroundColor: MyrabaColors.bg,
+        backgroundColor: context.mc.bg,
         title: const Text('Pay Bills'),
       ),
       body: ListView(
@@ -192,8 +192,8 @@ class _BillTile extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(label,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500,
-                  color: MyrabaColors.textSecond)),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500,
+                  color: context.mc.textSecond)),
           ],
         ),
       ),
@@ -220,13 +220,13 @@ class _IntlTile extends StatelessWidget {
           child: Column(
             children: [
               Icon(icon,
-                color: comingSoon ? MyrabaColors.textHint : MyrabaColors.blue,
+                color: comingSoon ? context.mc.textHint : MyrabaColors.blue,
                 size: 26),
               const SizedBox(height: 6),
               Text(label,
                 style: TextStyle(
                   fontSize: 11, fontWeight: FontWeight.w500,
-                  color: comingSoon ? MyrabaColors.textHint : MyrabaColors.textSecond),
+                  color: comingSoon ? context.mc.textHint : context.mc.textSecond),
                 textAlign: TextAlign.center),
               if (comingSoon) ...[
                 const SizedBox(height: 4),
@@ -305,11 +305,11 @@ class _AirtimeScreenState extends State<_AirtimeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _networkRow(_networks, _network, (v) => setState(() => _network = v)),
+          _networkRow(context, _networks, _network, (v) => setState(() => _network = v)),
           const SizedBox(height: 20),
-          _field('Phone Number', _phoneCtrl, TextInputType.phone, 'e.g. 08012345678'),
+          _field(context, 'Phone Number', _phoneCtrl, TextInputType.phone, 'e.g. 08012345678'),
           const SizedBox(height: 16),
-          _field('Amount (₦)', _amountCtrl, TextInputType.number, '0.00'),
+          _field(context, 'Amount (₦)', _amountCtrl, TextInputType.number, '0.00'),
           const SizedBox(height: 32),
           _payButton(_loading, _pay, 'Buy Airtime'),
         ],
@@ -381,12 +381,12 @@ class _DataScreenState extends State<_DataScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _networkRow(_networks, _network, (v) => setState(() { _network = v; _plan = ''; })),
+          _networkRow(context, _networks, _network, (v) => setState(() { _network = v; _plan = ''; })),
           const SizedBox(height: 20),
-          _field('Phone Number', _phoneCtrl, TextInputType.phone, 'e.g. 08012345678'),
+          _field(context, 'Phone Number', _phoneCtrl, TextInputType.phone, 'e.g. 08012345678'),
           const SizedBox(height: 20),
-          const Text('Select Plan',
-            style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
+          Text('Select Plan',
+            style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
           const SizedBox(height: 10),
           Wrap(
             spacing: 8, runSpacing: 8,
@@ -397,15 +397,15 @@ class _DataScreenState extends State<_DataScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: active ? MyrabaColors.blue.withValues(alpha: 0.15) : MyrabaColors.surface,
+                    color: active ? MyrabaColors.blue.withValues(alpha: 0.15) : context.mc.surface,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: active ? MyrabaColors.blue : MyrabaColors.surfaceLine),
+                      color: active ? MyrabaColors.blue : context.mc.surfaceLine),
                   ),
                   child: Text(p,
                     style: TextStyle(
                       fontSize: 11, fontWeight: FontWeight.w600,
-                      color: active ? MyrabaColors.blue : MyrabaColors.textSecond,
+                      color: active ? MyrabaColors.blue : context.mc.textSecond,
                     )),
                 ),
               );
@@ -483,8 +483,8 @@ class _ElectricityScreenState extends State<_ElectricityScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Distribution Company',
-            style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
+          Text('Distribution Company',
+            style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
           const SizedBox(height: 10),
           Wrap(
             spacing: 8, runSpacing: 8,
@@ -495,15 +495,15 @@ class _ElectricityScreenState extends State<_ElectricityScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                   decoration: BoxDecoration(
-                    color: active ? MyrabaColors.gold.withValues(alpha: 0.15) : MyrabaColors.surface,
+                    color: active ? MyrabaColors.gold.withValues(alpha: 0.15) : context.mc.surface,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: active ? MyrabaColors.gold : MyrabaColors.surfaceLine),
+                      color: active ? MyrabaColors.gold : context.mc.surfaceLine),
                   ),
                   child: Text(d,
                     style: TextStyle(
                       fontSize: 11, fontWeight: FontWeight.w600,
-                      color: active ? MyrabaColors.gold : MyrabaColors.textSecond,
+                      color: active ? MyrabaColors.gold : context.mc.textSecond,
                     )),
                 ),
               );
@@ -518,11 +518,11 @@ class _ElectricityScreenState extends State<_ElectricityScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          _field('Meter Number', _meterCtrl, TextInputType.number, 'e.g. 12345678901'),
+          _field(context, 'Meter Number', _meterCtrl, TextInputType.number, 'e.g. 12345678901'),
           const SizedBox(height: 16),
-          _field('Amount (₦)', _amountCtrl, TextInputType.number, '0.00'),
+          _field(context, 'Amount (₦)', _amountCtrl, TextInputType.number, '0.00'),
           const SizedBox(height: 16),
-          _field('Phone Number', _phoneCtrl, TextInputType.phone, 'e.g. 08012345678'),
+          _field(context, 'Phone Number', _phoneCtrl, TextInputType.phone, 'e.g. 08012345678'),
           const SizedBox(height: 32),
           _payButton(_loading, _pay, 'Pay Electricity'),
         ],
@@ -537,15 +537,15 @@ class _ElectricityScreenState extends State<_ElectricityScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: active ? MyrabaColors.gold.withValues(alpha: 0.15) : MyrabaColors.surface,
+          color: active ? MyrabaColors.gold.withValues(alpha: 0.15) : context.mc.surface,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: active ? MyrabaColors.gold : MyrabaColors.surfaceLine),
+          border: Border.all(color: active ? MyrabaColors.gold : context.mc.surfaceLine),
         ),
         child: Center(
           child: Text(value,
             style: TextStyle(
               fontSize: 12, fontWeight: FontWeight.w600,
-              color: active ? MyrabaColors.gold : MyrabaColors.textSecond,
+              color: active ? MyrabaColors.gold : context.mc.textSecond,
             )),
         ),
       ),
@@ -618,12 +618,12 @@ class _CableScreenState extends State<_CableScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _networkRow(_providers, _provider, (v) => setState(() { _provider = v; _plan = ''; })),
+          _networkRow(context, _providers, _provider, (v) => setState(() { _provider = v; _plan = ''; })),
           const SizedBox(height: 20),
-          _field('Smart Card / IUC Number', _cardCtrl, TextInputType.number, 'e.g. 1234567890'),
+          _field(context, 'Smart Card / IUC Number', _cardCtrl, TextInputType.number, 'e.g. 1234567890'),
           const SizedBox(height: 20),
-          const Text('Select Plan',
-            style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
+          Text('Select Plan',
+            style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
           const SizedBox(height: 10),
           Wrap(
             spacing: 8, runSpacing: 8,
@@ -634,22 +634,22 @@ class _CableScreenState extends State<_CableScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: active ? MyrabaColors.purple.withValues(alpha: 0.15) : MyrabaColors.surface,
+                    color: active ? MyrabaColors.purple.withValues(alpha: 0.15) : context.mc.surface,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: active ? MyrabaColors.purple : MyrabaColors.surfaceLine),
+                      color: active ? MyrabaColors.purple : context.mc.surfaceLine),
                   ),
                   child: Text(p,
                     style: TextStyle(
                       fontSize: 11, fontWeight: FontWeight.w600,
-                      color: active ? MyrabaColors.purple : MyrabaColors.textSecond,
+                      color: active ? MyrabaColors.purple : context.mc.textSecond,
                     )),
                 ),
               );
             }).toList(),
           ),
           const SizedBox(height: 16),
-          _field('Phone Number', _phoneCtrl, TextInputType.phone, 'e.g. 08012345678'),
+          _field(context, 'Phone Number', _phoneCtrl, TextInputType.phone, 'e.g. 08012345678'),
           const SizedBox(height: 32),
           _payButton(_loading, _pay, 'Pay Cable'),
         ],
@@ -719,13 +719,13 @@ class _BettingScreenState extends State<_BettingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _networkRow(_providers, _provider, (v) => setState(() => _provider = v)),
+          _networkRow(context, _providers, _provider, (v) => setState(() => _provider = v)),
           const SizedBox(height: 20),
-          _field('Betting User ID', _userIdCtrl, TextInputType.text, 'Your account ID'),
+          _field(context, 'Betting User ID', _userIdCtrl, TextInputType.text, 'Your account ID'),
           const SizedBox(height: 16),
-          _field('Amount (₦)', _amountCtrl, TextInputType.number, '0.00'),
+          _field(context, 'Amount (₦)', _amountCtrl, TextInputType.number, '0.00'),
           const SizedBox(height: 16),
-          _field('Phone Number', _phoneCtrl, TextInputType.phone, 'e.g. 08012345678'),
+          _field(context, 'Phone Number', _phoneCtrl, TextInputType.phone, 'e.g. 08012345678'),
           const SizedBox(height: 32),
           _payButton(_loading, _pay, 'Fund Account'),
         ],
@@ -845,18 +845,18 @@ class _EducationScreenState extends State<_EducationScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _networkRow(_examBodies, _examBody, _onExamBodyChanged),
+          _networkRow(context, _examBodies, _examBody, _onExamBodyChanged),
           const SizedBox(height: 20),
-          _field(_profileLabel, _profileCtrl, TextInputType.text, _profileHint),
+          _field(context, _profileLabel, _profileCtrl, TextInputType.text, _profileHint),
           const SizedBox(height: 16),
-          _field('Phone Number (for SMS delivery)', _phoneCtrl,
+          _field(context, 'Phone Number (for SMS delivery)', _phoneCtrl,
               TextInputType.phone, 'e.g. 08012345678'),
           const SizedBox(height: 16),
-          _field('Amount (₦)', _amountCtrl, TextInputType.number,
+          _field(context, 'Amount (₦)', _amountCtrl, TextInputType.number,
               _suggestedAmounts[_examBody] ?? ''),
           const SizedBox(height: 8),
           Text('Suggested: ₦${_suggestedAmounts[_examBody] ?? '—'} for 1 PIN',
-            style: TextStyle(fontSize: 11, color: MyrabaColors.textHint)),
+            style: TextStyle(fontSize: 11, color: context.mc.textHint)),
           const SizedBox(height: 32),
           _payButton(_loading, _pay, 'Buy $_examBody PIN'),
         ],
@@ -875,7 +875,7 @@ class _ComingSoonScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       appBar: AppBar(title: Text(title)),
       body: Center(
         child: Padding(
@@ -893,12 +893,12 @@ class _ComingSoonScreen extends StatelessWidget {
                     color: MyrabaColors.orange, size: 38),
               ),
               const SizedBox(height: 24),
-              const Text('Coming Soon',
+              Text('Coming Soon',
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800,
-                    color: MyrabaColors.textPrimary)),
+                    color: context.mc.textPrimary)),
               const SizedBox(height: 12),
               Text(description,
-                style: TextStyle(fontSize: 14, color: MyrabaColors.textSecond),
+                style: TextStyle(fontSize: 14, color: context.mc.textSecond),
                 textAlign: TextAlign.center),
               const SizedBox(height: 32),
               ElevatedButton(
@@ -993,17 +993,17 @@ class _SchoolFeesScreenState extends State<_SchoolFeesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _field('Institution / School Name', _schoolCtrl, TextInputType.text,
+          _field(context, 'Institution / School Name', _schoolCtrl, TextInputType.text,
               'e.g. University of Lagos'),
           const SizedBox(height: 16),
-          _field('Matric / Student ID', _studentIdCtrl, TextInputType.text,
+          _field(context, 'Matric / Student ID', _studentIdCtrl, TextInputType.text,
               'e.g. 190101001'),
           const SizedBox(height: 16),
-          _field('Student Full Name', _nameCtrl, TextInputType.name,
+          _field(context, 'Student Full Name', _nameCtrl, TextInputType.name,
               'As on school record'),
           const SizedBox(height: 16),
-          const Text('Payment Type',
-              style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
+          Text('Payment Type',
+              style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8, runSpacing: 8,
@@ -1014,22 +1014,22 @@ class _SchoolFeesScreenState extends State<_SchoolFeesScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: active ? MyrabaColors.blue.withValues(alpha: 0.15) : MyrabaColors.surface,
+                    color: active ? MyrabaColors.blue.withValues(alpha: 0.15) : context.mc.surface,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: active ? MyrabaColors.blue : MyrabaColors.surfaceLine),
+                      color: active ? MyrabaColors.blue : context.mc.surfaceLine),
                   ),
                   child: Text(_paymentLabels[t] ?? t,
                     style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
-                      color: active ? MyrabaColors.blue : MyrabaColors.textSecond)),
+                      color: active ? MyrabaColors.blue : context.mc.textSecond)),
                 ),
               );
             }).toList(),
           ),
           const SizedBox(height: 16),
-          _field('Amount (₦)', _amountCtrl, TextInputType.number, '0.00'),
+          _field(context, 'Amount (₦)', _amountCtrl, TextInputType.number, '0.00'),
           const SizedBox(height: 16),
-          _field('Phone Number (optional)', _phoneCtrl, TextInputType.phone,
+          _field(context, 'Phone Number (optional)', _phoneCtrl, TextInputType.phone,
               'e.g. 08012345678'),
           const SizedBox(height: 32),
           _payButton(_loading, _pay, 'Pay School Fees'),
@@ -1071,14 +1071,14 @@ class _BillHistoryScreenState extends State<_BillHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       appBar: AppBar(title: const Text('Bill History')),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: MyrabaColors.green))
           : _history.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text('No bill payments yet',
-                    style: TextStyle(color: MyrabaColors.textHint)))
+                    style: TextStyle(color: context.mc.textHint)))
               : ListView.separated(
                   padding: const EdgeInsets.all(20),
                   itemCount: _history.length,
@@ -1105,12 +1105,12 @@ class _BillHistoryScreenState extends State<_BillHistoryScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(b['provider'] ?? b['category'] ?? 'Bill',
-                                  style: const TextStyle(fontSize: 13,
+                                  style: TextStyle(fontSize: 13,
                                       fontWeight: FontWeight.w600,
-                                      color: MyrabaColors.textPrimary)),
+                                      color: context.mc.textPrimary)),
                                 Text(b['identifier'] ?? b['billIdentifier'] ?? '',
-                                  style: const TextStyle(fontSize: 11,
-                                      color: MyrabaColors.textHint)),
+                                  style: TextStyle(fontSize: 11,
+                                      color: context.mc.textHint)),
                               ],
                             ),
                           ),
@@ -1145,7 +1145,7 @@ class _BillScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MyrabaColors.bg,
+      backgroundColor: context.mc.bg,
       appBar: AppBar(title: Text(title)),
       body: success
           ? Center(
@@ -1168,7 +1168,7 @@ class _BillScaffold extends StatelessWidget {
                       style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 10),
                     Text(successMessage,
-                      style: TextStyle(fontSize: 14, color: MyrabaColors.textSecond),
+                      style: TextStyle(fontSize: 14, color: context.mc.textSecond),
                       textAlign: TextAlign.center),
                     const SizedBox(height: 40),
                     ElevatedButton(onPressed: onDone, child: const Text('Done')),
@@ -1184,12 +1184,12 @@ class _BillScaffold extends StatelessWidget {
   }
 }
 
-Widget _networkRow(List<String> options, String current, ValueChanged<String> onChanged) {
+Widget _networkRow(BuildContext context, List<String> options, String current, ValueChanged<String> onChanged) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      const Text('Network / Provider',
-        style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
+      Text('Network / Provider',
+        style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
       const SizedBox(height: 10),
       Wrap(
         spacing: 8, runSpacing: 8,
@@ -1200,15 +1200,15 @@ Widget _networkRow(List<String> options, String current, ValueChanged<String> on
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: active ? MyrabaColors.greenGlow : MyrabaColors.surface,
+                color: active ? MyrabaColors.greenGlow : context.mc.surface,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: active ? MyrabaColors.green : MyrabaColors.surfaceLine),
+                  color: active ? MyrabaColors.green : context.mc.surfaceLine),
               ),
               child: Text(o,
                 style: TextStyle(
                   fontSize: 12, fontWeight: FontWeight.w600,
-                  color: active ? MyrabaColors.green : MyrabaColors.textSecond,
+                  color: active ? MyrabaColors.green : context.mc.textSecond,
                 )),
             ),
           );
@@ -1218,11 +1218,11 @@ Widget _networkRow(List<String> options, String current, ValueChanged<String> on
   );
 }
 
-Widget _field(String label, TextEditingController ctrl, TextInputType type, String hint) {
+Widget _field(BuildContext context, String label, TextEditingController ctrl, TextInputType type, String hint) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(label, style: TextStyle(fontSize: 13, color: MyrabaColors.textSecond)),
+      Text(label, style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
       const SizedBox(height: 8),
       TextField(
         controller: ctrl,

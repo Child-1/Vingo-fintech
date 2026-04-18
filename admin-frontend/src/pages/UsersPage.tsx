@@ -18,6 +18,8 @@ export default function UsersPage() {
   const [kycFilter, setKycFilter] = useState('');
   const [page,      setPage]      = useState(0);
   const [selected,  setSelected]  = useState<AdminUser | null>(null);
+  const [actionDialog, setActionDialog] = useState<{ type: 'freeze' | 'suspend' | 'activate'; userId: number } | null>(null);
+  const [actionReason, setActionReason] = useState('');
 
   const params: Record<string, string> = {
     page: String(page), size: String(PAGE_SIZE),
@@ -55,18 +57,30 @@ export default function UsersPage() {
   });
 
   const freezeUser = useMutation({
-    mutationFn: (id: number) => api.post(`/api/admin/users/${id}/freeze`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
+    mutationFn: ({ id, reason }: { id: number; reason: string }) =>
+      api.post(`/api/admin/users/${id}/freeze`, { reason }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-users'] });
+      setActionDialog(null); setActionReason('');
+    },
   });
 
   const suspendUser = useMutation({
-    mutationFn: (id: number) => api.post(`/api/admin/users/${id}/suspend`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
+    mutationFn: ({ id, reason }: { id: number; reason: string }) =>
+      api.post(`/api/admin/users/${id}/suspend`, { reason }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-users'] });
+      setActionDialog(null); setActionReason('');
+    },
   });
 
   const activateUser = useMutation({
-    mutationFn: (id: number) => api.post(`/api/admin/users/${id}/activate`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
+    mutationFn: ({ id, reason }: { id: number; reason: string }) =>
+      api.post(`/api/admin/users/${id}/activate`, { reason }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-users'] });
+      setActionDialog(null); setActionReason('');
+    },
   });
 
   const users: AdminUser[] = data?.users ?? [];
@@ -170,6 +184,46 @@ export default function UsersPage() {
         </div>
       </div>
 
+      {/* ── Action confirmation dialog ── */}
+      {actionDialog && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" onClick={() => setActionDialog(null)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative bg-surface-card border border-surface-border rounded-2xl p-6 w-full max-w-sm space-y-4"
+               onClick={e => e.stopPropagation()}>
+            <h3 className="text-white font-semibold capitalize">
+              {actionDialog.type === 'activate' ? 'Activate' : actionDialog.type === 'suspend' ? 'Suspend' : 'Freeze'} Account
+            </h3>
+            <p className="text-myraba-hint text-sm">
+              {actionDialog.type === 'freeze'
+                ? 'Freezing blocks all access and transactions. Provide a reason for the audit log.'
+                : actionDialog.type === 'suspend'
+                ? 'Suspending restricts the user. Provide a reason for the audit log.'
+                : 'This will restore full account access.'}
+            </p>
+            <div>
+              <label className="text-myraba-second text-xs mb-1.5 block">Reason *</label>
+              <input className="input" placeholder="Enter reason…"
+                value={actionReason} onChange={e => setActionReason(e.target.value)} autoFocus />
+            </div>
+            <div className="flex gap-3">
+              <button className="btn-ghost flex-1" onClick={() => setActionDialog(null)}>Cancel</button>
+              <button
+                className={actionDialog.type === 'freeze' ? 'btn-danger flex-1' : actionDialog.type === 'suspend' ? 'btn-ghost flex-1' : 'btn-primary flex-1'}
+                disabled={!actionReason.trim() || freezeUser.isPending || suspendUser.isPending || activateUser.isPending}
+                onClick={() => {
+                  const { type, userId } = actionDialog;
+                  const reason = actionReason.trim();
+                  if (type === 'freeze')   freezeUser.mutate({ id: userId, reason });
+                  if (type === 'suspend')  suspendUser.mutate({ id: userId, reason });
+                  if (type === 'activate') activateUser.mutate({ id: userId, reason });
+                }}>
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── User detail drawer ── */}
       {selected && (
         <div className="fixed inset-0 z-50 flex" onClick={() => setSelected(null)}>
@@ -255,11 +309,14 @@ export default function UsersPage() {
 
                   {/* Account status */}
                   <div className="flex gap-2">
-                    <button className="btn-primary flex-1" onClick={() => activateUser.mutate(selected.id)}
+                    <button className="btn-primary flex-1"
+                      onClick={() => { setActionDialog({ type: 'activate', userId: selected.id }); setActionReason('Reinstated by admin'); }}
                       disabled={selected.accountStatus === 'ACTIVE'}>Activate</button>
-                    <button className="btn-ghost flex-1" onClick={() => suspendUser.mutate(selected.id)}
+                    <button className="btn-ghost flex-1"
+                      onClick={() => { setActionDialog({ type: 'suspend', userId: selected.id }); setActionReason(''); }}
                       disabled={selected.accountStatus === 'SUSPENDED'}>Suspend</button>
-                    <button className="btn-danger flex-1" onClick={() => freezeUser.mutate(selected.id)}
+                    <button className="btn-danger flex-1"
+                      onClick={() => { setActionDialog({ type: 'freeze', userId: selected.id }); setActionReason(''); }}
                       disabled={selected.accountStatus === 'FROZEN'}>Freeze</button>
                   </div>
                 </div>

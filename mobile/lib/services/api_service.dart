@@ -32,6 +32,9 @@ class ApiService {
   Future<Map<String, dynamic>> getMonthlyReview({int months = 12}) =>
       _get('/wallets/monthly-review?months=$months');
 
+  Future<Map<String, dynamic>> getSpendingBreakdown({int months = 3}) =>
+      _get('/wallets/spending-breakdown?months=$months');
+
   Future<Map<String, dynamic>> transfer(String recipientMyrabaHandle, String amount, {String? idempotencyKey}) =>
       _postIdempotent('/wallets/transfer',
           {'receiverVingHandle': recipientMyrabaHandle, 'amount': amount},

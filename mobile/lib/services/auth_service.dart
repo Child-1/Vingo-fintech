@@ -14,14 +14,24 @@ class AuthService extends ChangeNotifier {
   String? _myrabaTag;   // "m₦Davinci96"
   String? _role;
   String? _fullName;
+  String  _kycStatus = 'NONE'; // NONE | PENDING | APPROVED | REJECTED
 
-  String? get token      => _token;
+  String? get token        => _token;
   String? get myrabaHandle => _myrabaHandle;
-  String? get myrabaTag   => _myrabaTag ?? (_myrabaHandle != null ? 'v\u20a6$_myrabaHandle' : null);
-  String? get role       => _role;
-  String? get fullName   => _fullName;
-  bool   get isLoggedIn  => _token != null;
-  bool   get isAdmin     => _role == 'ADMIN' || _role == 'SUPER_ADMIN' || _role == 'STAFF';
+  String? get myrabaTag    => _myrabaTag ?? (_myrabaHandle != null ? 'v\u20a6$_myrabaHandle' : null);
+  String? get role         => _role;
+  String? get fullName     => _fullName;
+  String  get kycStatus    => _kycStatus;
+  bool    get isLoggedIn   => _token != null;
+  bool    get isAdmin      => _role == 'ADMIN' || _role == 'SUPER_ADMIN' || _role == 'STAFF';
+  bool    get isKycApproved => _kycStatus == 'APPROVED';
+
+  void updateKycStatus(String status) {
+    if (_kycStatus != status) {
+      _kycStatus = status;
+      notifyListeners();
+    }
+  }
 
   AuthService() { loadToken(); }
 

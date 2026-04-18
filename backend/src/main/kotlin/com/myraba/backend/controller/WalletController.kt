@@ -10,6 +10,8 @@ import com.myraba.backend.model.Transaction
 import com.myraba.backend.model.TransactionType
 import com.myraba.backend.model.User
 import com.myraba.backend.model.UserStatus
+import com.myraba.backend.model.BillCategory
+import com.myraba.backend.repository.BillPaymentRepository
 import com.myraba.backend.repository.TransactionRepository
 import com.myraba.backend.repository.UserRepository
 import com.myraba.backend.repository.WalletRepository
@@ -31,6 +33,7 @@ class WalletController(
     private val walletRepository: WalletRepository,
     private val transactionRepository: TransactionRepository,
     private val userRepository: UserRepository,
+    private val billPaymentRepository: BillPaymentRepository,
     private val idempotencyService: IdempotencyService,
     private val auditLogService: AuditLogService,
 ) {
@@ -314,6 +317,60 @@ class WalletController(
             "months" to months,
             "currency" to "NGN",
             "data" to monthlyData
+        ))
+    }
+
+    /** Spending breakdown by category for the logged-in user */
+    @GetMapping("/spending-breakdown")
+    fun getSpendingBreakdown(
+        authentication: Authentication,
+        @RequestParam(defaultValue = "3") months: Int
+    ): ResponseEntity<Any> {
+        val user = authentication.principal as User
+        val wallet = walletRepository.findByUserVingHandle(user.myrabaHandle)
+            ?: return ResponseEntity.notFound().build()
+
+        val since = java.time.LocalDateTime.now().minusMonths(months.toLong())
+
+        val allTx = transactionRepository
+            .findBySenderWalletOrReceiverWalletOrderByCreatedAtDesc(wallet, wallet)
+            .filter { it.createdAt.isAfter(since) && it.status == "SUCCESS" && it.senderWallet?.id == wallet.id }
+
+        val transfers    = allTx.filter { it.type == TransactionType.TRANSFER }.sumOf { it.amount }
+        val thrift       = allTx.filter { it.type == TransactionType.CONTRIBUTION }.sumOf { it.amount }
+        val gifts        = allTx.filter { it.type == TransactionType.GIFT }.sumOf { it.amount }
+        val withdrawals  = allTx.filter { it.type == TransactionType.WITHDRAWAL }.sumOf { it.amount }
+
+        val bills = billPaymentRepository.findByUserAndCreatedAtAfterAndStatus(user, since, "SUCCESS")
+        fun billSum(cat: BillCategory) = bills.filter { it.category == cat }.sumOf { it.amount }
+
+        val airtime     = billSum(BillCategory.AIRTIME)
+        val data        = billSum(BillCategory.DATA)
+        val electricity = billSum(BillCategory.ELECTRICITY)
+        val cable       = billSum(BillCategory.CABLE_TV)
+        val betting     = billSum(BillCategory.BETTING)
+        val education   = billSum(BillCategory.EDUCATION).add(billSum(BillCategory.SCHOOL_FEES))
+
+        val categories = listOf(
+            mapOf("key" to "transfers",    "label" to "Transfers",   "amount" to transfers.toPlainString()),
+            mapOf("key" to "thrift",       "label" to "Thrift",      "amount" to thrift.toPlainString()),
+            mapOf("key" to "gifts",        "label" to "Gifts",       "amount" to gifts.toPlainString()),
+            mapOf("key" to "airtime",      "label" to "Airtime",     "amount" to airtime.toPlainString()),
+            mapOf("key" to "data",         "label" to "Data",        "amount" to data.toPlainString()),
+            mapOf("key" to "electricity",  "label" to "Electricity", "amount" to electricity.toPlainString()),
+            mapOf("key" to "cable",        "label" to "Cable TV",    "amount" to cable.toPlainString()),
+            mapOf("key" to "betting",      "label" to "Betting",     "amount" to betting.toPlainString()),
+            mapOf("key" to "education",    "label" to "Education",   "amount" to education.toPlainString()),
+            mapOf("key" to "withdrawals",  "label" to "Withdrawals", "amount" to withdrawals.toPlainString()),
+        ).filter { (it["amount"] as String).toBigDecimalOrNull()?.compareTo(java.math.BigDecimal.ZERO) != 0 }
+
+        val total = categories.sumOf { (it["amount"] as String).toBigDecimal() }
+
+        return ResponseEntity.ok(mapOf(
+            "months"     to months,
+            "currency"   to "NGN",
+            "total"      to total.toPlainString(),
+            "categories" to categories
         ))
     }
 

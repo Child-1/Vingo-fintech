@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
 import 'home_tab.dart';
 import 'thrift/thrift_tab.dart';
 import 'gift/gift_tab.dart';
@@ -24,6 +26,64 @@ class _MainScreenState extends State<MainScreen> {
     ProfileTab(),
   ];
 
+  void _showKycRequired(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).extension<MyrabaColorScheme>()?.surface,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (_) {
+        final mc = Theme.of(context).extension<MyrabaColorScheme>() ?? MyrabaColorScheme.dark;
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 48),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 36, height: 4,
+                  decoration: BoxDecoration(color: mc.surfaceLine,
+                      borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 24),
+              Container(
+                width: 64, height: 64,
+                decoration: BoxDecoration(
+                  color: MyrabaColors.orange.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.lock_rounded, color: MyrabaColors.orange, size: 30),
+              ),
+              const SizedBox(height: 16),
+              Text('Identity Verification Required',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: mc.textPrimary)),
+              const SizedBox(height: 10),
+              Text(
+                'This feature is locked until you complete KYC verification.\n\nGo to Profile → KYC Verification to unlock all of Myraba.',
+                style: TextStyle(fontSize: 13, color: mc.textHint, height: 1.6),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 28),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    setState(() => _index = 4); // jump to Profile tab
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: MyrabaColors.orange,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: const Text('Go to Profile', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,7 +91,18 @@ class _MainScreenState extends State<MainScreen> {
       body: IndexedStack(index: _index, children: _tabs),
       bottomNavigationBar: _BottomNav(
         current: _index,
-        onTap: (i) => setState(() => _index = i),
+        onTap: (i) {
+          // Tabs 1 (Thrift), 2 (Gift), 3 (Bills) require KYC
+          const kycGated = {1, 2, 3};
+          if (kycGated.contains(i)) {
+            final auth = Provider.of<AuthService>(context, listen: false);
+            if (!auth.isKycApproved) {
+              _showKycRequired(context);
+              return;
+            }
+          }
+          setState(() => _index = i);
+        },
       ),
     );
   }

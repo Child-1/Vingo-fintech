@@ -16,16 +16,32 @@ class HomeTab extends StatefulWidget {
   State<HomeTab> createState() => _HomeTabState();
 }
 
-class _HomeTabState extends State<HomeTab> {
+class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   Map<String, dynamic>? _wallet;
   List<dynamic> _transactions = [];
   bool _loading = true;
   bool _balanceHidden = false;
+  bool _hasError = false;
+
+  late final AnimationController _shimmerCtrl;
+  late final Animation<double> _shimmerAnim;
 
   @override
   void initState() {
     super.initState();
+    _shimmerCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+    _shimmerAnim = Tween<double>(begin: 0.3, end: 0.7).animate(
+      CurvedAnimation(parent: _shimmerCtrl, curve: Curves.easeInOut));
     _load();
+  }
+
+  @override
+  void dispose() {
+    _shimmerCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -40,13 +56,16 @@ class _HomeTabState extends State<HomeTab> {
       final profile = results[0];
       final history = results[1];
       if (!mounted) return;
+      // Propagate KYC status app-wide
+      final kycStatus = profile['kycStatus'] as String? ?? 'NONE';
+      Provider.of<AuthService>(context, listen: false).updateKycStatus(kycStatus);
       setState(() {
         _wallet = {'balance': profile['balance'], 'accountNumber': profile['accountNumber']};
         _transactions = (history['transactions'] as List?)?.take(5).toList() ?? [];
         _loading = false;
       });
     } catch (_) {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) setState(() { _loading = false; _hasError = true; });
     }
   }
 
@@ -64,16 +83,19 @@ class _HomeTabState extends State<HomeTab> {
             _buildAppBar(auth),
             SliverToBoxAdapter(
               child: _loading
-                  ? const Padding(
-                      padding: EdgeInsets.only(top: 120),
-                      child: Center(child: CircularProgressIndicator(color: MyrabaColors.green)),
-                    )
-                  : Padding(
+                  ? _buildSkeleton()
+                  : _hasError
+                      ? _buildError()
+                      : Padding(
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildBalanceCard(auth),
+                          if (!auth.isKycApproved) ...[
+                            const SizedBox(height: 16),
+                            _buildKycBanner(auth),
+                          ],
                           const SizedBox(height: 28),
                           _buildQuickActions(auth),
                           const SizedBox(height: 28),
@@ -81,6 +103,266 @@ class _HomeTabState extends State<HomeTab> {
                         ],
                       ),
                     ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildKycBanner(AuthService auth) {
+    final isPending = auth.kycStatus == 'PENDING';
+    final isRejected = auth.kycStatus == 'REJECTED';
+    final color = isPending ? MyrabaColors.gold : isRejected ? MyrabaColors.red : MyrabaColors.orange;
+    final icon = isPending ? Icons.hourglass_top_rounded : isRejected ? Icons.cancel_outlined : Icons.shield_outlined;
+    final title = isPending ? 'KYC Under Review' : isRejected ? 'KYC Rejected' : 'Verify Your Identity';
+    final subtitle = isPending
+        ? 'Your documents are being reviewed. Transactions are locked until approved.'
+        : isRejected
+            ? 'Your KYC was rejected. Please resubmit your details.'
+            : 'Complete identity verification to unlock sending, payments & thrift.';
+
+    return GestureDetector(
+      onTap: isPending ? null : () => _showKycSheet(auth),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.35)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38, height: 38,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w700, color: color)),
+                  const SizedBox(height: 2),
+                  Text(subtitle,
+                      style: TextStyle(fontSize: 11, color: context.mc.textHint),
+                      maxLines: 2, overflow: TextOverflow.ellipsis),
+                ],
+              ),
+            ),
+            if (!isPending) ...[
+              const SizedBox(width: 8),
+              Icon(Icons.arrow_forward_ios_rounded, size: 14, color: color),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showKycSheet(AuthService auth) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.mc.surface,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 48),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 36, height: 4,
+                decoration: BoxDecoration(color: context.mc.surfaceLine,
+                    borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 24),
+            Container(
+              width: 64, height: 64,
+              decoration: BoxDecoration(
+                color: MyrabaColors.orange.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.shield_outlined,
+                  color: MyrabaColors.orange, size: 32),
+            ),
+            const SizedBox(height: 16),
+            Text('Verify Your Identity',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800,
+                    color: context.mc.textPrimary)),
+            const SizedBox(height: 8),
+            Text(
+              'To protect our users, all financial transactions require identity verification (KYC). This takes less than 2 minutes.',
+              style: TextStyle(fontSize: 13, color: context.mc.textHint, height: 1.5),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            _kycStep(Icons.badge_outlined, 'Prepare your BVN or NIN'),
+            const SizedBox(height: 10),
+            _kycStep(Icons.verified_user_outlined, 'Submit for verification'),
+            const SizedBox(height: 10),
+            _kycStep(Icons.lock_open_rounded, 'Unlock all Myraba features'),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  // Navigate to KYC screen via profile tab
+                  // For now show a snackbar directing them
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Go to Profile → KYC Verification to get started'),
+                      backgroundColor: MyrabaColors.orange,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: MyrabaColors.orange,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                child: const Text('Verify Now', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _kycStep(IconData icon, String label) {
+    return Row(
+      children: [
+        Container(
+          width: 32, height: 32,
+          decoration: BoxDecoration(
+            color: MyrabaColors.orange.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: MyrabaColors.orange, size: 16),
+        ),
+        const SizedBox(width: 12),
+        Text(label, style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+      ],
+    );
+  }
+
+  /// Checks KYC before running any financial action.
+  void _requireKyc(AuthService auth, VoidCallback action) {
+    if (auth.isKycApproved) {
+      action();
+    } else {
+      _showKycSheet(auth);
+    }
+  }
+
+  Widget _buildSkeleton() {
+    return AnimatedBuilder(
+      animation: _shimmerAnim,
+      builder: (_, __) {
+        final base = context.mc.surfaceHigh.withValues(alpha: _shimmerAnim.value);
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Balance card skeleton
+              Container(
+                width: double.infinity, height: 140,
+                decoration: BoxDecoration(
+                  color: base,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+              ),
+              const SizedBox(height: 28),
+              // Quick actions skeleton
+              Container(width: 120, height: 14, decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(6))),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: List.generate(4, (_) => Column(
+                  children: [
+                    Container(width: 60, height: 60, decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(18))),
+                    const SizedBox(height: 8),
+                    Container(width: 40, height: 10, decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(4))),
+                  ],
+                )),
+              ),
+              const SizedBox(height: 28),
+              // Transactions skeleton
+              Container(width: 160, height: 14, decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(6))),
+              const SizedBox(height: 14),
+              Container(
+                decoration: BoxDecoration(color: context.mc.surface, borderRadius: BorderRadius.circular(16)),
+                child: Column(
+                  children: List.generate(4, (i) => Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        child: Row(
+                          children: [
+                            Container(width: 42, height: 42, decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(12))),
+                            const SizedBox(width: 12),
+                            Expanded(child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(width: double.infinity, height: 12, decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(4))),
+                                const SizedBox(height: 6),
+                                Container(width: 80, height: 10, decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(4))),
+                              ],
+                            )),
+                            const SizedBox(width: 12),
+                            Container(width: 60, height: 14, decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(4))),
+                          ],
+                        ),
+                      ),
+                      if (i < 3) Divider(height: 1, indent: 70, endIndent: 16, color: context.mc.surfaceLine),
+                    ],
+                  )),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildError() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 120),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.wifi_off_rounded, size: 48, color: context.mc.textHint),
+            const SizedBox(height: 14),
+            Text('Could not load your wallet',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: context.mc.textSecond)),
+            const SizedBox(height: 6),
+            Text('Check your connection and pull down to retry',
+                style: TextStyle(fontSize: 13, color: context.mc.textHint)),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () {
+                setState(() { _loading = true; _hasError = false; });
+                _load();
+              },
+              icon: const Icon(Icons.refresh_rounded, size: 16),
+              label: const Text('Try again'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: MyrabaColors.green,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
             ),
           ],
         ),
@@ -244,17 +526,20 @@ class _HomeTabState extends State<HomeTab> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _action(Icons.send_rounded, 'Send', MyrabaColors.green, () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const SendMoneyScreen()));
+            _action(Icons.send_rounded, 'Send', MyrabaColors.green,
+                auth.isKycApproved, () {
+              _requireKyc(auth, () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const SendMoneyScreen())));
             }),
-            _action(Icons.add_circle_outline_rounded, 'Fund', MyrabaColors.blue, () {
-              Navigator.push(context, MaterialPageRoute(
-                builder: (_) => FundWalletScreen(myrabaHandle: auth.myrabaHandle ?? '')));
+            _action(Icons.add_circle_outline_rounded, 'Fund', MyrabaColors.blue,
+                auth.isKycApproved, () {
+              _requireKyc(auth, () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => FundWalletScreen(myrabaHandle: auth.myrabaHandle ?? ''))));
             }),
-            _action(Icons.qr_code_rounded, 'Receive', MyrabaColors.purple, () {
+            _action(Icons.qr_code_rounded, 'Receive', MyrabaColors.purple, true, () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const QrScreen()));
             }),
-            _action(Icons.bar_chart_rounded, 'Stats', MyrabaColors.orange, () {
+            _action(Icons.bar_chart_rounded, 'Stats', MyrabaColors.orange, true, () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const MonthlyReviewScreen()));
             }),
           ],
@@ -263,24 +548,41 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  Widget _action(IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _action(IconData icon, String label, Color color, bool unlocked, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
         children: [
-          Container(
-            width: 60, height: 60,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: color.withValues(alpha: 0.25)),
-            ),
-            child: Icon(icon, color: color, size: 26),
+          Stack(
+            children: [
+              Container(
+                width: 60, height: 60,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: unlocked ? 0.12 : 0.06),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: color.withValues(alpha: unlocked ? 0.25 : 0.15)),
+                ),
+                child: Icon(icon, color: color.withValues(alpha: unlocked ? 1.0 : 0.4), size: 26),
+              ),
+              if (!unlocked)
+                Positioned(
+                  right: 0, bottom: 0,
+                  child: Container(
+                    width: 18, height: 18,
+                    decoration: BoxDecoration(
+                      color: MyrabaColors.orange,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: context.mc.bg, width: 1.5),
+                    ),
+                    child: const Icon(Icons.lock_rounded, size: 10, color: Colors.white),
+                  ),
+                ),
+            ],
           ),
-          SizedBox(height: 7),
+          const SizedBox(height: 7),
           Text(label,
             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500,
-                color: context.mc.textSecond)),
+                color: unlocked ? context.mc.textSecond : context.mc.textHint)),
         ],
       ),
     );
