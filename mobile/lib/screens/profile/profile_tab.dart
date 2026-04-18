@@ -1026,11 +1026,37 @@ class _KycSheetState extends State<_KycSheet> {
       if (_ninCtrl.text.trim().isNotEmpty) {
         await api.submitNin(_ninCtrl.text.trim());
       }
-      if (mounted) widget.onDone();
-    } catch (_) {
+      if (!mounted) return;
+      // Close the sheet first, then show confirmation
+      Navigator.pop(context);
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          backgroundColor: Theme.of(context).extension<MyrabaColorScheme>()?.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(children: [
+            Icon(Icons.check_circle_rounded, color: MyrabaColors.green, size: 24),
+            SizedBox(width: 10),
+            Text('Submitted!', style: TextStyle(color: MyrabaColors.green, fontWeight: FontWeight.w700)),
+          ]),
+          content: Text(
+            'Your identity documents have been submitted for review.\n\nVerification typically takes 1–2 business days. You\'ll be able to use all features once approved.',
+            style: TextStyle(fontSize: 13, height: 1.6),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () { Navigator.pop(context); widget.onDone(); },
+              child: Text('Got it', style: TextStyle(color: MyrabaColors.orange, fontWeight: FontWeight.w700)),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'Verification failed';
+          _error = e.toString().contains('already')
+              ? 'KYC already submitted — awaiting review'
+              : 'Verification failed. Check your number and try again.';
           _loading = false;
         });
       }

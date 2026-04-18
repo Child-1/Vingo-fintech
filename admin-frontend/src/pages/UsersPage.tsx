@@ -283,17 +283,24 @@ export default function UsersPage() {
                 <div className="space-y-3">
                   <p className="text-myraba-second text-xs uppercase tracking-wider">Actions</p>
 
-                  {/* Role */}
-                  <div>
-                    <label className="text-myraba-second text-xs mb-1.5 block">Change role</label>
-                    <select className="input"
-                      defaultValue={selected.role}
-                      onChange={e => updateRole.mutate({ id: selected.id, role: e.target.value })}>
-                      {['USER','STAFF','ADMIN', ...(isSuperAdmin ? ['SUPER_ADMIN'] : [])].map(r => (
-                        <option key={r} value={r}>{r}</option>
-                      ))}
-                    </select>
-                  </div>
+                  {/* Role — only editable for staff accounts, never for regular users */}
+                  {selected.role === 'USER' ? (
+                    <div className="flex items-center gap-2 bg-surface-elevated rounded-lg px-3 py-2">
+                      <span className="text-myraba-hint text-xs">Role: <span className="text-white font-medium">USER</span></span>
+                      <span className="text-myraba-hint text-xs ml-auto">App user — role locked</span>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="text-myraba-second text-xs mb-1.5 block">Change role</label>
+                      <select className="input"
+                        defaultValue={selected.role}
+                        onChange={e => updateRole.mutate({ id: selected.id, role: e.target.value })}>
+                        {['STAFF','ADMIN', ...(isSuperAdmin ? ['SUPER_ADMIN'] : [])].map(r => (
+                          <option key={r} value={r}>{r}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
 
                   {/* KYC */}
                   <div>
