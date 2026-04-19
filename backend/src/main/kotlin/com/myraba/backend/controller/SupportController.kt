@@ -55,7 +55,7 @@ class AdminSupportController(
 ) {
     @GetMapping("/conversations")
     fun listConversations(): ResponseEntity<Any> {
-        val users = supportRepo.findDistinctUserByOrderByCreatedAtDesc()
+        val users = supportRepo.findDistinctUsers()
         val conversations = users.map { user ->
             val messages = supportRepo.findByUserOrderByCreatedAtAsc(user)
             val unread = messages.count { it.sender == SupportSender.USER && !it.isRead }

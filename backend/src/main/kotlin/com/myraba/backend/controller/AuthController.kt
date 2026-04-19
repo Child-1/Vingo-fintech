@@ -197,10 +197,11 @@ class AuthController(
 
         // Reward inviter: 100 points + ₦50 wallet credit
         if (inviter != null) {
-            val inviterPoints = userPointsRepository.findByUser(inviter)
+            val inviterPoints = userPointsRepository.findByUserId(inviter.id)
             if (inviterPoints != null) {
-                inviterPoints.totalLifetime += 100
-                inviterPoints.thisYear += 100
+                inviterPoints.totalPoints += 100
+                inviterPoints.thisYearPoints += 100
+                inviterPoints.allTimePoints += 100
                 userPointsRepository.save(inviterPoints)
             }
             val inviterWallet = walletRepository.findByUserVingHandle(inviter.myrabaHandle)

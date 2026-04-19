@@ -18,5 +18,6 @@ interface SupportMessageRepository : JpaRepository<SupportMessage, Long> {
     @Query("UPDATE SupportMessage m SET m.isRead = true WHERE m.user = :user AND m.sender = :sender")
     fun markAllReadByUserAndSender(user: User, sender: SupportSender)
 
-    fun findDistinctUserByOrderByCreatedAtDesc(): List<User>
+    @Query("SELECT DISTINCT m.user FROM SupportMessage m ORDER BY m.createdAt DESC")
+    fun findDistinctUsers(): List<User>
 }
