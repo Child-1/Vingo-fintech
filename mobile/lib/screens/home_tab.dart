@@ -8,6 +8,7 @@ import 'wallet/fund_wallet_screen.dart';
 import 'wallet/transaction_history_screen.dart';
 import 'qr_screen.dart';
 import 'stats/monthly_review_screen.dart';
+import 'support/support_chat_screen.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -398,6 +399,12 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         IconButton(
           icon: Icon(Icons.qr_code_scanner_rounded, color: context.mc.textPrimary),
           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => QrScreen())),
+        ),
+        IconButton(
+          icon: Icon(Icons.support_agent_rounded, color: context.mc.textPrimary),
+          tooltip: 'Support',
+          onPressed: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const SupportChatScreen())),
         ),
         IconButton(
           icon: Icon(Icons.notifications_outlined, color: context.mc.textPrimary),

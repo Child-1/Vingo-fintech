@@ -147,7 +147,7 @@ class ApiService {
   Future<Map<String, dynamic>> getSentGifts() => _get('/api/gifts/sent');
 
   Future<Map<String, dynamic>> convertGiftBalance(String amount) =>
-      _post('/api/gifts/balance/convert', {'amount': amount});
+      _post('/api/gifts/balance/convert', {'amount': double.tryParse(amount) ?? 0.0});
 
   // ─── Bills ────────────────────────────────────────────────────
 

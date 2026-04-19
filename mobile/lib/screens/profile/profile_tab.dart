@@ -10,6 +10,7 @@ import '../../services/api_service.dart';
 import '../../services/theme_provider.dart';
 import '../stats/monthly_review_screen.dart';
 import '../wallet/transaction_history_screen.dart';
+import '../wallet/account_statement_screen.dart';
 import '../support/support_chat_screen.dart';
 
 class ProfileTab extends StatefulWidget {
@@ -348,6 +349,10 @@ class _ProfileTabState extends State<ProfileTab> {
         _menuItem(Icons.history_rounded, 'Transaction History',
             MyrabaColors.teal, () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const TransactionHistoryScreen()))),
+        SizedBox(height: 10),
+        _menuItem(Icons.receipt_long_rounded, 'Account Statement',
+            MyrabaColors.gold, () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const AccountStatementScreen()))),
         SizedBox(height: 10),
         _menuItem(Icons.security_rounded, 'Security Settings',
             MyrabaColors.blue, () => Navigator.push(context,

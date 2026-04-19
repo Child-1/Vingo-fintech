@@ -103,6 +103,12 @@ class AdminUserController(
             catch (e: IllegalArgumentException) { throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role: ${req.role}") }
 
         val caller = auth.principal as User
+        if (user.role == UserRole.USER) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "App users cannot be promoted. Create a staff account separately.")
+        }
+        if (newRole == UserRole.USER) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot demote a staff account to USER role.")
+        }
         if (newRole == UserRole.SUPER_ADMIN && caller.role != UserRole.SUPER_ADMIN) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Only SUPER_ADMIN can assign the SUPER_ADMIN role")
         }

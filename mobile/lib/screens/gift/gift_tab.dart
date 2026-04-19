@@ -1022,7 +1022,7 @@ class _GiftBalanceTabState extends State<_GiftBalanceTab> {
   }
 
   Future<void> _convert() async {
-    final amount = _balance?['balance']?.toString() ?? '0';
+    final amount = _balance?['giftBalance']?.toString() ?? '0';
     if (amount == '0' || amount == '0.0' || amount == '0.00') return;
     setState(() {
       _converting = true;
@@ -1055,7 +1055,7 @@ class _GiftBalanceTabState extends State<_GiftBalanceTab> {
           child: CircularProgressIndicator(color: MyrabaColors.purple));
     }
 
-    final balance = _balance?['balance']?.toString() ?? '0.00';
+    final balance = _balance?['giftBalance']?.toString() ?? '0.00';
     final totalReceived = _balance?['totalReceived']?.toString() ?? '0.00';
 
     return ListView(
