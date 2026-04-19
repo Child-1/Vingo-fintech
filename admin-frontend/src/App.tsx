@@ -19,6 +19,7 @@ import StaffPage           from './pages/StaffPage';
 import AuditPage         from './pages/AuditPage';
 import SystemPage        from './pages/SystemPage';
 import BalancePage       from './pages/BalancePage';
+import SupportPage       from './pages/SupportPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,6 +54,7 @@ export default function App() {
                 <Route path="system"         element={<SystemPage />} />
                 <Route path="balance"        element={<BalancePage />} />
                 <Route path="staff"          element={<StaffPage />} />
+                <Route path="support"        element={<SupportPage />} />
                 <Route path="*"             element={<Navigate to="/overview" replace />} />
               </Route>
             </Route>

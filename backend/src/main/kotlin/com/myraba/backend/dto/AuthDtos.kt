@@ -22,7 +22,8 @@ data class RegisterRequest(
     val otpCode: String? = null,
     val useCustomAccountId: Boolean = false,
     val nameChoice: String = "LAST",  // "FIRST", "LAST", or "MIDDLE"
-    val usePhoneAsAccountNumber: Boolean = true  // only relevant when phone is provided
+    val usePhoneAsAccountNumber: Boolean = true,
+    val referralCode: String? = null  // optional invite code from an existing user
 )
 
 data class LoginRequest(

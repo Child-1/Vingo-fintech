@@ -127,7 +127,7 @@ class _SplashScreenState extends State<SplashScreen>
                 opacity: _bgFade.value * 0.22,
                 child: Image.asset(
                   'assets/images/unicorn.jpg',
-                  fit: BoxFit.contain,
+                  fit: BoxFit.cover,
                   alignment: Alignment.center,
                   errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                 ),
@@ -170,11 +170,11 @@ class _SplashScreenState extends State<SplashScreen>
                   Opacity(
                     opacity: _tagFade.value,
                     child: const Text(
-                      'African Thrift Revolution',
+                      'MONEY. REIMAGINED.',
                       style: TextStyle(
                         fontSize: 13,
                         color: MyrabaColors.textSecond,
-                        letterSpacing: 2.2,
+                        letterSpacing: 3.0,
                         fontWeight: FontWeight.w400,
                       ),
                     ),

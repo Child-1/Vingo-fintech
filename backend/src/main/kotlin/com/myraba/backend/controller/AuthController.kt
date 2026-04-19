@@ -9,6 +9,7 @@ import com.myraba.backend.model.UserRole
 import com.myraba.backend.model.Wallet
 import com.myraba.backend.repository.MfaSecretRepository
 import com.myraba.backend.repository.UserRepository
+import com.myraba.backend.repository.UserPointsRepository
 import com.myraba.backend.repository.WalletRepository
 import com.myraba.backend.service.AuditLogService
 import com.myraba.backend.service.OtpService
@@ -38,7 +39,16 @@ class AuthController(
     private val otpService: OtpService,
     private val mfaRepo: MfaSecretRepository,
     private val auditLogService: AuditLogService,
+    private val userPointsRepository: UserPointsRepository,
 ) {
+
+    private fun generateReferralCode(): String {
+        val chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+        var code: String
+        do { code = (1..8).map { chars.random() }.joinToString("") }
+        while (userRepository.findByReferralCode(code) != null)
+        return code
+    }
 
     // ─── Account number helpers ───────────────────────────────────
 
@@ -166,6 +176,9 @@ class AuthController(
             buildCustomAccountId(request.phone, request.fullName, request.nameChoice)
         else null
 
+        val inviterCode = request.referralCode?.trim()?.uppercase()
+        val inviter = if (!inviterCode.isNullOrBlank()) userRepository.findByReferralCode(inviterCode) else null
+
         val newUser = User(
             myrabaHandle = request.myrabaHandle,
             passwordHash = passwordEncoder.encode(request.password),
@@ -174,11 +187,28 @@ class AuthController(
             email = request.email?.trim(),
             accountNumber = accountNumber,
             customAccountId = customAccountId,
-            role = UserRole.USER
+            role = UserRole.USER,
+            referralCode = generateReferralCode(),
+            referredBy = inviter?.referralCode,
         )
 
         val savedUser = userRepository.save(newUser)
         walletRepository.save(Wallet(user = savedUser))
+
+        // Reward inviter: 100 points + ₦50 wallet credit
+        if (inviter != null) {
+            val inviterPoints = userPointsRepository.findByUser(inviter)
+            if (inviterPoints != null) {
+                inviterPoints.totalLifetime += 100
+                inviterPoints.thisYear += 100
+                userPointsRepository.save(inviterPoints)
+            }
+            val inviterWallet = walletRepository.findByUserVingHandle(inviter.myrabaHandle)
+            if (inviterWallet != null) {
+                inviterWallet.balance = inviterWallet.balance.add(java.math.BigDecimal("50.00"))
+                walletRepository.save(inviterWallet)
+            }
+        }
 
         auditLogService.logUser(savedUser.myrabaHandle, "REGISTRATION", "USER", savedUser.id.toString(),
             details = "New account registered via ${if (savedUser.phone != null) "phone" else "email"}",

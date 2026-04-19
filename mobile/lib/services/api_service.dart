@@ -438,4 +438,31 @@ class ApiService {
         headers: _h, body: jsonEncode(body));
     return _parseStrict(res);
   }
+
+  // ── Fixed Deposits ──────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> getFixedDeposits() => _get('/api/fixed-deposits');
+  Future<Map<String, dynamic>> createFixedDeposit(double amount, int termDays) =>
+      _postStrict('/api/fixed-deposits', {'amount': amount, 'termDays': termDays});
+  Future<Map<String, dynamic>> withdrawDeposit(int depositId) =>
+      _postStrict('/api/fixed-deposits/$depositId/withdraw', {});
+
+  // ── Support Chat ────────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> getSupportMessages() => _get('/api/support/messages');
+  Future<Map<String, dynamic>> sendSupportMessage(String content) =>
+      _post('/api/support/messages', {'content': content});
+  Future<Map<String, dynamic>> getSupportUnreadCount() => _get('/api/support/unread-count');
+
+  // ── Community Goals ─────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> createGoal(Map<String, dynamic> body) =>
+      _post('/api/goals', body);
+  Future<Map<String, dynamic>> getMyGoals() => _get('/api/goals/my');
+  Future<Map<String, dynamic>> getGoalsIBack() => _get('/api/goals/backing');
+  Future<Map<String, dynamic>> getGoalByCode(String code) =>
+      _get('/api/goals/${code.toUpperCase()}');
+  Future<Map<String, dynamic>> contributeToGoal(String code, double amount, {String? note}) =>
+      _post('/api/goals/$code/contribute', {'amount': amount, if (note != null) 'note': note});
+  Future<Map<String, dynamic>> withdrawGoal(int goalId) =>
+      _post('/api/goals/$goalId/withdraw', {});
+  Future<Map<String, dynamic>> cancelGoal(int goalId) =>
+      _delete('/api/goals/$goalId');
 }

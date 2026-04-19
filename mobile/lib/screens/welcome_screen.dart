@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
 
@@ -325,7 +326,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               offset: Offset(_mySlide.value, 0),
               child: ShaderMask(
                 shaderCallback: (b) => const LinearGradient(
-                  colors: [Color(0xFFFF8C00), Color(0xFFFF6B00)],
+                  colors: [MyrabaColors.orange, Color(0xFFFFB347)],
                 ).createShader(b),
                 blendMode: BlendMode.srcIn,
                 child: const Text('My', style: style),
@@ -333,16 +334,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             ),
           ),
 
-          // "R" — gold shimmer, bounces from above
+          // "R" — purple, bounces from above
           Opacity(
             opacity: _RFade.value,
             child: Transform.translate(
               offset: Offset(0, _RBounce.value),
               child: ShaderMask(
                 shaderCallback: (b) => const LinearGradient(
-                  colors: [Color(0xFFFFD700), Color(0xFFFFA500), Color(0xFFFFD700)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  colors: [MyrabaColors.purple, Color(0xFFB47FFF)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ).createShader(b),
                 blendMode: BlendMode.srcIn,
                 child: const Text('R', style: style),
@@ -357,7 +358,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               offset: Offset(_abaSlide.value, 0),
               child: ShaderMask(
                 shaderCallback: (b) => const LinearGradient(
-                  colors: [Color(0xFFFF6B00), Color(0xFFFF8C00)],
+                  colors: [Color(0xFFFFB347), MyrabaColors.orange],
                 ).createShader(b),
                 blendMode: BlendMode.srcIn,
                 child: const Text('aba', style: style),

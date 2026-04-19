@@ -144,11 +144,10 @@ class BillsTab extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               _IntlTile(
-                icon: Icons.favorite_rounded,
-                label: 'Church / Tithe',
+                icon: Icons.volunteer_activism_rounded,
+                label: 'Religious',
                 comingSoon: false,
-                onTap: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const SendMoneyScreen())),
+                onTap: () => _push(context, const _ReligiousScreen()),
               ),
             ],
           ),
@@ -1241,4 +1240,188 @@ Widget _payButton(bool loading, VoidCallback onTap, String label) {
             child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
         : Text(label),
   );
+}
+
+// ── Religious Activities ───────────────────────────────────────────────────────
+class _ReligiousScreen extends StatelessWidget {
+  const _ReligiousScreen();
+
+  static const _options = [
+    (Icons.volunteer_activism_rounded, 'Tithe / Offering',         'Give your tithe or weekly offering',           Color(0xFFFFD60A)),
+    (Icons.cruelty_free_rounded,       'Zakat',                    'Obligatory Islamic almsgiving',                Color(0xFF00C875)),
+    (Icons.church_rounded,             'Church Project',           'Support a church building or project fund',    Color(0xFF7B2FFF)),
+    (Icons.mosque_rounded,             'Mosque Project',           'Support a mosque building or project fund',    Color(0xFF00D4FF)),
+    (Icons.favorite_rounded,           'Religious Charity',        'Donate to a faith-based charity or cause',     Color(0xFFFF3CAC)),
+    (Icons.more_horiz_rounded,         'Other',                    'Any other religious or spiritual giving',       Color(0xFFFF6B35)),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: context.mc.bg,
+      appBar: AppBar(
+        backgroundColor: context.mc.bg,
+        title: Text('Religious Activities',
+            style: TextStyle(color: context.mc.textPrimary, fontWeight: FontWeight.w700)),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_rounded, color: context.mc.textPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
+        children: [
+          Text(
+            'What would you like to give towards?',
+            style: TextStyle(fontSize: 13, color: context.mc.textHint),
+          ),
+          const SizedBox(height: 20),
+          ..._options.map((opt) {
+            final (icon, title, subtitle, color) = opt;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: GestureDetector(
+                onTap: () => _onTap(context, title),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: context.mc.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: context.mc.surfaceLine),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48, height: 48,
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(icon, color: color, size: 24),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(title,
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: context.mc.textPrimary)),
+                            const SizedBox(height: 2),
+                            Text(subtitle,
+                                style: TextStyle(
+                                    fontSize: 12, color: context.mc.textHint)),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.chevron_right_rounded,
+                          color: context.mc.textHint, size: 20),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  void _onTap(BuildContext context, String purpose) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => _ReligiousPaymentScreen(purpose: purpose),
+      ),
+    );
+  }
+}
+
+class _ReligiousPaymentScreen extends StatefulWidget {
+  final String purpose;
+  const _ReligiousPaymentScreen({required this.purpose});
+
+  @override
+  State<_ReligiousPaymentScreen> createState() => _ReligiousPaymentScreenState();
+}
+
+class _ReligiousPaymentScreenState extends State<_ReligiousPaymentScreen> {
+  final _handleCtrl = TextEditingController();
+  final _amountCtrl = TextEditingController();
+  final _noteCtrl   = TextEditingController();
+  bool _loading = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _handleCtrl.dispose();
+    _amountCtrl.dispose();
+    _noteCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final handle = _handleCtrl.text.trim();
+    final amount = double.tryParse(_amountCtrl.text.trim());
+    if (handle.isEmpty) { setState(() => _error = 'Enter recipient MyrabaTag'); return; }
+    if (amount == null || amount <= 0) { setState(() => _error = 'Enter a valid amount'); return; }
+
+    setState(() { _loading = true; _error = null; });
+    try {
+      final auth = Provider.of<AuthService>(context, listen: false);
+      final api  = ApiService(auth.token!);
+      await api.transfer(handle, amount.toStringAsFixed(2));
+      if (!mounted) return;
+      Navigator.pop(context);
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${widget.purpose} of ₦${amount.toStringAsFixed(0)} sent!'),
+          backgroundColor: MyrabaColors.green,
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        _error = e.toString().replaceFirst('Exception: ', '');
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: context.mc.bg,
+      appBar: AppBar(
+        backgroundColor: context.mc.bg,
+        title: Text(widget.purpose,
+            style: TextStyle(color: context.mc.textPrimary, fontWeight: FontWeight.w700, fontSize: 16)),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_rounded, color: context.mc.textPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 40),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _field(context, 'Recipient MyrabaTag', _handleCtrl, TextInputType.text, '@myrabatag'),
+            const SizedBox(height: 16),
+            _field(context, 'Amount (₦)', _amountCtrl, TextInputType.number, '0.00'),
+            const SizedBox(height: 16),
+            _field(context, 'Note (optional)', _noteCtrl, TextInputType.text, 'e.g. First-fruit offering'),
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              Text(_error!, style: const TextStyle(color: MyrabaColors.red, fontSize: 13)),
+            ],
+            const SizedBox(height: 28),
+            SizedBox(width: double.infinity, child: _payButton(_loading, _submit, 'Send')),
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import 'home_tab.dart';
-import 'thrift/thrift_tab.dart';
+import 'finances/finances_tab.dart';
 import 'gift/gift_tab.dart';
 import 'bills/bills_tab.dart';
 import 'profile/profile_tab.dart';
@@ -20,7 +20,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final _tabs = const [
     HomeTab(),
-    ThriftTab(),
+    FinancesTab(),
     GiftTab(),
     BillsTab(),
     ProfileTab(),
@@ -127,7 +127,7 @@ class _BottomNav extends StatelessWidget {
           child: Row(
             children: [
               _item(context, 0, Icons.home_rounded,        Icons.home_outlined,        'Home'),
-              _item(context, 1, Icons.savings_rounded,     Icons.savings_outlined,     'Thrift'),
+              _item(context, 1, Icons.savings_rounded,     Icons.savings_outlined,     'Finances'),
               _item(context, 2, Icons.card_giftcard_rounded,Icons.card_giftcard_outlined,'Gift'),
               _item(context, 3, Icons.receipt_long_rounded, Icons.receipt_long_outlined,'Bills'),
               _item(context, 4, Icons.person_rounded,      Icons.person_outline_rounded,'Profile'),

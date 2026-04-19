@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
 import '../../services/theme_provider.dart';
 import '../stats/monthly_review_screen.dart';
+import '../wallet/transaction_history_screen.dart';
+import '../support/support_chat_screen.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -340,8 +345,13 @@ class _ProfileTabState extends State<ProfileTab> {
         SizedBox(height: 10),
         _buildThemeToggle(),
         SizedBox(height: 10),
+        _menuItem(Icons.history_rounded, 'Transaction History',
+            MyrabaColors.teal, () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const TransactionHistoryScreen()))),
+        SizedBox(height: 10),
         _menuItem(Icons.security_rounded, 'Security Settings',
-            MyrabaColors.blue, () => _showSecuritySettings()),
+            MyrabaColors.blue, () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const SecuritySettingsScreen()))),
         SizedBox(height: 10),
         _menuItem(Icons.help_outline_rounded, 'Help & Support',
             context.mc.textSecond, () => _showHelpSupport()),
@@ -577,132 +587,13 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
-  // ─── Security Settings ────────────────────────────────────────────
-
-  void _showSecuritySettings() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: context.mc.surface,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => _SecuritySheet(onDone: () {
-        Navigator.pop(ctx);
-      }),
-    );
-  }
-
   // ─── Help & Support ───────────────────────────────────────────────
 
   void _showHelpSupport() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: context.mc.surface,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 48),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-                child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                        color: context.mc.surfaceLine,
-                        borderRadius: BorderRadius.circular(2)))),
-            SizedBox(height: 20),
-            Text('Help & Support',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: context.mc.textPrimary)),
-            SizedBox(height: 6),
-            Text(
-                'We\'re here to help. Reach us through any of the channels below.',
-                style: TextStyle(
-                    fontSize: 13, color: context.mc.textHint, height: 1.4)),
-            const SizedBox(height: 24),
-            _supportItem(
-                Icons.email_outlined, 'Email Support', 'support@myraba.ng'),
-            const SizedBox(height: 12),
-            _supportItem(Icons.chat_bubble_outline_rounded, 'WhatsApp',
-                '+234 800 000 0000'),
-            const SizedBox(height: 12),
-            _supportItem(Icons.access_time_rounded, 'Working Hours',
-                'Mon – Fri, 8am – 6pm WAT'),
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: MyrabaColors.greenGlow,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                    color: MyrabaColors.green.withValues(alpha: 0.2)),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.info_outline_rounded,
-                      color: MyrabaColors.green, size: 16),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'For faster resolution, include your MyrabaTag and transaction ID in your message.',
-                      style: TextStyle(
-                          fontSize: 12, color: MyrabaColors.green, height: 1.4),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    Navigator.push(context,
+      MaterialPageRoute(builder: (_) => const SupportChatScreen()));
   }
 
-  Widget _supportItem(IconData icon, String label, String value) {
-    return GestureDetector(
-      onTap: () {
-        Clipboard.setData(ClipboardData(text: value));
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('$label copied'),
-            backgroundColor: MyrabaColors.green,
-            duration: Duration(seconds: 1)));
-      },
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: context.mc.card(),
-        child: Row(
-          children: [
-            Icon(icon, color: context.mc.textHint, size: 18),
-            SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label,
-                      style: TextStyle(
-                          fontSize: 11, color: context.mc.textHint)),
-                  SizedBox(height: 2),
-                  Text(value,
-                      style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: context.mc.textPrimary)),
-                ],
-              ),
-            ),
-            Icon(Icons.copy_rounded,
-                size: 14, color: context.mc.textHint),
-          ],
-        ),
-      ),
-    );
-  }
 
   // ─── Year in Review ───────────────────────────────────────────────
 
@@ -804,6 +695,348 @@ class _ProfileTabState extends State<ProfileTab> {
             child: const Text('Log Out'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Security Settings Screen ─────────────────────────────────────────────────
+
+class SecuritySettingsScreen extends StatefulWidget {
+  const SecuritySettingsScreen({super.key});
+  @override
+  State<SecuritySettingsScreen> createState() => _SecuritySettingsScreenState();
+}
+
+class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
+  final _localAuth   = LocalAuthentication();
+  final _secStorage  = const FlutterSecureStorage();
+  bool _biometricEnabled = false;
+  bool _pinEnabled       = false;
+  bool _biometricAvailable = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPrefs();
+  }
+
+  Future<void> _loadPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final canCheck = await _localAuth.canCheckBiometrics;
+    final isAvail  = await _localAuth.isDeviceSupported();
+    final pinSet   = await _secStorage.read(key: 'txPin');
+    if (mounted) {
+      setState(() {
+        _biometricEnabled   = prefs.getBool('biometricEnabled') ?? false;
+        _pinEnabled         = pinSet != null && pinSet.isNotEmpty;
+        _biometricAvailable = canCheck && isAvail;
+      });
+    }
+  }
+
+  Future<void> _toggleBiometric(bool value) async {
+    if (value) {
+      final authed = await _localAuth.authenticate(
+        localizedReason: 'Confirm your identity to enable biometrics',
+        options: const AuthenticationOptions(biometricOnly: true),
+      );
+      if (!authed) return;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('biometricEnabled', value);
+    if (mounted) setState(() => _biometricEnabled = value);
+  }
+
+  void _changePassword() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.mc.surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (_) => _SecuritySheet(onDone: () => Navigator.pop(context)),
+    );
+  }
+
+  void _setPin() {
+    showDialog(
+      context: context,
+      builder: (_) => _PinSetupDialog(
+        onSet: (pin) async {
+          await _secStorage.write(key: 'txPin', value: pin);
+          if (!mounted) return;
+          setState(() => _pinEnabled = true);
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Transaction PIN set successfully'),
+            backgroundColor: MyrabaColors.green,
+          ));
+        },
+      ),
+    );
+  }
+
+  void _removePin() async {
+    await _secStorage.delete(key: 'txPin');
+    if (mounted) setState(() => _pinEnabled = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: context.mc.bg,
+      appBar: AppBar(
+        backgroundColor: context.mc.bg,
+        title: Text('Security Settings',
+            style: TextStyle(color: context.mc.textPrimary, fontWeight: FontWeight.w700)),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_rounded, color: context.mc.textPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          // ── Password ───────────────────────────────────────────────
+          _secTile(
+            icon: Icons.lock_outline_rounded,
+            color: MyrabaColors.blue,
+            title: 'Change Password',
+            subtitle: 'Update your account login password',
+            trailing: Icon(Icons.chevron_right_rounded, color: context.mc.textHint),
+            onTap: _changePassword,
+          ),
+          const SizedBox(height: 12),
+
+          // ── Biometrics ─────────────────────────────────────────────
+          _secTile(
+            icon: Icons.fingerprint_rounded,
+            color: MyrabaColors.green,
+            title: 'Face ID / Biometrics',
+            subtitle: _biometricAvailable
+                ? 'Use fingerprint or face to unlock'
+                : 'Not available on this device',
+            trailing: Switch(
+              value: _biometricEnabled,
+              onChanged: _biometricAvailable ? _toggleBiometric : null,
+              activeThumbColor: MyrabaColors.green,
+            ),
+            onTap: null,
+          ),
+          const SizedBox(height: 12),
+
+          // ── Transaction PIN ────────────────────────────────────────
+          _secTile(
+            icon: Icons.dialpad_rounded,
+            color: MyrabaColors.orange,
+            title: 'Transaction PIN',
+            subtitle: _pinEnabled ? 'PIN is set — tap to change' : 'Set a 4-digit PIN for transactions',
+            trailing: _pinEnabled
+                ? Row(mainAxisSize: MainAxisSize.min, children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: MyrabaColors.greenGlow,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text('Active',
+                          style: TextStyle(fontSize: 11, color: MyrabaColors.green, fontWeight: FontWeight.w700)),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(Icons.chevron_right_rounded, color: context.mc.textHint),
+                  ])
+                : Icon(Icons.chevron_right_rounded, color: context.mc.textHint),
+            onTap: _setPin,
+          ),
+          if (_pinEnabled) ...[
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: _removePin,
+              child: const Text('Remove PIN', style: TextStyle(color: MyrabaColors.red, fontSize: 13)),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _secTile({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String subtitle,
+    required Widget trailing,
+    required VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: context.mc.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: context.mc.surfaceLine),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44, height: 44,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w600,
+                      color: context.mc.textPrimary)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: TextStyle(
+                      fontSize: 12, color: context.mc.textHint)),
+                ],
+              ),
+            ),
+            trailing,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── PIN Setup Dialog ─────────────────────────────────────────────────────────
+
+class _PinSetupDialog extends StatefulWidget {
+  final ValueChanged<String> onSet;
+  const _PinSetupDialog({required this.onSet});
+  @override
+  State<_PinSetupDialog> createState() => _PinSetupDialogState();
+}
+
+class _PinSetupDialogState extends State<_PinSetupDialog> {
+  String _pin = '';
+  String _confirm = '';
+  bool _confirming = false;
+  String? _error;
+
+  void _onKey(String digit) {
+    setState(() {
+      _error = null;
+      if (!_confirming) {
+        if (_pin.length < 4) {
+          _pin += digit;
+          if (_pin.length == 4) _confirming = true;
+        }
+      } else {
+        if (_confirm.length < 4) {
+          _confirm += digit;
+          if (_confirm.length == 4) {
+            if (_confirm == _pin) {
+              widget.onSet(_pin);
+            } else {
+              _pin = ''; _confirm = ''; _confirming = false;
+              _error = 'PINs do not match. Try again.';
+            }
+          }
+        }
+      }
+    });
+  }
+
+  void _onDelete() {
+    setState(() {
+      _error = null;
+      if (_confirming) {
+        if (_confirm.isNotEmpty) _confirm = _confirm.substring(0, _confirm.length - 1);
+      } else {
+        if (_pin.isNotEmpty) _pin = _pin.substring(0, _pin.length - 1);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final current = _confirming ? _confirm : _pin;
+    return AlertDialog(
+      backgroundColor: context.mc.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text(_confirming ? 'Confirm PIN' : 'Set PIN',
+          style: TextStyle(color: context.mc.textPrimary, fontWeight: FontWeight.w700)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(_confirming ? 'Enter your PIN again' : 'Choose a 4-digit transaction PIN',
+              style: TextStyle(fontSize: 13, color: context.mc.textHint)),
+          const SizedBox(height: 20),
+          // Dots
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(4, (i) => Container(
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              width: 14, height: 14,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: i < current.length
+                    ? MyrabaColors.orange
+                    : context.mc.surfaceLine,
+              ),
+            )),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 12),
+            Text(_error!, style: const TextStyle(color: MyrabaColors.red, fontSize: 12)),
+          ],
+          const SizedBox(height: 20),
+          // Keypad
+          ...List.generate(3, (row) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(3, (col) {
+                final n = (row * 3 + col + 1).toString();
+                return _key(n);
+              }),
+            ),
+          )),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(width: 72),
+              _key('0'),
+              SizedBox(
+                width: 64, height: 48,
+                child: TextButton(
+                  onPressed: _onDelete,
+                  child: Icon(Icons.backspace_outlined, color: context.mc.textSecond, size: 20),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Cancel', style: TextStyle(color: context.mc.textHint)),
+        ),
+      ],
+    );
+  }
+
+  Widget _key(String digit) {
+    return SizedBox(
+      width: 64, height: 48,
+      child: TextButton(
+        onPressed: () => _onKey(digit),
+        child: Text(digit, style: TextStyle(
+            fontSize: 20, fontWeight: FontWeight.w600,
+            color: context.mc.textPrimary)),
       ),
     );
   }

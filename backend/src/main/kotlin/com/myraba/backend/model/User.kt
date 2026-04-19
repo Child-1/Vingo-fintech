@@ -63,6 +63,12 @@ data class User(
 
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
+    @Column(unique = true, nullable = true, length = 12)
+    val referralCode: String? = null,
+
+    @Column(nullable = true, length = 12)
+    val referredBy: String? = null,
+
     @OneToOne(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     @JsonIgnore
     var wallet: Wallet? = null

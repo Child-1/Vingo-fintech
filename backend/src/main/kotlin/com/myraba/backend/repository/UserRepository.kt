@@ -38,4 +38,6 @@ interface UserRepository : JpaRepository<User, Long> {
     fun searchUsers(@Param("q") query: String, pageable: Pageable): Page<User>
 
     fun countByCreatedAtBetween(from: LocalDateTime, to: LocalDateTime): Long
+    fun findByReferralCode(referralCode: String): User?
+    fun findByReferredBy(referralCode: String): List<User>
 }

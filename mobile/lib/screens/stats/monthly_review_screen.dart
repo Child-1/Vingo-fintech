@@ -276,169 +276,229 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen>
 
   // ── Holographic donut ─────────────────────────────────────────────────────
   Widget _buildHologramDonut() {
-    if (_categories.isEmpty) {
-      return _buildEmptyDonut();
-    }
+    if (_categories.isEmpty) return _buildEmptyDonut();
 
     final selected = _touchedIndex >= 0 && _touchedIndex < _categories.length
-        ? _categories[_touchedIndex]
-        : null;
+        ? _categories[_touchedIndex] : null;
     final selectedLabel  = selected?['label']  as String? ?? 'Total Spent';
-    final selectedAmount = selected != null
-        ? _parse(selected['amount'])
-        : _total;
+    final selectedAmount = selected != null ? _parse(selected['amount']) : _total;
     final selectedKey    = selected?['key'] as String? ?? '';
-    final selectedColor  = _kCategoryColors[selectedKey] ?? MyrabaColors.purple;
+    final selectedColor  = _kCategoryColors[selectedKey] ?? const Color(0xFF7B2FFF);
 
     return AnimatedBuilder(
       animation: Listenable.merge([_entranceAnim, _pulseAnim]),
       builder: (_, __) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: context.mc.surface,
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(
-                color: MyrabaColors.purple.withValues(alpha: 0.15)),
-          ),
-          child: Column(
-            children: [
-              SizedBox(
-                height: 260,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // ── Glow rings behind chart ─────────────────────────
-                    CustomPaint(
-                      size: const Size(260, 260),
-                      painter: _GlowRingPainter(
-                        color: selected != null
-                            ? selectedColor
-                            : MyrabaColors.purple,
-                        pulse: _pulseAnim.value,
-                        entrance: _entranceAnim.value,
-                      ),
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF0A0118),
+                  const Color(0xFF0D0320),
+                  const Color(0xFF080014),
+                ],
+              ),
+              border: Border.all(
+                color: selectedColor.withValues(alpha: 0.35 + 0.15 * _pulseAnim.value),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: selectedColor.withValues(alpha: 0.25 + 0.1 * _pulseAnim.value),
+                  blurRadius: 24,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                // ── Space grid background ───────────────────────────
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _GridPainter(
+                      opacity: 0.06 * _entranceAnim.value,
                     ),
-
-                    // ── Pie chart ───────────────────────────────────────
-                    PieChart(
-                      PieChartData(
-                        startDegreeOffset: -90,
-                        centerSpaceRadius: 72,
-                        sectionsSpace: 3,
-                        pieTouchData: PieTouchData(
-                          touchCallback: (event, response) {
-                            if (!event.isInterestedForInteractions) return;
-                            setState(() {
-                              _touchedIndex =
-                                  response?.touchedSection?.touchedSectionIndex
-                                      ?? -1;
-                            });
-                          },
-                        ),
-                        sections: List.generate(_categories.length, (i) {
-                          final cat    = _categories[i];
-                          final key    = cat['key'] as String? ?? '';
-                          final amount = _parse(cat['amount']);
-                          final pct    = _total > 0 ? amount / _total : 0.0;
-                          final color  = _kCategoryColors[key] ?? MyrabaColors.purple;
-                          final isTouched = _touchedIndex == i;
-
-                          return PieChartSectionData(
-                            value: amount,
-                            color: color.withValues(
-                                alpha: isTouched ? 1.0 : 0.82),
-                            radius: isTouched
-                                ? 60 * _entranceAnim.value
-                                : 48 * _entranceAnim.value,
-                            title: pct > 0.07
-                                ? '${(pct * 100).toStringAsFixed(0)}%'
-                                : '',
-                            titleStyle: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              shadows: [
-                                Shadow(
-                                    color: color,
-                                    blurRadius: 6)
-                              ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: 280,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // ── Outer glow rings ─────────────────────
+                            CustomPaint(
+                              size: const Size(280, 280),
+                              painter: _GlowRingPainter(
+                                color: selectedColor,
+                                pulse: _pulseAnim.value,
+                                entrance: _entranceAnim.value,
+                              ),
                             ),
-                            badgeWidget: isTouched
-                                ? Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: BoxDecoration(
-                                      color: color,
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                            color: color,
-                                            blurRadius: 10,
-                                            spreadRadius: 2)
+
+                            // ── Pie chart ────────────────────────────
+                            PieChart(
+                              PieChartData(
+                                startDegreeOffset: -90,
+                                centerSpaceRadius: 76,
+                                sectionsSpace: 3,
+                                pieTouchData: PieTouchData(
+                                  touchCallback: (event, response) {
+                                    if (!event.isInterestedForInteractions) return;
+                                    setState(() {
+                                      _touchedIndex = response
+                                          ?.touchedSection
+                                          ?.touchedSectionIndex ?? -1;
+                                    });
+                                  },
+                                ),
+                                sections: List.generate(_categories.length, (i) {
+                                  final cat    = _categories[i];
+                                  final key    = cat['key'] as String? ?? '';
+                                  final amount = _parse(cat['amount']);
+                                  final pct    = _total > 0 ? amount / _total : 0.0;
+                                  final color  = _kCategoryColors[key] ?? const Color(0xFF7B2FFF);
+                                  final isTouched = _touchedIndex == i;
+
+                                  return PieChartSectionData(
+                                    value: amount,
+                                    color: color.withValues(alpha: isTouched ? 1.0 : 0.88),
+                                    radius: isTouched
+                                        ? 66 * _entranceAnim.value
+                                        : 52 * _entranceAnim.value,
+                                    title: pct > 0.07
+                                        ? '${(pct * 100).toStringAsFixed(0)}%'
+                                        : '',
+                                    titleStyle: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                      shadows: [Shadow(color: color, blurRadius: 8)],
+                                    ),
+                                    badgeWidget: isTouched
+                                        ? Container(
+                                            width: 10, height: 10,
+                                            decoration: BoxDecoration(
+                                              color: color,
+                                              shape: BoxShape.circle,
+                                              boxShadow: [BoxShadow(
+                                                color: color,
+                                                blurRadius: 14,
+                                                spreadRadius: 3,
+                                              )],
+                                            ),
+                                          )
+                                        : null,
+                                    badgePositionPercentageOffset: 1.15,
+                                  );
+                                }),
+                              ),
+                              duration: const Duration(milliseconds: 400),
+                              curve: Curves.easeOutCubic,
+                            ),
+
+                            // ── Center hologram label ─────────────────
+                            Opacity(
+                              opacity: _entranceAnim.value,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (selectedKey.isNotEmpty) ...[
+                                    Container(
+                                      width: 36, height: 36,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: selectedColor.withValues(alpha: 0.15),
+                                        border: Border.all(
+                                          color: selectedColor.withValues(alpha: 0.4),
+                                          width: 1,
+                                        ),
+                                        boxShadow: [BoxShadow(
+                                          color: selectedColor.withValues(alpha: 0.4),
+                                          blurRadius: 12,
+                                        )],
+                                      ),
+                                      child: Icon(
+                                        _kCategoryIcons[selectedKey] ?? Icons.category_rounded,
+                                        color: selectedColor,
+                                        size: 18,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                  ],
+                                  Text(
+                                    selectedLabel,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.white.withValues(alpha: 0.5),
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '₦${_nfmt.format(selectedAmount)}',
+                                    style: TextStyle(
+                                      fontSize: selectedKey.isEmpty ? 18 : 15,
+                                      fontWeight: FontWeight.w800,
+                                      color: selectedKey.isEmpty
+                                          ? Colors.white
+                                          : selectedColor,
+                                      shadows: [
+                                        Shadow(
+                                          color: selectedKey.isEmpty
+                                              ? Colors.white.withValues(alpha: 0.3)
+                                              : selectedColor.withValues(alpha: 0.6),
+                                          blurRadius: 12,
+                                        ),
                                       ],
                                     ),
-                                  )
-                                : null,
-                            badgePositionPercentageOffset: 1.1,
-                          );
-                        }),
-                      ),
-                      duration: const Duration(milliseconds: 400),
-                      curve: Curves.easeOutCubic,
-                    ),
-
-                    // ── Center label ────────────────────────────────────
-                    Opacity(
-                      opacity: _entranceAnim.value,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (selectedKey.isNotEmpty)
-                            Icon(
-                              _kCategoryIcons[selectedKey] ??
-                                  Icons.category_rounded,
-                              color: selectedColor,
-                              size: 20,
-                            ),
-                          if (selectedKey.isNotEmpty)
-                            const SizedBox(height: 4),
-                          Text(
-                            selectedLabel,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: context.mc.textHint,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '₦${_nfmt.format(selectedAmount)}',
-                            style: TextStyle(
-                              fontSize: selectedKey.isEmpty ? 18 : 16,
-                              fontWeight: FontWeight.w800,
-                              color: selectedKey.isEmpty
-                                  ? context.mc.textPrimary
-                                  : selectedColor,
-                            ),
-                          ),
-                          if (selectedKey.isEmpty) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              'total spent',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: context.mc.textHint,
+                                  ),
+                                  if (selectedKey.isEmpty) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'TOTAL SPENT',
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        color: Colors.white.withValues(alpha: 0.35),
+                                        letterSpacing: 1.5,
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
                           ],
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
+
+                      // ── Scan line at bottom ─────────────────────────
+                      Opacity(
+                        opacity: _entranceAnim.value * 0.6,
+                        child: Container(
+                          height: 1,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.transparent,
+                                selectedColor.withValues(alpha: 0.6),
+                                Colors.transparent,
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -766,6 +826,29 @@ class _MonthlyReviewScreenState extends State<MonthlyReviewScreen>
   }
 }
 
+// ── Space grid background painter ─────────────────────────────────────────────
+class _GridPainter extends CustomPainter {
+  final double opacity;
+  _GridPainter({required this.opacity});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF7B2FFF).withValues(alpha: opacity)
+      ..strokeWidth = 0.5;
+    const step = 28.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GridPainter old) => old.opacity != opacity;
+}
+
 // ── Glow ring painter (hologram effect) ───────────────────────────────────────
 class _GlowRingPainter extends CustomPainter {
   final Color color;
@@ -782,38 +865,61 @@ class _GlowRingPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
     final cy = size.height / 2;
-    final baseRadius = math.min(cx, cy) * 0.72;
+    final baseRadius = math.min(cx, cy) * 0.68;
 
-    for (int ring = 0; ring < 3; ring++) {
-      final ringOffset = ring * 14.0;
-      final alpha = (0.06 - ring * 0.015) *
-          entrance *
-          (ring == 0 ? (0.7 + 0.3 * pulse) : 1.0);
-      if (alpha <= 0) continue;
+    // Outer ambient glow — large diffuse halo
+    canvas.drawCircle(
+      Offset(cx, cy),
+      baseRadius * 1.15,
+      Paint()
+        ..color = color.withValues(alpha: (0.18 + 0.08 * pulse) * entrance)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 48),
+    );
 
+    // Three concentric rings with strong glow
+    final ringData = [
+      (baseRadius,        0.45 + 0.12 * pulse, 22.0),  // inner — brightest, pulses
+      (baseRadius + 18,   0.22,                 14.0),  // mid
+      (baseRadius + 34,   0.12,                 10.0),  // outer — subtle
+    ];
+
+    for (final (radius, alpha, blur) in ringData) {
+      final a = (alpha * entrance).clamp(0.0, 1.0);
+      if (a <= 0) continue;
+      // Glow halo
       canvas.drawCircle(
-        Offset(cx, cy),
-        baseRadius + ringOffset,
+        Offset(cx, cy), radius,
         Paint()
-          ..color = color.withValues(alpha: alpha.clamp(0.0, 1.0))
-          ..maskFilter = MaskFilter.blur(
-              BlurStyle.normal, 18.0 + ring * 8.0),
+          ..color = color.withValues(alpha: a * 0.6)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, blur * 2),
+      );
+      // Crisp ring line on top
+      canvas.drawCircle(
+        Offset(cx, cy), radius,
+        Paint()
+          ..color = color.withValues(alpha: a)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.2
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, blur * 0.4),
       );
     }
 
-    // Inner glow dot at center
+    // Center radial glow
     canvas.drawCircle(
       Offset(cx, cy),
-      6 * entrance,
+      baseRadius * 0.58,
       Paint()
-        ..color = color.withValues(alpha: 0.12 * entrance)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20),
+        ..shader = RadialGradient(
+          colors: [
+            color.withValues(alpha: (0.10 + 0.06 * pulse) * entrance),
+            Colors.transparent,
+          ],
+        ).createShader(Rect.fromCircle(
+            center: Offset(cx, cy), radius: baseRadius * 0.58)),
     );
   }
 
   @override
   bool shouldRepaint(_GlowRingPainter old) =>
-      old.pulse != pulse ||
-      old.entrance != entrance ||
-      old.color != color;
+      old.pulse != pulse || old.entrance != entrance || old.color != color;
 }

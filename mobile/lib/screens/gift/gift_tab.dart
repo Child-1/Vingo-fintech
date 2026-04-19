@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
@@ -803,6 +804,7 @@ class _ReceivedGiftsTab extends StatefulWidget {
 class _ReceivedGiftsTabState extends State<_ReceivedGiftsTab> {
   List<dynamic> _gifts = [];
   bool _loading = true;
+  int _newCount = 0;
 
   @override
   void initState() {
@@ -814,17 +816,29 @@ class _ReceivedGiftsTabState extends State<_ReceivedGiftsTab> {
     setState(() => _loading = true);
     try {
       final auth = Provider.of<AuthService>(context, listen: false);
-      final api = ApiService(auth.token ?? '');
-      final res = await api.getReceivedGifts();
+      final api  = ApiService(auth.token ?? '');
+      final res  = await api.getReceivedGifts();
       if (!mounted) return;
       final list = res['gifts'] as List? ?? res['data'] as List? ?? [];
+
+      final prefs   = await SharedPreferences.getInstance();
+      final lastSeen = prefs.getInt('lastSeenGiftCount') ?? 0;
+      final newCount = (list.length - lastSeen).clamp(0, list.length);
+
       setState(() {
-        _gifts = list;
-        _loading = false;
+        _gifts    = list;
+        _newCount = newCount;
+        _loading  = false;
       });
     } catch (_) {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _markAllSeen() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('lastSeenGiftCount', _gifts.length);
+    if (mounted) setState(() => _newCount = 0);
   }
 
   @override
@@ -838,20 +852,15 @@ class _ReceivedGiftsTabState extends State<_ReceivedGiftsTab> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('🎁',
-                style: TextStyle(
-                    fontSize: 64)), // ignore: prefer_const_constructors
+            Text('🎁', style: TextStyle(fontSize: 64)),
             SizedBox(height: 16),
             Text('No gifts yet',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700,
                     color: context.mc.textPrimary)),
             SizedBox(height: 8),
             Text('When someone sends you a gift,\nit will appear here ✨',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 14, color: context.mc.textHint, height: 1.5)),
+                style: TextStyle(fontSize: 14, color: context.mc.textHint, height: 1.5)),
           ],
         ),
       );
@@ -860,8 +869,42 @@ class _ReceivedGiftsTabState extends State<_ReceivedGiftsTab> {
       onRefresh: _load,
       color: MyrabaColors.purple,
       backgroundColor: context.mc.surface,
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      child: Column(
+        children: [
+          // ── New gift notification banner ──────────────────────────
+          if (_newCount > 0)
+            GestureDetector(
+              onTap: _markAllSeen,
+              child: Container(
+                width: double.infinity,
+                margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: MyrabaColors.purple.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: MyrabaColors.purple.withValues(alpha: 0.4)),
+                ),
+                child: Row(
+                  children: [
+                    const Text('🎁', style: TextStyle(fontSize: 20)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        '$_newCount new gift${_newCount > 1 ? 's' : ''} received!',
+                        style: const TextStyle(
+                            color: MyrabaColors.purple,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14),
+                      ),
+                    ),
+                    const Icon(Icons.close_rounded, color: MyrabaColors.purple, size: 18),
+                  ],
+                ),
+              ),
+            ),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         itemCount: _gifts.length,
         separatorBuilder: (_, __) => SizedBox(height: 12),
         itemBuilder: (ctx, i) {
@@ -934,6 +977,9 @@ class _ReceivedGiftsTabState extends State<_ReceivedGiftsTab> {
             ),
           );
         },
+            ),
+          ),
+        ],
       ),
     );
   }

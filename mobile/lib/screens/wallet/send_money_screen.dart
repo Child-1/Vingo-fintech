@@ -29,6 +29,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
   bool _loading = false;
   String? _error;
   bool _success = false;
+  bool _confirming = false;
 
   @override
   void initState() {
@@ -76,6 +77,29 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
     }
   }
 
+  void _goToConfirm() {
+    final recipient = _recipientCtrl.text.trim();
+    final amount    = _amountCtrl.text.trim();
+    if (recipient.isEmpty) {
+      setState(() => _error = 'Please enter a recipient');
+      return;
+    }
+    if (_sendMode == 'bank' && _verifiedAccount == null) {
+      setState(() => _error = 'Please verify the account number first');
+      return;
+    }
+    if (amount.isEmpty) {
+      setState(() => _error = 'Please enter an amount');
+      return;
+    }
+    final parsed = double.tryParse(amount);
+    if (parsed == null || parsed <= 0) {
+      setState(() => _error = 'Enter a valid amount');
+      return;
+    }
+    setState(() { _confirming = true; _error = null; });
+  }
+
   Future<void> _send() async {
     final recipient = _recipientCtrl.text.trim();
     final amount    = _amountCtrl.text.trim();
@@ -112,8 +136,129 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.mc.bg,
-      appBar: AppBar(title: Text('Send Money')),
-      body: _success ? _buildSuccess() : _buildForm(),
+      appBar: AppBar(
+        title: Text(_confirming ? 'Confirm Transfer' : 'Send Money'),
+        leading: _confirming
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: () => setState(() { _confirming = false; _error = null; }),
+              )
+            : null,
+      ),
+      body: _success ? _buildSuccess() : _confirming ? _buildConfirmation() : _buildForm(),
+    );
+  }
+
+  Widget _buildConfirmation() {
+    final recipient = _recipientCtrl.text.trim();
+    final amount    = _amountCtrl.text.trim();
+    final note      = _noteCtrl.text.trim();
+
+    String recipientLabel;
+    if (_sendMode == 'bank' && _verifiedAccount != null) {
+      recipientLabel = '${_verifiedAccount!['fullName']} · ${_verifiedAccount!['accountNumber']}';
+    } else if (_appMethod == 'myrabatag') {
+      recipientLabel = 'm₦ $recipient';
+    } else {
+      recipientLabel = recipient;
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: context.mc.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: context.mc.surfaceLine),
+            ),
+            child: Column(
+              children: [
+                _confirmRow('Sending to', recipientLabel),
+                const Divider(height: 28),
+                _confirmRow('Amount', '₦$amount', valueStyle: const TextStyle(
+                  fontSize: 22, fontWeight: FontWeight.w800, color: MyrabaColors.gold)),
+                if (note.isNotEmpty) ...[
+                  const Divider(height: 28),
+                  _confirmRow('Note', note),
+                ],
+                const Divider(height: 28),
+                _confirmRow('Transfer type',
+                  _sendMode == 'bank' ? 'Bank Transfer' :
+                  _appMethod == 'custom' ? 'Custom ID' : 'MyrabaTag'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: MyrabaColors.gold.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: MyrabaColors.gold.withValues(alpha: 0.3)),
+            ),
+            child: Row(children: [
+              Icon(Icons.info_outline_rounded, color: MyrabaColors.gold, size: 15),
+              const SizedBox(width: 8),
+              Expanded(child: Text('Please review carefully. Transfers cannot be reversed.',
+                style: TextStyle(fontSize: 12, color: MyrabaColors.gold))),
+            ]),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: MyrabaColors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: MyrabaColors.red.withValues(alpha: 0.3)),
+              ),
+              child: Row(children: [
+                const Icon(Icons.error_outline, color: MyrabaColors.red, size: 16),
+                const SizedBox(width: 8),
+                Expanded(child: Text(_error!,
+                  style: const TextStyle(color: MyrabaColors.red, fontSize: 13))),
+              ]),
+            ),
+          ],
+          const SizedBox(height: 32),
+          ElevatedButton(
+            onPressed: _loading ? null : _send,
+            child: _loading
+              ? const SizedBox(width: 20, height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : const Text('Confirm & Send'),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: _loading ? null : () => setState(() { _confirming = false; _error = null; }),
+              child: const Text('Edit'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _confirmRow(String label, String value, {TextStyle? valueStyle}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+        const SizedBox(width: 16),
+        Flexible(
+          child: Text(value,
+            textAlign: TextAlign.right,
+            style: valueStyle ?? TextStyle(fontSize: 14,
+              fontWeight: FontWeight.w600, color: context.mc.textPrimary)),
+        ),
+      ],
     );
   }
 
@@ -276,11 +421,8 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
           ],
           const SizedBox(height: 32),
           ElevatedButton(
-            onPressed: (_loading || (_sendMode == 'bank' && _verifiedAccount == null)) ? null : _send,
-            child: _loading
-                ? const SizedBox(height: 22, width: 22,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : const Text('Send Money'),
+            onPressed: (_loading || (_sendMode == 'bank' && _verifiedAccount == null)) ? null : _goToConfirm,
+            child: const Text('Review Transfer'),
           ),
         ],
       ),
