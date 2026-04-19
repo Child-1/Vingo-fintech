@@ -42,7 +42,7 @@ class AdminUserController(
 
     data class UpdateRoleRequest(val role: String)
     data class UpdateKycRequest(val status: String)
-    data class AccountActionRequest(val reason: String)
+    data class AccountActionRequest(val reason: String = "")
 
     // ── List / Search ─────────────────────────────────────────────
 
@@ -168,30 +168,30 @@ class AdminUserController(
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     fun freezeAccount(
         @PathVariable id: Long,
-        @RequestBody req: AccountActionRequest,
+        @RequestBody(required = false) req: AccountActionRequest?,
         auth: Authentication
     ): ResponseEntity<AdminUserResponse> {
-        return changeAccountStatus(id, UserStatus.FROZEN, "FREEZE_ACCOUNT", req.reason, auth)
+        return changeAccountStatus(id, UserStatus.FROZEN, "FREEZE_ACCOUNT", req?.reason ?: "", auth)
     }
 
     @PostMapping("/{id}/suspend")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     fun suspendAccount(
         @PathVariable id: Long,
-        @RequestBody req: AccountActionRequest,
+        @RequestBody(required = false) req: AccountActionRequest?,
         auth: Authentication
     ): ResponseEntity<AdminUserResponse> {
-        return changeAccountStatus(id, UserStatus.SUSPENDED, "SUSPEND_ACCOUNT", req.reason, auth)
+        return changeAccountStatus(id, UserStatus.SUSPENDED, "SUSPEND_ACCOUNT", req?.reason ?: "", auth)
     }
 
     @PostMapping("/{id}/activate")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     fun activateAccount(
         @PathVariable id: Long,
-        @RequestBody req: AccountActionRequest,
+        @RequestBody(required = false) req: AccountActionRequest?,
         auth: Authentication
     ): ResponseEntity<AdminUserResponse> {
-        return changeAccountStatus(id, UserStatus.ACTIVE, "ACTIVATE_ACCOUNT", req.reason, auth)
+        return changeAccountStatus(id, UserStatus.ACTIVE, "ACTIVATE_ACCOUNT", req?.reason ?: "", auth)
     }
 
     private fun changeAccountStatus(
