@@ -1,4 +1,4 @@
-package com.myraba.app
+package com.fourrivers.myraba
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

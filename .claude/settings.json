@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker exec:*)",
+      "Bash(/c/Users/acer/AppData/Local/Android/Sdk/platform-tools/adb.exe reverse:*)",
+      "Bash(flutter run:*)",
+      "Bash(echo \"Flutter run started in background with PID $!\")",
+      "Read(//tmp/**)",
+      "Bash(taskkill /F /PID 15024)",
+      "Bash(taskkill /F /IM java.exe)",
+      "Bash(curl -s --max-time 5 http://localhost:8080/actuator/health)",
+      "Bash(ipconfig)",
+      "Bash(flutter build:*)",
+      "Bash(flutter analyze *)",
+      "Bash(cmd /c \"mkdir C:\\\\Users\\\\acer\\\\Child-1\\\\Vingo-fintech\\\\mobile\\\\android\\\\app\\\\src\\\\main\\\\kotlin\\\\com\\\\fourrivers\\\\myraba && move C:\\\\Users\\\\acer\\\\Child-1\\\\Vingo-fintech\\\\mobile\\\\android\\\\app\\\\src\\\\main\\\\kotlin\\\\com\\\\myraba\\\\app\\\\MainActivity.kt C:\\\\Users\\\\acer\\\\Child-1\\\\Vingo-fintech\\\\mobile\\\\android\\\\app\\\\src\\\\main\\\\kotlin\\\\com\\\\fourrivers\\\\myraba\\\\MainActivity.kt\")"
+    ]
+  }
+}

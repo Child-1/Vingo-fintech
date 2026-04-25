@@ -325,7 +325,7 @@ class _SendGiftTabState extends State<_SendGiftTab> {
                 controller: _recipCtrl,
                 style: TextStyle(color: context.mc.textPrimary),
                 decoration: InputDecoration(
-                  hintText: 'Enter VingTag (e.g. Davinci96)',
+                  hintText: 'Enter MyrabaTag (e.g. Davinci96)',
                   hintStyle: TextStyle(color: context.mc.textHint),
                   prefixIcon:
                       Icon(Icons.search_rounded, color: context.mc.textHint),
@@ -835,6 +835,111 @@ class _ReceivedGiftsTabState extends State<_ReceivedGiftsTab> {
     }
   }
 
+  void _showGiftDetail(BuildContext context, Map<String, dynamic> g, Color color, int i) {
+    final anonymous = g['anonymous'] == true;
+    final sender    = anonymous ? '🕵️ Anonymous' : 'm₦${g['senderMyrabaHandle'] ?? '—'}';
+    final itemName  = g['giftItemName']?.toString() ?? 'Gift';
+    final value     = g['value'] ?? g['price'] ?? '0';
+    final note      = (g['note'] ?? '').toString();
+    final category  = g['categoryName']?.toString() ?? '';
+    final date      = g['createdAt']?.toString().split('T').first ?? '';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: BoxDecoration(
+          color: context.mc.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40, height: 4,
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                  color: context.mc.surfaceLine, borderRadius: BorderRadius.circular(2)),
+            ),
+            Container(
+              width: 88, height: 88,
+              decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(24)),
+              child: Center(child: Text(_catEmojis[i % _catEmojis.length],
+                  style: const TextStyle(fontSize: 44))),
+            ),
+            const SizedBox(height: 16),
+            Text(itemName,
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800,
+                    color: context.mc.textPrimary),
+                textAlign: TextAlign.center),
+            const SizedBox(height: 6),
+            Text('₦$value',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: color)),
+            const SizedBox(height: 20),
+            _detailRow(context, Icons.person_rounded, 'From', sender, color),
+            if (category.isNotEmpty)
+              _detailRow(context, Icons.category_rounded, 'Category', category, color),
+            if (date.isNotEmpty)
+              _detailRow(context, Icons.calendar_today_rounded, 'Date', date, color),
+            if (note.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: color.withValues(alpha: 0.25)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Message 💬',
+                        style: TextStyle(fontSize: 12, color: context.mc.textHint,
+                            fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 6),
+                    Text('"$note"',
+                        style: TextStyle(fontSize: 14, color: context.mc.textPrimary,
+                            fontStyle: FontStyle.italic, height: 1.4)),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _detailRow(BuildContext context, IconData icon, String label, String value, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 36, height: 36,
+            decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+            child: Icon(icon, size: 18, color: color),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: TextStyle(fontSize: 11, color: context.mc.textHint)),
+              Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
+                  color: context.mc.textPrimary)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _markAllSeen() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('lastSeenGiftCount', _gifts.length);
@@ -910,70 +1015,76 @@ class _ReceivedGiftsTabState extends State<_ReceivedGiftsTab> {
         itemBuilder: (ctx, i) {
           final g = _gifts[i] as Map<String, dynamic>;
           final color = _catColors[i % _catColors.length];
-          return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: context.mc.surface,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: color.withValues(alpha: 0.3)),
-              boxShadow: [
-                BoxShadow(
-                    color: color.withValues(alpha: 0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4))
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(16)),
-                  child: Center(
-                      child: Text(_catEmojis[i % _catEmojis.length],
-                          style: TextStyle(fontSize: 28))),
-                ),
-                SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(g['giftItemName']?.toString() ?? 'Gift',
-                          style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: context.mc.textPrimary)),
-                      SizedBox(height: 4),
-                      Text(
-                        g['anonymous'] == true
-                            ? 'From: 🕵️ Anonymous'
-                            : 'From: v₦${g['senderMyrabaHandle'] ?? '—'}',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: color,
-                            fontWeight: FontWeight.w600),
-                      ),
-                      if ((g['note'] ?? '').toString().isNotEmpty) ...[
-                        SizedBox(height: 4),
-                        Text('"${g['note']}"',
+          return GestureDetector(
+            onTap: () => _showGiftDetail(context, g, color, i),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: context.mc.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: color.withValues(alpha: 0.3)),
+                boxShadow: [
+                  BoxShadow(
+                      color: color.withValues(alpha: 0.08),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4))
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(16)),
+                    child: Center(
+                        child: Text(_catEmojis[i % _catEmojis.length],
+                            style: const TextStyle(fontSize: 28))),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(g['giftItemName']?.toString() ?? 'Gift',
                             style: TextStyle(
-                                fontSize: 12,
-                                color: context.mc.textHint,
-                                fontStyle: FontStyle.italic),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: context.mc.textPrimary)),
+                        const SizedBox(height: 4),
+                        Text(
+                          g['anonymous'] == true
+                              ? 'From: 🕵️ Anonymous'
+                              : 'From: m₦${g['senderMyrabaHandle'] ?? '—'}',
+                          style: TextStyle(
+                              fontSize: 12, color: color, fontWeight: FontWeight.w600),
+                        ),
+                        if ((g['note'] ?? '').toString().isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text('"${g['note']}"',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: context.mc.textHint,
+                                  fontStyle: FontStyle.italic),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis),
+                        ],
                       ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('₦${g['value'] ?? g['price'] ?? '0'}',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w800, color: color)),
+                      const SizedBox(height: 4),
+                      Icon(Icons.chevron_right_rounded, color: color, size: 18),
                     ],
                   ),
-                ),
-                Text('₦${g['value'] ?? g['price'] ?? '0'}',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: color)),
-              ],
+                ],
+              ),
             ),
           );
         },

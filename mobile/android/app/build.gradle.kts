@@ -14,8 +14,8 @@ if (keyPropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.myraba.app"
-    compileSdk = flutter.compileSdkVersion
+    namespace = "com.fourrivers.myraba"
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -28,11 +28,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.myraba.app"
+        applicationId = "com.fourrivers.myraba"
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        targetSdk = 35
+        versionCode = 10
+        versionName = "1.2.0"
     }
 
     signingConfigs {

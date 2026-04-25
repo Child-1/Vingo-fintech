@@ -6,21 +6,24 @@ import java.time.format.DateTimeFormatter
 data class UserResponse(
     val id: Long,
     val myrabaHandle: String,
-    val myrabaTag: String,               // "m₦Davinci96" — formatted for display/sharing
+    val myrabaTag: String,
     val fullName: String,
     val phone: String?,
     val email: String?,
     val accountNumber: String,
-    val customAccountId: String?,       // "5678-smith" style — in-app transfers only
+    val customAccountId: String?,
     val address: String?,
     val role: String,
     val kycStatus: String,
     val accountStatus: String,
     val balance: String,
-    val createdAt: String
+    val createdAt: String,
+    val gender: String?,
+    val profilePicture: String?,
+    val badgeTier: String?,
 )
 
-fun User.toResponse(balance: String): UserResponse {
+fun User.toResponse(balance: String, badgeTier: String? = null): UserResponse {
     val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
     return UserResponse(
         id = this.id,
@@ -36,6 +39,9 @@ fun User.toResponse(balance: String): UserResponse {
         kycStatus = this.kycStatus,
         accountStatus = this.accountStatus.name,
         balance = balance,
-        createdAt = this.createdAt.format(formatter)
+        createdAt = this.createdAt.format(formatter),
+        gender = this.gender,
+        profilePicture = this.profilePicture,
+        badgeTier = badgeTier,
     )
 }

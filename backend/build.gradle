@@ -38,6 +38,7 @@ dependencies {
 
     implementation 'com.google.zxing:core:3.5.3'
     implementation 'com.google.zxing:javase:3.5.3'
+    implementation 'com.cloudinary:cloudinary-http44:1.36.0'
 
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'          // ← Updated
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'            // ← Updated

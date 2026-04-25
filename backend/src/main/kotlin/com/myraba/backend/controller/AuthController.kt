@@ -145,36 +145,41 @@ class AuthController(
 
     @PostMapping("/register")
     fun register(@RequestBody @jakarta.validation.Valid request: RegisterRequest, httpRequest: HttpServletRequest): ResponseEntity<LoginResponse> {
-        // Validate: phone or email must be provided
-        if (request.phone.isNullOrBlank() && request.email.isNullOrBlank())
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Phone number or email is required")
+        val phone = request.phone.trim()
+        if (phone.isBlank())
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Phone number is required")
 
-        // OTP verification — check against whichever contact was provided
-        val contact = (request.phone?.takeIf { it.isNotBlank() } ?: request.email)!!.trim()
-        if (request.otpCode == null || !otpService.verifyOtp(contact, request.otpCode))
+        // OTP verification — always verified against phone
+        if (request.otpCode == null || !otpService.verifyOtp(phone, request.otpCode))
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired OTP")
+
+        // MyrabaTag format
+        val handleRegex = Regex("^[a-zA-Z0-9][a-zA-Z0-9_]{1,18}[a-zA-Z0-9]$|^[a-zA-Z0-9]{3}$")
+        if (!handleRegex.matches(request.myrabaHandle))
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "MyrabaTag must be 3–20 characters, letters/numbers/underscores only, and cannot start or end with an underscore")
 
         // Duplicate checks
         if (userRepository.findByVingHandle(request.myrabaHandle) != null)
             throw ResponseStatusException(HttpStatus.CONFLICT, "MyrabaTag already taken")
-        if (request.phone != null && userRepository.findByPhone(request.phone) != null)
+        if (userRepository.findByPhone(phone) != null)
             throw ResponseStatusException(HttpStatus.CONFLICT, "Phone number already registered")
         if (request.email != null && userRepository.findByEmail(request.email) != null)
             throw ResponseStatusException(HttpStatus.CONFLICT, "Email already registered")
 
-        // Account number — use phone digits if phone provided AND user opted in; otherwise auto-generate
-        val accountNumber = if (!request.phone.isNullOrBlank() && request.usePhoneAsAccountNumber)
-            phoneToAccountNumber(request.phone)
-        else
-            generateUniqueAccountNumber()
-
+        // Account number always derived from phone
+        val accountNumber = phoneToAccountNumber(phone)
         if (userRepository.findByAccountNumber(accountNumber) != null)
             throw ResponseStatusException(HttpStatus.CONFLICT, "Account number conflict — contact support")
 
-        // Custom account ID (only available when phone is provided)
-        val customAccountId: String? = if (request.useCustomAccountId && !request.phone.isNullOrBlank())
-            buildCustomAccountId(request.phone, request.fullName, request.nameChoice)
-        else null
+        // Custom account ID — user-provided, or null
+        val customAccountId: String? = request.customAccountId?.trim()?.takeIf { it.isNotBlank() }?.also { id ->
+            if (!Regex("^[a-zA-Z0-9][a-zA-Z0-9_\\-]{1,18}[a-zA-Z0-9]$|^[a-zA-Z0-9]{3}$").matches(id))
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Custom ID must be 3–20 characters, letters/numbers/hyphens/underscores only")
+            if (userRepository.findByCustomAccountId(id) != null)
+                throw ResponseStatusException(HttpStatus.CONFLICT, "Custom ID already taken")
+        }
 
         val inviterCode = request.referralCode?.trim()?.uppercase()
         val inviter = if (!inviterCode.isNullOrBlank()) userRepository.findByReferralCode(inviterCode) else null
@@ -183,13 +188,14 @@ class AuthController(
             myrabaHandle = request.myrabaHandle,
             passwordHash = passwordEncoder.encode(request.password),
             fullName = request.fullName,
-            phone = request.phone?.trim(),
+            phone = phone,
             email = request.email?.trim(),
             accountNumber = accountNumber,
             customAccountId = customAccountId,
             role = UserRole.USER,
             referralCode = generateReferralCode(),
             referredBy = inviter?.referralCode,
+            gender = request.gender?.uppercase()?.takeIf { it in listOf("MALE", "FEMALE") },
         )
 
         val savedUser = userRepository.save(newUser)

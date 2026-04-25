@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import '../config/app_config.dart';
@@ -62,17 +63,31 @@ class ApiService {
 
   Future<Map<String, dynamic>> getMyQr() => _get('/api/users/me/qr');
 
-  Future<Map<String, dynamic>> updateMyProfile({String? fullName, String? phone, String? email, String? address, String? customAccountId}) =>
+  Future<Map<String, dynamic>> updateMyProfile({String? fullName, String? phone, String? email, String? address, String? customAccountId, String? gender}) =>
       _putStrict('/api/users/me', {
         if (fullName != null) 'fullName': fullName,
         if (phone != null) 'phone': phone,
         if (email != null) 'email': email,
         if (address != null) 'address': address,
         if (customAccountId != null) 'customAccountId': customAccountId,
+        if (gender != null) 'gender': gender,
       });
 
   Future<Map<String, dynamic>> lookupAccountByNumber(String accountNumber) =>
       _get('/wallets/lookup/account/$accountNumber');
+
+  Future<Map<String, dynamic>> lookupRecipientByHandle(String handle) =>
+      _get('/wallets/$handle');
+
+  Future<Map<String, dynamic>> uploadAvatar(File imageFile) async {
+    final uri = Uri.parse('$base/api/users/me/avatar');
+    final req = http.MultipartRequest('POST', uri)
+      ..headers.addAll({'Authorization': 'Bearer $token'})
+      ..files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+    final streamed = await req.send();
+    final res = await http.Response.fromStream(streamed);
+    return _parseStrict(res);
+  }
 
   Future<Map<String, dynamic>> changePassword(String currentPassword, String newPassword) =>
       _post('/api/users/me/change-password', {
@@ -465,4 +480,12 @@ class ApiService {
       _post('/api/goals/$goalId/withdraw', {});
   Future<Map<String, dynamic>> cancelGoal(int goalId) =>
       _delete('/api/goals/$goalId');
+
+  Future<Map<String, dynamic>> getMyReferrals() => _get('/api/referrals/my');
+
+  Future<Map<String, dynamic>> getDisputes() => _get('/api/disputes/my');
+  Future<Map<String, dynamic>> fileDispute(Map<String, dynamic> body) =>
+      _post('/api/disputes', body);
+  Future<Map<String, dynamic>> getSpendingByCategory({int months = 3}) =>
+      _get('/api/bills/history');
 }

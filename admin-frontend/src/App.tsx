@@ -20,6 +20,7 @@ import AuditPage         from './pages/AuditPage';
 import SystemPage        from './pages/SystemPage';
 import BalancePage       from './pages/BalancePage';
 import SupportPage       from './pages/SupportPage';
+import DisputesPage      from './pages/DisputesPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,6 +56,7 @@ export default function App() {
                 <Route path="balance"        element={<BalancePage />} />
                 <Route path="staff"          element={<StaffPage />} />
                 <Route path="support"        element={<SupportPage />} />
+                <Route path="disputes"       element={<DisputesPage />} />
                 <Route path="*"             element={<Navigate to="/overview" replace />} />
               </Route>
             </Route>

@@ -3,6 +3,7 @@ import '../../theme/app_theme.dart';
 import '../thrift/thrift_tab.dart';
 import 'fixed_deposit_screen.dart';
 import '../goals/community_goals_screen.dart';
+import 'financial_planner_screen.dart';
 
 class FinancesTab extends StatelessWidget {
   const FinancesTab({super.key});
@@ -36,6 +37,15 @@ class FinancesTab extends StatelessWidget {
               subtitle: 'Lock funds for 30–365 days and earn up to 15% interest p.a.',
               onTap: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const FixedDepositScreen())),
+            ),
+            const SizedBox(height: 12),
+            _FeatureCard(
+              icon: Icons.bar_chart_rounded,
+              iconColor: MyrabaColors.teal,
+              title: 'Financial Planner',
+              subtitle: 'Track spending by category and set monthly budget limits.',
+              onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const FinancialPlannerScreen())),
             ),
             const SizedBox(height: 12),
             _FeatureCard(

@@ -2,7 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, ArrowLeftRight, BarChart3, PiggyBank,
   Gift, Star, Megaphone, ScrollText, Settings, LogOut, ShieldCheck,
-  ChevronRight, Tag, Wallet, UserCog, MessageCircle,
+  ChevronRight, Tag, Wallet, UserCog, MessageCircle, Gavel,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
@@ -25,6 +25,7 @@ const nav = [
   { to: '/broadcasts',   label: 'Broadcasts',           icon: Megaphone,       minRole: 'ADMIN'      },
   { to: '/staff',        label: 'Staff & Admins',       icon: UserCog,         minRole: 'ADMIN'      },
   { to: '/support',      label: 'Support Inbox',        icon: MessageCircle,   minRole: 'STAFF'      },
+  { to: '/disputes',     label: 'Disputes',             icon: Gavel,           minRole: 'STAFF'      },
   // ── SUPER_ADMIN only ──
   { to: '/balance',      label: 'Balance Adjust',       icon: Wallet,          minRole: 'SUPER_ADMIN'},
 ] as const;

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
+import 'recipient_preview_sheet.dart';
 
 class SendMoneyScreen extends StatefulWidget {
   final String? prefilledHandle;
@@ -77,7 +78,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
     }
   }
 
-  void _goToConfirm() {
+  Future<void> _goToConfirm() async {
     final recipient = _recipientCtrl.text.trim();
     final amount    = _amountCtrl.text.trim();
     if (recipient.isEmpty) {
@@ -97,6 +98,30 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
       setState(() => _error = 'Enter a valid amount');
       return;
     }
+
+    // Show recipient preview for app-user transfers
+    if (_sendMode == 'app_user') {
+      final auth = Provider.of<AuthService>(context, listen: false);
+      final api  = ApiService(auth.token!);
+      Map<String, dynamic> recipientData;
+      try {
+        if (_appMethod == 'myrabatag') {
+          recipientData = await api.lookupRecipientByHandle(recipient);
+        } else {
+          recipientData = _verifiedAccount ?? {'myrabaHandle': recipient};
+        }
+      } catch (_) {
+        recipientData = {'myrabaHandle': recipient};
+      }
+      if (!mounted) return;
+      final confirmed = await RecipientPreviewSheet.show(context, recipientData);
+      if (!confirmed) return;
+    } else if (_sendMode == 'bank' && _verifiedAccount != null) {
+      final confirmed = await RecipientPreviewSheet.show(context, _verifiedAccount!);
+      if (!mounted) return;
+      if (!confirmed) return;
+    }
+
     setState(() { _confirming = true; _error = null; });
   }
 

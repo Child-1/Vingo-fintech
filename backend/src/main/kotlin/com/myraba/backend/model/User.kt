@@ -69,6 +69,12 @@ data class User(
     @Column(nullable = true, length = 12)
     val referredBy: String? = null,
 
+    @Column(nullable = true, length = 10)
+    var gender: String? = null,
+
+    @Column(nullable = true, length = 512)
+    var profilePicture: String? = null,
+
     @OneToOne(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     @JsonIgnore
     var wallet: Wallet? = null

@@ -44,6 +44,10 @@ spring:
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
   jackson:
     serialization:
       write-dates-as-timestamps: false
@@ -72,3 +76,7 @@ myraba:
   aml:
     daily-transfer-limit: ${AML_DAILY_TRANSFER_LIMIT:500000}   # ₦500,000 default
     single-transfer-limit: ${AML_SINGLE_TRANSFER_LIMIT:200000} # ₦200,000 per transaction
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME:dkij9xngt}
+    api-key: ${CLOUDINARY_API_KEY:855364613774551}
+    api-secret: ${CLOUDINARY_API_SECRET:Iln_DRreGEWbmUufJIDw2aCxR7M}

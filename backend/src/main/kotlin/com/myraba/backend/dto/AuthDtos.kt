@@ -4,7 +4,6 @@ import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 
 data class RegisterRequest(
-    // 3–20 chars: letters, digits, underscores only — no spaces, no m₦ prefix
     @field:Pattern(
         regexp = "^[a-zA-Z0-9_]{3,20}$",
         message = "MyrabaTag must be 3–20 characters and contain only letters, numbers, or underscores"
@@ -17,13 +16,12 @@ data class RegisterRequest(
     @field:Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
     val fullName: String,
 
-    val phone: String? = null,        // provide phone OR email — at least one required
-    val email: String? = null,
+    val phone: String,                 // Required — becomes the 10-digit account number
+    val email: String? = null,         // Optional
     val otpCode: String? = null,
-    val useCustomAccountId: Boolean = false,
-    val nameChoice: String = "LAST",  // "FIRST", "LAST", or "MIDDLE"
-    val usePhoneAsAccountNumber: Boolean = true,
-    val referralCode: String? = null  // optional invite code from an existing user
+    val customAccountId: String? = null, // User's own chosen Custom ID (e.g. "5678-smith")
+    val referralCode: String? = null,
+    val gender: String? = null
 )
 
 data class LoginRequest(

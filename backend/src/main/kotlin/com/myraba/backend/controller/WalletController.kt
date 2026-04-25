@@ -16,6 +16,7 @@ import com.myraba.backend.repository.TransactionRepository
 import com.myraba.backend.repository.UserRepository
 import com.myraba.backend.repository.WalletRepository
 import com.myraba.backend.service.AuditLogService
+import com.myraba.backend.service.BadgeTierService
 import com.myraba.backend.service.IdempotencyService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
@@ -36,6 +37,7 @@ class WalletController(
     private val billPaymentRepository: BillPaymentRepository,
     private val idempotencyService: IdempotencyService,
     private val auditLogService: AuditLogService,
+    private val badgeTierService: BadgeTierService,
 ) {
 
     /** Resolve an account number to a name — used before bank transfers */
@@ -44,11 +46,16 @@ class WalletController(
         val user = userRepository.findByAccountNumber(accountNumber)
             ?: return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(mapOf("message" to "No account found for this number"))
+        val badge = badgeTierService.getBadge(user.myrabaHandle)
         return ResponseEntity.ok(
             mapOf(
-                "accountNumber" to user.accountNumber,
-                "fullName"      to user.fullName,
-                "myrabaHandle"  to user.myrabaHandle
+                "accountNumber"  to user.accountNumber,
+                "fullName"       to user.fullName,
+                "myrabaHandle"   to user.myrabaHandle,
+                "myrabaTag"      to "m₦${user.myrabaHandle}",
+                "profilePicture" to user.profilePicture,
+                "gender"         to user.gender,
+                "badgeTier"      to badge
             )
         )
     }
@@ -58,14 +65,19 @@ class WalletController(
     fun getWallet(@PathVariable myrabaHandle: String): ResponseEntity<Any> {
         val wallet = walletRepository.findByUserVingHandle(myrabaHandle)
             ?: return ResponseEntity.notFound().build()
+        val badge = badgeTierService.getBadge(myrabaHandle)
         return ResponseEntity.ok(
             mapOf(
-                "walletId"      to wallet.id,
-                "myrabaHandle"    to wallet.user.myrabaHandle,
+                "walletId"       to wallet.id,
+                "myrabaHandle"   to wallet.user.myrabaHandle,
                 "myrabaTag"      to "m₦${wallet.user.myrabaHandle}",
-                "accountNumber" to wallet.user.accountNumber,
+                "fullName"       to wallet.user.fullName,
+                "accountNumber"  to wallet.user.accountNumber,
                 "customAccountId" to wallet.user.customAccountId,
-                "balance"       to wallet.balance.toPlainString()
+                "balance"        to wallet.balance.toPlainString(),
+                "profilePicture" to wallet.user.profilePicture,
+                "gender"         to wallet.user.gender,
+                "badgeTier"      to badge
             )
         )
     }

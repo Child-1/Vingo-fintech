@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,10 +10,14 @@ import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
 import '../../services/theme_provider.dart';
+import '../../widgets/user_avatar.dart';
 import '../stats/monthly_review_screen.dart';
 import '../wallet/transaction_history_screen.dart';
 import '../wallet/account_statement_screen.dart';
 import '../support/support_chat_screen.dart';
+import 'referral_screen.dart';
+import '../wallet/dispute_screen.dart';
+import 'privacy_policy_screen.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -84,7 +90,64 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
+  Future<void> _pickAndUploadAvatar() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: context.mc.surface,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(width: 40, height: 4,
+                decoration: BoxDecoration(color: context.mc.surfaceLine,
+                    borderRadius: BorderRadius.circular(2))),
+            ListTile(
+              leading: const Icon(Icons.camera_alt_rounded),
+              title: const Text('Take a photo'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_rounded),
+              title: const Text('Choose from gallery'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (source == null || !mounted) return;
+
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: source, imageQuality: 85, maxWidth: 800);
+    if (picked == null || !mounted) return;
+
+    final auth = Provider.of<AuthService>(context, listen: false);
+    final api = ApiService(auth.token!);
+    try {
+      final res = await api.uploadAvatar(File(picked.path));
+      if (!mounted) return;
+      setState(() {
+        _profile = {...?_profile, 'profilePicture': res['profilePicture']};
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Upload failed: $e'), backgroundColor: MyrabaColors.red),
+        );
+      }
+    }
+  }
+
   Widget _buildHeader(AuthService auth) {
+    final handle  = auth.myrabaHandle ?? '';
+    final picture = _profile?['profilePicture'] as String?;
+    final gender  = _profile?['gender'] as String?;
+    final badge   = _profile?['badgeTier'] as String?;
+
     return Padding(
       padding: const EdgeInsets.only(top: 60, bottom: 8),
       child: Column(
@@ -92,38 +155,24 @@ class _ProfileTabState extends State<ProfileTab> {
           Stack(
             alignment: Alignment.bottomRight,
             children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: MyrabaColors.greenGlow,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                      color: MyrabaColors.green.withValues(alpha: 0.5),
-                      width: 2),
-                ),
-                child: Center(
-                  child: Text(
-                    (auth.fullName ?? 'U').substring(0, 1).toUpperCase(),
-                    style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        color: MyrabaColors.green),
-                  ),
-                ),
+              UserAvatar(
+                myrabaHandle: handle,
+                profilePicture: picture,
+                gender: gender,
+                size: 88,
               ),
               GestureDetector(
-                onTap: () => _showEditProfileSheet(),
+                onTap: _pickAndUploadAvatar,
                 child: Container(
-                  width: 26,
-                  height: 26,
+                  width: 28,
+                  height: 28,
                   decoration: BoxDecoration(
                     color: MyrabaColors.green,
                     shape: BoxShape.circle,
                     border: Border.all(color: context.mc.bg, width: 2),
                   ),
-                  child: Icon(Icons.edit_rounded,
-                      color: Colors.white, size: 13),
+                  child: const Icon(Icons.camera_alt_rounded,
+                      color: Colors.white, size: 14),
                 ),
               ),
             ],
@@ -135,11 +184,15 @@ class _ProfileTabState extends State<ProfileTab> {
                   fontWeight: FontWeight.w800,
                   color: context.mc.textPrimary)),
           const SizedBox(height: 4),
-          Text('m₦${auth.myrabaHandle ?? ''}',
+          Text('m₦$handle',
               style: TextStyle(
                   fontSize: 15,
                   color: MyrabaColors.green,
                   fontWeight: FontWeight.w600)),
+          if (badge != null) ...[
+            const SizedBox(height: 8),
+            BadgeTierChip(tier: badge),
+          ],
         ],
       ),
     );
@@ -354,12 +407,28 @@ class _ProfileTabState extends State<ProfileTab> {
             MyrabaColors.gold, () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const AccountStatementScreen()))),
         SizedBox(height: 10),
+        _menuItem(Icons.card_giftcard_rounded, 'Invite Friends',
+            MyrabaColors.green, () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const ReferralScreen()))),
+        SizedBox(height: 10),
+        _menuItem(Icons.gavel_rounded, 'My Disputes',
+            MyrabaColors.red, () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const DisputeScreen()))),
+        SizedBox(height: 10),
         _menuItem(Icons.security_rounded, 'Security Settings',
             MyrabaColors.blue, () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const SecuritySettingsScreen()))),
         SizedBox(height: 10),
         _menuItem(Icons.help_outline_rounded, 'Help & Support',
             context.mc.textSecond, () => _showHelpSupport()),
+        SizedBox(height: 10),
+        _menuItem(Icons.privacy_tip_outlined, 'Privacy Policy',
+            context.mc.textHint, () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()))),
+        SizedBox(height: 10),
+        _menuItem(Icons.description_outlined, 'Terms & Conditions',
+            context.mc.textHint, () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const TermsScreen()))),
         const SizedBox(height: 24),
         OutlinedButton.icon(
           onPressed: () => _confirmLogout(auth),
@@ -445,6 +514,7 @@ class _ProfileTabState extends State<ProfileTab> {
     final addressCtrl = TextEditingController(text: _profile?['address'] ?? '');
     final customIdCtrl =
         TextEditingController(text: _profile?['customAccountId'] ?? '');
+    String? selectedGender = _profile?['gender'] as String?;
     bool saving = false;
     String? error;
 
@@ -484,6 +554,44 @@ class _ProfileTabState extends State<ProfileTab> {
                   controller: nameCtrl,
                   decoration:
                       InputDecoration(hintText: 'Your full name')),
+              SizedBox(height: 16),
+              Text('Gender',
+                  style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+              SizedBox(height: 8),
+              Row(
+                children: ['MALE', 'FEMALE'].map((g) {
+                  final sel = selectedGender == g;
+                  final color = g == 'MALE' ? const Color(0xFF1565C0) : const Color(0xFFAD1457);
+                  return Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(right: g == 'MALE' ? 6 : 0),
+                      child: GestureDetector(
+                        onTap: () => setLocal(() => selectedGender = sel ? null : g),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: sel ? color.withValues(alpha: 0.12) : context.mc.bg,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: sel ? color : context.mc.surfaceLine,
+                              width: sel ? 1.5 : 1,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              g == 'MALE' ? 'Male' : 'Female',
+                              style: TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.w600,
+                                color: sel ? color : context.mc.textSecond,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
               SizedBox(height: 16),
               Text('Phone Number',
                   style:
@@ -560,6 +668,7 @@ class _ProfileTabState extends State<ProfileTab> {
                             customAccountId: customIdCtrl.text.trim().isEmpty
                                 ? null
                                 : customIdCtrl.text.trim(),
+                            gender: selectedGender,
                           );
                           if (ctx.mounted) Navigator.pop(ctx);
                           _load();
@@ -715,7 +824,12 @@ class SecuritySettingsScreen extends StatefulWidget {
 
 class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   final _localAuth   = LocalAuthentication();
-  final _secStorage  = const FlutterSecureStorage();
+  final _secStorage  = const FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+      resetOnError: true,
+    ),
+  );
   bool _biometricEnabled = false;
   bool _pinEnabled       = false;
   bool _biometricAvailable = false;

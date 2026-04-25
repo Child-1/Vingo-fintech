@@ -4,60 +4,63 @@ import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import 'main_screen.dart';
 import 'login_screen.dart';
+import 'profile/privacy_policy_screen.dart';
+
+class _TermsLink extends StatelessWidget {
+  const _TermsLink();
+  @override
+  Widget build(BuildContext context) => const TermsScreen();
+}
+class _PrivacyLink extends StatelessWidget {
+  const _PrivacyLink();
+  @override
+  Widget build(BuildContext context) => const PrivacyPolicyScreen();
+}
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
-
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _contactCtrl = TextEditingController();
-  final _otpCtrl = TextEditingController();
-  final _handleCtrl = TextEditingController();
-  final _nameCtrl = TextEditingController();
-  final _passCtrl = TextEditingController();
-  final _confirmCtrl = TextEditingController();
+  final _phoneCtrl    = TextEditingController();
+  final _emailCtrl    = TextEditingController();
+  final _otpCtrl      = TextEditingController();
+  final _handleCtrl   = TextEditingController();
+  final _nameCtrl     = TextEditingController();
+  final _passCtrl     = TextEditingController();
+  final _confirmCtrl  = TextEditingController();
+  final _customIdCtrl = TextEditingController();
+  final _referralCtrl = TextEditingController();
 
-  bool _useEmail = false; // false = phone, true = email
-  bool _otpSent = false;
+  bool _otpSent    = false;
   bool _passVisible = false;
-  bool _loading = false;
+  bool _loading    = false;
   String? _error;
-  bool _useCustomAccountId = false;
-  bool _usePhoneAsAccountNumber = true; // only relevant when registering with phone
+  String? _gender;
 
-  int _step = 1; // 1 = contact+OTP, 2 = account details
+  int _step = 1; // 1 = phone + OTP, 2 = profile details
 
   @override
   void dispose() {
-    _contactCtrl.dispose();
-    _otpCtrl.dispose();
-    _handleCtrl.dispose();
-    _nameCtrl.dispose();
-    _passCtrl.dispose();
-    _confirmCtrl.dispose();
+    _phoneCtrl.dispose(); _emailCtrl.dispose(); _otpCtrl.dispose();
+    _handleCtrl.dispose(); _nameCtrl.dispose(); _passCtrl.dispose();
+    _confirmCtrl.dispose(); _customIdCtrl.dispose(); _referralCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _sendOtp() async {
-    final contact = _contactCtrl.text.trim();
-    if (contact.isEmpty) {
-      setState(
-          () => _error = 'Enter your ${_useEmail ? 'email' : 'phone number'}');
+    final phone = _phoneCtrl.text.trim();
+    if (phone.isEmpty) {
+      setState(() => _error = 'Enter your phone number');
       return;
     }
     final auth = Provider.of<AuthService>(context, listen: false);
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    final err = await auth.sendOtp(contact);
+    setState(() { _loading = true; _error = null; });
+    final err = await auth.sendOtp(phone);
     if (!mounted) return;
-    setState(() {
-      _loading = false;
-    });
+    setState(() { _loading = false; });
     if (err != null) {
       setState(() => _error = err);
     } else {
@@ -70,20 +73,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
       setState(() => _error = 'Enter the OTP sent to you');
       return;
     }
-    setState(() {
-      _step = 2;
-      _error = null;
-    });
+    setState(() { _step = 2; _error = null; });
   }
 
   Future<void> _register() async {
-    final handle = _handleCtrl.text.trim();
-    final name = _nameCtrl.text.trim();
+    final handle   = _handleCtrl.text.trim();
+    final name     = _nameCtrl.text.trim();
     final password = _passCtrl.text;
-    final confirm = _confirmCtrl.text;
+    final confirm  = _confirmCtrl.text;
+    final phone    = _phoneCtrl.text.trim();
 
     if (handle.isEmpty || name.isEmpty || password.isEmpty) {
       setState(() => _error = 'Fill in all required fields');
+      return;
+    }
+    final handleRegex = RegExp(r'^[a-zA-Z0-9][a-zA-Z0-9_]{1,18}[a-zA-Z0-9]$|^[a-zA-Z0-9]{3}$');
+    if (!handleRegex.hasMatch(handle)) {
+      setState(() => _error = 'MyrabaTag must be 3–20 characters, letters/numbers/underscores only');
       return;
     }
     if (password != confirm) {
@@ -95,30 +101,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    final customId = _customIdCtrl.text.trim();
+    final email    = _emailCtrl.text.trim();
+    final referral = _referralCtrl.text.trim();
+
     final auth = Provider.of<AuthService>(context, listen: false);
-    final contact = _contactCtrl.text.trim();
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    setState(() { _loading = true; _error = null; });
 
     final err = await auth.register(
       myrabaHandle: handle,
       password: password,
       fullName: name,
-      phone: _useEmail ? null : contact,
-      email: _useEmail ? contact : null,
+      phone: phone,
+      email: email.isEmpty ? null : email,
       otpCode: _otpCtrl.text.trim(),
-      useCustomAccountId: _useCustomAccountId,
-      usePhoneAsAccountNumber: _useEmail ? false : _usePhoneAsAccountNumber,
+      customAccountId: customId.isEmpty ? null : customId,
+      referralCode: referral.isEmpty ? null : referral,
+      gender: _gender,
     );
 
     if (!mounted) return;
     if (err != null) {
-      setState(() {
-        _error = err;
-        _loading = false;
-      });
+      setState(() { _error = err; _loading = false; });
     } else {
       Navigator.pushAndRemoveUntil(
         context,
@@ -152,71 +156,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Create your account',
-            style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
+            style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800,
                 color: context.mc.textPrimary)),
-        SizedBox(height: 6),
-        Text("We'll send you a code to verify your identity",
+        const SizedBox(height: 6),
+        Text("Enter your phone number — it becomes your account number",
             style: TextStyle(fontSize: 14, color: context.mc.textSecond)),
-        SizedBox(height: 32),
-        // Toggle phone / email
-        Container(
-          decoration: BoxDecoration(
-            color: context.mc.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: context.mc.surfaceLine),
-          ),
-          child: Row(
-            children: [
-              _tabToggle(
-                  'Phone',
-                  !_useEmail,
-                  () => setState(() {
-                        _useEmail = false;
-                        _otpSent = false;
-                        _contactCtrl.clear();
-                      })),
-              _tabToggle(
-                  'Email',
-                  _useEmail,
-                  () => setState(() {
-                        _useEmail = true;
-                        _otpSent = false;
-                        _contactCtrl.clear();
-                      })),
-            ],
-          ),
-        ),
-        SizedBox(height: 20),
-        Text(_useEmail ? 'Email Address' : 'Phone Number',
-            style:
-                TextStyle(fontSize: 13, color: context.mc.textSecond)),
-        SizedBox(height: 8),
+        const SizedBox(height: 32),
+
+        Text('Phone Number',
+            style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+        const SizedBox(height: 8),
         TextField(
-          controller: _contactCtrl,
-          keyboardType:
-              _useEmail ? TextInputType.emailAddress : TextInputType.phone,
+          controller: _phoneCtrl,
+          keyboardType: TextInputType.phone,
           onChanged: (_) => setState(() => _otpSent = false),
           decoration: InputDecoration(
-            hintText: _useEmail ? 'you@example.com' : '08012345678',
-            prefixIcon: Icon(
-              _useEmail ? Icons.email_outlined : Icons.phone_outlined,
-              color: context.mc.textHint,
-              size: 20,
-            ),
+            hintText: '08012345678',
+            prefixIcon: Icon(Icons.phone_outlined, color: context.mc.textHint, size: 20),
             suffixIcon: TextButton(
               onPressed: _loading ? null : _sendOtp,
               child: Text(_otpSent ? 'Resend' : 'Send OTP',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color:
-                        _loading ? context.mc.textHint : MyrabaColors.green,
+                    color: _loading ? context.mc.textHint : MyrabaColors.green,
                   )),
             ),
           ),
         ),
+
         if (_otpSent) ...[
           const SizedBox(height: 16),
           Container(
@@ -224,58 +192,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
             decoration: BoxDecoration(
               color: MyrabaColors.greenGlow,
               borderRadius: BorderRadius.circular(10),
-              border:
-                  Border.all(color: MyrabaColors.green.withValues(alpha: 0.3)),
+              border: Border.all(color: MyrabaColors.green.withValues(alpha: 0.3)),
             ),
-            child: Row(
-              children: [
-                const Icon(Icons.check_circle_outline_rounded,
-                    color: MyrabaColors.green, size: 16),
-                SizedBox(width: 8),
-                Text('OTP sent to ${_contactCtrl.text.trim()}',
-                    style: TextStyle(
-                        fontSize: 12, color: MyrabaColors.green)),
-              ],
-            ),
+            child: Row(children: [
+              const Icon(Icons.check_circle_outline_rounded, color: MyrabaColors.green, size: 16),
+              const SizedBox(width: 8),
+              Text('OTP sent to ${_phoneCtrl.text.trim()}',
+                  style: const TextStyle(fontSize: 12, color: MyrabaColors.green)),
+            ]),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text('Enter OTP',
               style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           TextField(
             controller: _otpCtrl,
             keyboardType: TextInputType.number,
             maxLength: 6,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-                fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: 8),
-            decoration: const InputDecoration(
-              hintText: '• • • • • •',
-              counterText: '',
-            ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: 8),
+            decoration: const InputDecoration(hintText: '• • • • • •', counterText: ''),
           ),
         ],
+
         if (_error != null) ...[
           const SizedBox(height: 14),
-          Text(_error!,
-              style: const TextStyle(color: MyrabaColors.red, fontSize: 13)),
+          Text(_error!, style: const TextStyle(color: MyrabaColors.red, fontSize: 13)),
         ],
         const SizedBox(height: 32),
         ElevatedButton(
-          onPressed: _loading
-              ? null
-              : !_otpSent
-                  ? _sendOtp
-                  : _verifyAndNext,
+          onPressed: _loading ? null
+              : !_otpSent ? _sendOtp : _verifyAndNext,
           child: _loading
-              ? const SizedBox(
-                  height: 22,
-                  width: 22,
-                  child: CircularProgressIndicator(
-                      color: Colors.white, strokeWidth: 2))
+              ? const SizedBox(height: 22, width: 22,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
               : Text(_otpSent ? 'Continue' : 'Send OTP'),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         Center(
           child: GestureDetector(
             onTap: () => Navigator.pushReplacement(context,
@@ -285,11 +238,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 text: 'Already have an account? ',
                 style: TextStyle(color: context.mc.textHint, fontSize: 13),
                 children: [
-                  TextSpan(
-                      text: 'Log in',
-                      style: TextStyle(
-                          color: MyrabaColors.green,
-                          fontWeight: FontWeight.w600)),
+                  TextSpan(text: 'Log in',
+                      style: TextStyle(color: MyrabaColors.green, fontWeight: FontWeight.w600)),
                 ],
               ),
             ),
@@ -304,176 +254,124 @@ class _RegisterScreenState extends State<RegisterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Set up your profile',
-            style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
+            style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800,
                 color: context.mc.textPrimary)),
-        SizedBox(height: 6),
-        Text(
-            'Choose your MyrabaTag — this is how people find and pay you',
-            style: TextStyle(fontSize: 14, color: context.mc.textSecond)),
-        SizedBox(height: 32),
-        Text('Full Name',
-            style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
-        SizedBox(height: 8),
+        const SizedBox(height: 6),
+        Text('Your phone number ${_phoneCtrl.text.trim()} is your account number',
+            style: TextStyle(fontSize: 13, color: MyrabaColors.green,
+                fontWeight: FontWeight.w600)),
+        const SizedBox(height: 28),
+
+        // ── Full Name ──────────────────────────────────────────────
+        Text('Full Name', style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+        const SizedBox(height: 8),
         TextField(
           controller: _nameCtrl,
           textCapitalization: TextCapitalization.words,
           decoration: InputDecoration(
             hintText: 'e.g. Davinci Okafor',
-            prefixIcon: Icon(Icons.person_outline_rounded,
-                color: context.mc.textHint, size: 20),
+            prefixIcon: Icon(Icons.person_outline_rounded, color: context.mc.textHint, size: 20),
           ),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
+
+        // ── Gender ─────────────────────────────────────────────────
+        Text('Gender (optional)', style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+        const SizedBox(height: 8),
+        Row(children: [
+          _genderChip('MALE', Icons.male_rounded),
+          const SizedBox(width: 10),
+          _genderChip('FEMALE', Icons.female_rounded),
+        ]),
+        const SizedBox(height: 20),
+
+        // ── MyrabaTag ──────────────────────────────────────────────
         Text('MyrabaTag (your unique ID)',
             style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         TextField(
           controller: _handleCtrl,
           decoration: const InputDecoration(
             hintText: 'e.g. Davinci96',
             prefixText: 'm₦ ',
-            prefixStyle: TextStyle(
-                color: MyrabaColors.green,
-                fontWeight: FontWeight.w700,
-                fontSize: 16),
+            prefixStyle: TextStyle(color: MyrabaColors.green, fontWeight: FontWeight.w700, fontSize: 16),
           ),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
 
-        // ── Account number ────────────────────────────────────────
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: context.mc.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: context.mc.surfaceLine),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.account_balance_outlined,
-                      size: 16, color: context.mc.textHint),
-                  SizedBox(width: 8),
-                  Text('Account Number',
-                      style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: context.mc.textPrimary)),
-                ],
-              ),
-              if (!_useEmail) ...[
-                SizedBox(height: 10),
-                Divider(height: 1, color: context.mc.surfaceLine),
-                SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Use phone number as account number',
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: context.mc.textPrimary)),
-                          SizedBox(height: 2),
-                          Text('Off = a unique 10-digit number is auto-generated',
-                              style: TextStyle(
-                                  fontSize: 11,
-                                  color: context.mc.textHint,
-                                  height: 1.3)),
-                        ],
-                      ),
-                    ),
-                    Switch(
-                      value: _usePhoneAsAccountNumber,
-                      onChanged: (v) => setState(() => _usePhoneAsAccountNumber = v),
-                      activeThumbColor: MyrabaColors.green,
-                    ),
-                  ],
-                ),
-              ] else ...[
-                SizedBox(height: 6),
-                Text(
-                  'A unique 10-digit number will be auto-generated for you.',
-                  style: TextStyle(fontSize: 12, color: context.mc.textHint, height: 1.4),
-                ),
-              ],
-              SizedBox(height: 10),
-              Divider(height: 1, color: context.mc.surfaceLine),
-              SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Also create a Custom ID',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: context.mc.textPrimary)),
-                        SizedBox(height: 2),
-                        Text('e.g. 5678-smith — an easier way to receive money',
-                            style: TextStyle(
-                                fontSize: 11,
-                                color: context.mc.textHint,
-                                height: 1.3)),
-                      ],
-                    ),
-                  ),
-                  Switch(
-                    value: _useCustomAccountId,
-                    onChanged: (v) => setState(() => _useCustomAccountId = v),
-                    activeThumbColor: MyrabaColors.green,
-                  ),
-                ],
-              ),
-            ],
+        // ── Custom ID (optional) ───────────────────────────────────
+        Text('Custom ID (optional)', style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+        const SizedBox(height: 4),
+        Text('A short memorable ID others can use to send you money (e.g. john-pay)',
+            style: TextStyle(fontSize: 11, color: context.mc.textHint, height: 1.3)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _customIdCtrl,
+          decoration: InputDecoration(
+            hintText: 'e.g. john-pay or davinci96',
+            prefixIcon: Icon(Icons.tag_rounded, color: context.mc.textHint, size: 20),
           ),
         ),
-        SizedBox(height: 20),
-        Text('Password',
+        const SizedBox(height: 20),
+
+        // ── Email (optional) ───────────────────────────────────────
+        Text('Email Address (optional)',
             style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _emailCtrl,
+          keyboardType: TextInputType.emailAddress,
+          decoration: InputDecoration(
+            hintText: 'you@example.com',
+            prefixIcon: Icon(Icons.email_outlined, color: context.mc.textHint, size: 20),
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // ── Password ───────────────────────────────────────────────
+        Text('Password', style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+        const SizedBox(height: 8),
         TextField(
           controller: _passCtrl,
           obscureText: !_passVisible,
           decoration: InputDecoration(
             hintText: 'At least 8 characters',
-            prefixIcon: Icon(Icons.lock_outline_rounded,
-                color: context.mc.textHint, size: 20),
+            prefixIcon: Icon(Icons.lock_outline_rounded, color: context.mc.textHint, size: 20),
             suffixIcon: IconButton(
-              icon: Icon(
-                _passVisible
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
-                color: context.mc.textHint,
-                size: 20,
-              ),
+              icon: Icon(_passVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  color: context.mc.textHint, size: 20),
               onPressed: () => setState(() => _passVisible = !_passVisible),
             ),
           ),
         ),
-        SizedBox(height: 20),
-        Text('Confirm Password',
-            style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
-        SizedBox(height: 8),
+        const SizedBox(height: 20),
+
+        // ── Confirm Password ───────────────────────────────────────
+        Text('Confirm Password', style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+        const SizedBox(height: 8),
         TextField(
           controller: _confirmCtrl,
           obscureText: !_passVisible,
           decoration: InputDecoration(
             hintText: 'Repeat your password',
-            prefixIcon: Icon(Icons.lock_outline_rounded,
-                color: context.mc.textHint, size: 20),
+            prefixIcon: Icon(Icons.lock_outline_rounded, color: context.mc.textHint, size: 20),
           ),
         ),
+        const SizedBox(height: 20),
+
+        // ── Referral Code ──────────────────────────────────────────
+        Text('Referral Code (optional)',
+            style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _referralCtrl,
+          textCapitalization: TextCapitalization.characters,
+          decoration: InputDecoration(
+            hintText: 'e.g. ABC12345',
+            prefixIcon: Icon(Icons.card_giftcard_rounded, color: context.mc.textHint, size: 20),
+          ),
+        ),
+
         if (_error != null) ...[
           const SizedBox(height: 16),
           Container(
@@ -481,8 +379,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             decoration: BoxDecoration(
               color: MyrabaColors.red.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10),
-              border:
-                  Border.all(color: MyrabaColors.red.withValues(alpha: 0.3)),
+              border: Border.all(color: MyrabaColors.red.withValues(alpha: 0.3)),
             ),
             child: Text(_error!,
                 style: const TextStyle(color: MyrabaColors.red, fontSize: 13)),
@@ -492,42 +389,68 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ElevatedButton(
           onPressed: _loading ? null : _register,
           child: _loading
-              ? const SizedBox(
-                  height: 22,
-                  width: 22,
-                  child: CircularProgressIndicator(
-                      color: Colors.white, strokeWidth: 2))
+              ? const SizedBox(height: 22, width: 22,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
               : const Text('Create Account'),
         ),
         const SizedBox(height: 16),
         OutlinedButton(
-          onPressed: () => setState(() {
-            _step = 1;
-            _error = null;
-          }),
+          onPressed: () => setState(() { _step = 1; _error = null; }),
           child: const Text('Back'),
+        ),
+        const SizedBox(height: 20),
+        Center(
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            children: [
+              Text('By creating an account you agree to our ',
+                  style: TextStyle(fontSize: 11, color: context.mc.textHint)),
+              GestureDetector(
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const _TermsLink())),
+                child: const Text('Terms & Conditions',
+                    style: TextStyle(fontSize: 11, color: MyrabaColors.green,
+                        decoration: TextDecoration.underline)),
+              ),
+              Text(' and ', style: TextStyle(fontSize: 11, color: context.mc.textHint)),
+              GestureDetector(
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const _PrivacyLink())),
+                child: const Text('Privacy Policy',
+                    style: TextStyle(fontSize: 11, color: MyrabaColors.green,
+                        decoration: TextDecoration.underline)),
+              ),
+              Text('.', style: TextStyle(fontSize: 11, color: context.mc.textHint)),
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _tabToggle(String label, bool active, VoidCallback onTap) {
+  Widget _genderChip(String value, IconData icon) {
+    final selected = _gender == value;
+    final color = value == 'MALE' ? const Color(0xFF1565C0) : const Color(0xFFAD1457);
     return Expanded(
       child: GestureDetector(
-        onTap: onTap,
+        onTap: () => setState(() => _gender = selected ? null : value),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: active ? MyrabaColors.greenGlow : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
+            color: selected ? color.withValues(alpha: 0.12) : context.mc.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: selected ? color : context.mc.surfaceLine,
+                width: selected ? 1.5 : 1),
           ),
-          child: Center(
-            child: Text(label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: active ? MyrabaColors.green : context.mc.textHint,
-                )),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 18, color: selected ? color : context.mc.textHint),
+              const SizedBox(width: 6),
+              Text(value == 'MALE' ? 'Male' : 'Female',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+                      color: selected ? color : context.mc.textSecond)),
+            ],
           ),
         ),
       ),

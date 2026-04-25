@@ -7,7 +7,12 @@ import '../config/app_config.dart';
 class AuthService extends ChangeNotifier {
   static String get baseUrl => AppConfig.baseUrl;
 
-  final _storage = const FlutterSecureStorage();
+  final _storage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+      resetOnError: true,
+    ),
+  );
 
   String? _token;
   String? _myrabaHandle;
@@ -87,12 +92,12 @@ class AuthService extends ChangeNotifier {
     required String myrabaHandle,
     required String password,
     required String fullName,
-    String? phone,
+    required String phone,
     String? email,
     required String otpCode,
-    bool useCustomAccountId = false,
-    String nameChoice = 'LAST',
-    bool usePhoneAsAccountNumber = true,
+    String? customAccountId,
+    String? referralCode,
+    String? gender,
   }) async {
     try {
       final response = await http.post(
@@ -102,12 +107,12 @@ class AuthService extends ChangeNotifier {
           'myrabaHandle': myrabaHandle.trim(),
           'password': password,
           'fullName': fullName.trim(),
-          if (phone != null && phone.isNotEmpty) 'phone': phone.trim(),
+          'phone': phone.trim(),
           if (email != null && email.isNotEmpty) 'email': email.trim(),
           'otpCode': otpCode.trim(),
-          'useCustomAccountId': useCustomAccountId,
-          'nameChoice': nameChoice,
-          'usePhoneAsAccountNumber': usePhoneAsAccountNumber,
+          if (customAccountId != null && customAccountId.isNotEmpty) 'customAccountId': customAccountId.trim(),
+          if (referralCode != null && referralCode.isNotEmpty) 'referralCode': referralCode,
+          if (gender != null && gender.isNotEmpty) 'gender': gender,
         }),
       );
 
