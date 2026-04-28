@@ -26,6 +26,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _phoneCtrl    = TextEditingController();
   final _emailCtrl    = TextEditingController();
+  final _otpEmailCtrl = TextEditingController(); // email used for OTP (US testers)
   final _otpCtrl      = TextEditingController();
   final _handleCtrl   = TextEditingController();
   final _nameCtrl     = TextEditingController();
@@ -34,17 +35,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _customIdCtrl = TextEditingController();
   final _referralCtrl = TextEditingController();
 
-  bool _otpSent    = false;
-  bool _passVisible = false;
-  bool _loading    = false;
+  bool _otpSent      = false;
+  bool _useEmailOtp  = false; // true = send OTP to email instead of phone
+  bool _passVisible  = false;
+  bool _loading      = false;
   String? _error;
   String? _gender;
 
   int _step = 1; // 1 = phone + OTP, 2 = profile details
 
+  // The contact the OTP was actually sent to (phone or email)
+  String get _otpContact => _useEmailOtp
+      ? _otpEmailCtrl.text.trim()
+      : _phoneCtrl.text.trim();
+
   @override
   void dispose() {
-    _phoneCtrl.dispose(); _emailCtrl.dispose(); _otpCtrl.dispose();
+    _phoneCtrl.dispose(); _emailCtrl.dispose(); _otpEmailCtrl.dispose(); _otpCtrl.dispose();
     _handleCtrl.dispose(); _nameCtrl.dispose(); _passCtrl.dispose();
     _confirmCtrl.dispose(); _customIdCtrl.dispose(); _referralCtrl.dispose();
     super.dispose();
@@ -56,9 +63,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       setState(() => _error = 'Enter your phone number');
       return;
     }
+    if (_useEmailOtp && _otpEmailCtrl.text.trim().isEmpty) {
+      setState(() => _error = 'Enter the email address to receive your OTP');
+      return;
+    }
     final auth = Provider.of<AuthService>(context, listen: false);
     setState(() { _loading = true; _error = null; });
-    final err = await auth.sendOtp(phone);
+    final err = await auth.sendOtp(_otpContact);
     if (!mounted) return;
     setState(() { _loading = false; });
     if (err != null) {
@@ -115,6 +126,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       phone: phone,
       email: email.isEmpty ? null : email,
       otpCode: _otpCtrl.text.trim(),
+      otpContact: _useEmailOtp ? _otpEmailCtrl.text.trim() : null,
       customAccountId: customId.isEmpty ? null : customId,
       referralCode: referral.isEmpty ? null : referral,
       gender: _gender,
@@ -185,6 +197,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
 
+        const SizedBox(height: 12),
+        // ── "No Nigerian number?" toggle ───────────────────────────
+        GestureDetector(
+          onTap: () => setState(() { _useEmailOtp = !_useEmailOtp; _otpSent = false; }),
+          child: Row(children: [
+            Icon(
+              _useEmailOtp ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+              color: _useEmailOtp ? MyrabaColors.green : context.mc.textHint,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Text("I don't have a Nigerian number — send OTP to email",
+                style: TextStyle(fontSize: 12, color: context.mc.textSecond)),
+          ]),
+        ),
+
+        if (_useEmailOtp) ...[
+          const SizedBox(height: 12),
+          TextField(
+            controller: _otpEmailCtrl,
+            keyboardType: TextInputType.emailAddress,
+            onChanged: (_) => setState(() => _otpSent = false),
+            decoration: InputDecoration(
+              hintText: 'your@email.com',
+              prefixIcon: Icon(Icons.email_outlined, color: context.mc.textHint, size: 20),
+            ),
+          ),
+        ],
+
         if (_otpSent) ...[
           const SizedBox(height: 16),
           Container(
@@ -197,8 +238,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Row(children: [
               const Icon(Icons.check_circle_outline_rounded, color: MyrabaColors.green, size: 16),
               const SizedBox(width: 8),
-              Text('OTP sent to ${_phoneCtrl.text.trim()}',
-                  style: const TextStyle(fontSize: 12, color: MyrabaColors.green)),
+              Expanded(
+                child: Text('OTP sent to $_otpContact',
+                    style: const TextStyle(fontSize: 12, color: MyrabaColors.green)),
+              ),
             ]),
           ),
           const SizedBox(height: 16),

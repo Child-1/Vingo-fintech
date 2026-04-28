@@ -149,8 +149,9 @@ class AuthController(
         if (phone.isBlank())
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Phone number is required")
 
-        // OTP verification — always verified against phone
-        if (request.otpCode == null || !otpService.verifyOtp(phone, request.otpCode))
+        // OTP verification — against otpContact if provided (email), otherwise phone
+        val otpContact = request.otpContact?.trim()?.takeIf { it.isNotBlank() } ?: phone
+        if (request.otpCode == null || !otpService.verifyOtp(otpContact, request.otpCode))
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired OTP")
 
         // MyrabaTag format

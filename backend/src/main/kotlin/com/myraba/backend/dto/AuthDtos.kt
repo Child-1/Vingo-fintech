@@ -19,7 +19,8 @@ data class RegisterRequest(
     val phone: String,                 // Required — becomes the 10-digit account number
     val email: String? = null,         // Optional
     val otpCode: String? = null,
-    val customAccountId: String? = null, // User's own chosen Custom ID (e.g. "5678-smith")
+    val otpContact: String? = null,    // Which contact the OTP was sent to (phone or email)
+    val customAccountId: String? = null,
     val referralCode: String? = null,
     val gender: String? = null
 )
