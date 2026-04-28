@@ -130,6 +130,29 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  Future<String?> resetPassword({
+    required String contact,
+    required String otpCode,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/reset-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'contact': contact.trim(),
+          'otpCode': otpCode.trim(),
+          'newPassword': newPassword,
+        }),
+      );
+      if (response.statusCode == 200) return null;
+      final error = jsonDecode(response.body);
+      return error['message'] ?? 'Password reset failed. Please try again.';
+    } catch (_) {
+      return 'Cannot reach server. Check your connection.';
+    }
+  }
+
   Future<void> logout() async {
     _token = _myrabaHandle = _myrabaTag = _role = _fullName = null;
     notifyListeners(); // immediate UI update — navigate to login without waiting for storage

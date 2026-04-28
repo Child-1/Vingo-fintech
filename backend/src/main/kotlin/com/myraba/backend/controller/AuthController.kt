@@ -233,4 +233,53 @@ class AuthController(
             )
         )
     }
+
+    data class ForgotPasswordRequest(val contact: String)  // phone or email
+
+    @PostMapping("/forgot-password")
+    fun forgotPassword(@RequestBody request: ForgotPasswordRequest): ResponseEntity<String> {
+        val contact = request.contact.trim()
+        if (contact.isBlank())
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Phone number or email required")
+
+        val user = if (contact.contains("@"))
+            userRepository.findByEmail(contact)
+        else
+            userRepository.findByPhone(contact)
+
+        // Always return 200 to avoid revealing whether an account exists
+        if (user != null) {
+            otpService.generateOtp(contact, "PASSWORD_RESET")
+        }
+        val dest = if (contact.contains("@")) "email" else "phone"
+        return ResponseEntity.ok("If an account exists, a reset code has been sent to your $dest")
+    }
+
+    data class ResetPasswordRequest(val contact: String, val otpCode: String, val newPassword: String)
+
+    @PostMapping("/reset-password")
+    fun resetPassword(@RequestBody request: ResetPasswordRequest): ResponseEntity<String> {
+        val contact = request.contact.trim()
+        if (contact.isBlank())
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Phone number or email required")
+        if (request.newPassword.length < 8)
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must be at least 8 characters")
+
+        if (!otpService.verifyOtp(contact, request.otpCode.trim(), "PASSWORD_RESET"))
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired code")
+
+        val user = if (contact.contains("@"))
+            userRepository.findByEmail(contact)
+        else
+            userRepository.findByPhone(contact)
+
+        user ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found")
+
+        val updated = user.copy(
+            passwordHash = passwordEncoder.encode(request.newPassword),
+            forcePasswordChange = false
+        )
+        userRepository.save(updated)
+        return ResponseEntity.ok("Password reset successfully. You can now log in.")
+    }
 }
