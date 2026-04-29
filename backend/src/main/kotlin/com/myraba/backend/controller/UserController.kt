@@ -147,7 +147,11 @@ class UserController(
         if (!contentType.startsWith("image/") && !hasImageExtension)
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Only image files are allowed")
 
-        val url = cloudinaryService.uploadAvatar(file, user.myrabaHandle)
+        val url = try {
+            cloudinaryService.uploadAvatar(file, user.myrabaHandle)
+        } catch (e: Exception) {
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Image upload failed: ${e.message}")
+        }
         user.profilePicture = url
         userRepository.save(user)
         auditLogService.logUser(user.myrabaHandle, "AVATAR_UPDATE", "USER", user.id.toString(),

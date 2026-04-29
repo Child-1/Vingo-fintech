@@ -90,11 +90,13 @@ class ApiService {
       'gif'  => MediaType('image', 'gif'),
       _      => MediaType('image', 'jpeg'),
     };
+    final bytes = await imageFile.readAsBytes();
+    final filename = imageFile.path.split('/').last.split('\\').last;
     final req = http.MultipartRequest('POST', uri)
       ..headers.addAll({'Authorization': 'Bearer $token'})
-      ..files.add(await http.MultipartFile.fromPath(
-        'file', imageFile.path, contentType: mimeType));
-    final streamed = await req.send();
+      ..files.add(http.MultipartFile.fromBytes(
+        'file', bytes, filename: filename, contentType: mimeType));
+    final streamed = await req.send().timeout(const Duration(seconds: 60));
     final res = await http.Response.fromStream(streamed);
     return _parseStrict(res);
   }
@@ -438,9 +440,14 @@ class ApiService {
   }
 
   Map<String, dynamic> _parse(http.Response res) {
-    final decoded = jsonDecode(res.body);
-    if (decoded is Map<String, dynamic>) return decoded;
-    return {'data': decoded};
+    if (res.body.isEmpty) return {};
+    try {
+      final decoded = jsonDecode(res.body);
+      if (decoded is Map<String, dynamic>) return decoded;
+      return {'data': decoded};
+    } catch (_) {
+      return {'error': 'Server error (${res.statusCode})'};
+    }
   }
 
   /// Like _parse but throws an Exception on 4xx / 5xx so callers can show the error.
