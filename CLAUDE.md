@@ -9,6 +9,21 @@ Myraba is a Nigerian fintech platform (think OPay/CashApp for Nigeria) built wit
 
 ---
 
+## Deployment
+
+| Service        | Platform      | URL                                      | Notes                                      |
+|----------------|---------------|------------------------------------------|--------------------------------------------|
+| Backend        | Render (web)  | https://vingo-fintech.onrender.com       | Free tier — cold starts ~60s              |
+| Admin Frontend | Render (static)| https://admin.myraba.com                | Must build with `VITE_API_URL=https://vingo-fintech.onrender.com` |
+| Mobile         | Google Play   | Internal Testing track                   | Must build with `--dart-define=API_BASE_URL=https://vingo-fintech.onrender.com` |
+
+**Critical build rules (never forget):**
+- Every Flutter release build: `flutter build appbundle --release --dart-define=API_BASE_URL=https://vingo-fintech.onrender.com`
+- Admin frontend must have `VITE_API_URL=https://vingo-fintech.onrender.com` set in Render's environment variables for the static site build
+- Admin frontend also needs Render's SPA rewrite rule: `/* → /index.html (200)` so React Router works on direct URL access
+
+---
+
 ## Current Mission
 Continue improving and extending the platform — backend stability, admin panel features, and mobile app polish.
 
