@@ -19,65 +19,57 @@ class AdminThriftController(
     data class CreateCategoryRequest(
         val name: String,
         val description: String?,
-        val contributionAmount: BigDecimal,
-        val contributionFrequency: String,
-        val durationInCycles: Int,
+        val amount: BigDecimal,
+        val frequency: String,
+        val duration: Int,
+        val memberCount: Int? = null,
         val targetAmount: BigDecimal? = null
     )
 
     data class CategoryResponse(
         val id: Long,
         val name: String,
-        val contributionAmount: BigDecimal,
-        val contributionFrequency: String,
-        val durationInCycles: Int,
+        val description: String?,
+        val amount: BigDecimal,
+        val frequency: String,
+        val duration: Int,
         val memberCount: Int,
+        val isActive: Boolean,
         val createdAt: LocalDateTime
     )
 
+    private fun ThriftCategory.toResponse() = CategoryResponse(
+        id           = this.id!!,
+        name         = this.name,
+        description  = this.description,
+        amount       = this.contributionAmount,
+        frequency    = this.contributionFrequency,
+        duration     = this.durationInCycles,
+        memberCount  = this.members.size,
+        isActive     = this.isActive,
+        createdAt    = this.createdAt
+    )
+
     @PostMapping
-    fun createPublicCategory(@Valid @RequestBody req: CreateCategoryRequest): ResponseEntity<Any> {
+    fun createPublicCategory(@Valid @RequestBody req: CreateCategoryRequest): ResponseEntity<CategoryResponse> {
         val category = ThriftCategory(
-            name = req.name,
-            description = req.description,
-            contributionAmount = req.contributionAmount,
-            contributionFrequency = req.contributionFrequency.uppercase(),
-            durationInCycles = req.durationInCycles,
-            targetAmount = req.targetAmount,
-            isPublic = true,
-            createdByAdmin = true,
-            createdAt = LocalDateTime.now()
+            name                  = req.name,
+            description           = req.description,
+            contributionAmount    = req.amount,
+            contributionFrequency = req.frequency.uppercase(),
+            durationInCycles      = req.duration,
+            placeholderCount      = req.memberCount ?: req.duration,
+            targetAmount          = req.targetAmount ?: req.amount.multiply(BigDecimal(req.duration)),
+            isPublic              = true,
+            createdByAdmin        = true,
+            createdAt             = LocalDateTime.now()
         )
-
-        val saved = categoryRepo.save(category)
-
-        return ResponseEntity.ok(
-            CategoryResponse(
-                id = saved.id!!,
-                name = saved.name,
-                contributionAmount = saved.contributionAmount,
-                contributionFrequency = saved.contributionFrequency,
-                durationInCycles = saved.durationInCycles,
-                memberCount = 0,
-                createdAt = saved.createdAt
-            )
-        )
+        return ResponseEntity.ok(categoryRepo.save(category).toResponse())
     }
 
     @GetMapping
     fun getAllPublicCategories(): ResponseEntity<List<CategoryResponse>> {
-        val categories = categoryRepo.findByIsPublicAndIsActive(true, true)
-        val response = categories.map {
-            CategoryResponse(
-                id = it.id!!,
-                name = it.name,
-                contributionAmount = it.contributionAmount,
-                contributionFrequency = it.contributionFrequency,
-                durationInCycles = it.durationInCycles,
-                memberCount = it.members.size,
-                createdAt = it.createdAt
-            )
-        }
-        return ResponseEntity.ok(response)
+        val categories = categoryRepo.findByIsPublicOrderByCreatedAtDesc(true)
+        return ResponseEntity.ok(categories.map { it.toResponse() })
     }
 }

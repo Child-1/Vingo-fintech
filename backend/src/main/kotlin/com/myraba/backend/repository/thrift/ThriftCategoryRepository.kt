@@ -11,6 +11,9 @@ interface ThriftCategoryRepository : JpaRepository<ThriftCategory, Long> {
     // Used for the mobile app to show available public plans
     fun findByIsPublicAndIsActive(isPublic: Boolean, isActive: Boolean): List<ThriftCategory>
 
+    // Used by admin to list all public categories regardless of active state
+    fun findByIsPublicOrderByCreatedAtDesc(isPublic: Boolean): List<ThriftCategory>
+
     // Used for general statistics
     fun countByIsPublicAndIsActive(isPublic: Boolean, isActive: Boolean): Long
 

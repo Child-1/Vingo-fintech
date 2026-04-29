@@ -32,10 +32,12 @@ export default function ThriftsPage() {
   /* ── Mutations ── */
   const createCategory = useMutation({
     mutationFn: (payload: typeof form) => api.post('/api/admin/thrifts/categories', {
-      ...payload,
+      name: payload.name,
+      description: payload.description,
       amount: Number(payload.amount),
+      frequency: payload.frequency,
       duration: Number(payload.duration),
-      memberCount: Number(payload.memberCount),
+      memberCount: Number(payload.memberCount) || undefined,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-thrift-categories'] });
@@ -159,8 +161,8 @@ export default function ThriftsPage() {
             <div key={c.id} className="card flex items-center justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className={`badge ${c.active ? 'badge-green' : 'badge-gray'}`}>
-                    {c.active ? 'ACTIVE' : 'INACTIVE'}
+                  <span className={`badge ${c.isActive ? 'badge-green' : 'badge-gray'}`}>
+                    {c.isActive ? 'ACTIVE' : 'INACTIVE'}
                   </span>
                   <span className="badge badge-orange">{c.frequency}</span>
                 </div>
@@ -169,14 +171,14 @@ export default function ThriftsPage() {
                 <div className="flex gap-4 mt-2 text-xs text-myraba-hint">
                   <span>Contribution: <span className="text-myraba-second">{formatNaira(c.amount)}</span></span>
                   <span>Duration: <span className="text-myraba-second">{c.duration} cycles</span></span>
-                  <span>Members: <span className="text-myraba-second">{c.memberCount} max</span></span>
+                  <span>Members: <span className="text-myraba-second">{c.memberCount}</span></span>
                 </div>
               </div>
               <button
-                className={`btn-ghost flex items-center gap-1.5 text-xs ${c.active ? 'text-myraba-error' : 'text-myraba-success'}`}
-                onClick={() => toggleCategory.mutate({ id: c.id, active: c.active })}>
-                {c.active ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
-                {c.active ? 'Deactivate' : 'Activate'}
+                className={`btn-ghost flex items-center gap-1.5 text-xs ${c.isActive ? 'text-myraba-error' : 'text-myraba-success'}`}
+                onClick={() => toggleCategory.mutate({ id: c.id, active: c.isActive })}>
+                {c.isActive ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
+                {c.isActive ? 'Deactivate' : 'Activate'}
               </button>
             </div>
           ))}
