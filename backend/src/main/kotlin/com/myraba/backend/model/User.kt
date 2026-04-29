@@ -90,7 +90,7 @@ data class User(
     var staffInviteTokenExpiry: LocalDateTime? = null,
 
     // True once the staff member sets their password via the invite link
-    @Column(name = "staff_activated", nullable = false)
+    @Column(name = "staff_activated", nullable = false, columnDefinition = "boolean not null default false")
     var staffActivated: Boolean = false,
 
     // HR data collected at registration — not used for login
