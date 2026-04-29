@@ -142,7 +142,9 @@ class UserController(
         if (file.size > 5 * 1024 * 1024)
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "File must be under 5MB")
         val contentType = file.contentType ?: ""
-        if (!contentType.startsWith("image/"))
+        val originalName = file.originalFilename?.lowercase() ?: ""
+        val hasImageExtension = listOf(".jpg", ".jpeg", ".png", ".webp", ".gif").any { originalName.endsWith(it) }
+        if (!contentType.startsWith("image/") && !hasImageExtension)
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Only image files are allowed")
 
         val url = cloudinaryService.uploadAvatar(file, user.myrabaHandle)

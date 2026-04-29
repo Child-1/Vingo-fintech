@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:uuid/uuid.dart';
 import '../config/app_config.dart';
 
@@ -82,9 +83,17 @@ class ApiService {
 
   Future<Map<String, dynamic>> uploadAvatar(File imageFile) async {
     final uri = Uri.parse('$base/api/users/me/avatar');
+    final ext = imageFile.path.split('.').last.toLowerCase();
+    final mimeType = switch (ext) {
+      'png'  => MediaType('image', 'png'),
+      'webp' => MediaType('image', 'webp'),
+      'gif'  => MediaType('image', 'gif'),
+      _      => MediaType('image', 'jpeg'),
+    };
     final req = http.MultipartRequest('POST', uri)
       ..headers.addAll({'Authorization': 'Bearer $token'})
-      ..files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+      ..files.add(await http.MultipartFile.fromPath(
+        'file', imageFile.path, contentType: mimeType));
     final streamed = await req.send();
     final res = await http.Response.fromStream(streamed);
     return _parseStrict(res);
