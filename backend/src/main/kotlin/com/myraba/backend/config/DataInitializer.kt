@@ -8,6 +8,7 @@ import org.springframework.boot.CommandLineRunner
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
+import java.time.LocalDateTime
 
 @Component
 class DataInitializer(
@@ -25,18 +26,37 @@ class DataInitializer(
         seedThriftCategories()
     }
 
-    private fun seedAdmin() {
-        val existing = userRepository.findByVingHandle("MyrabaAdmin")
-        if (existing != null) {
-            // Migration: ensure existing SUPER_ADMIN has a staffId and is activated
-            if (existing.staffId == null) {
-                existing.staffId = "ADM-SUPER-001"
-                existing.staffActivated = true
-                userRepository.save(existing)
-                println("=== Super Admin migrated: Staff ID = ADM-SUPER-001 ===")
-            }
-            return
+    private fun generateStaffId(role: UserRole): String {
+        val year = LocalDateTime.now().year
+        val prefix = if (role == UserRole.ADMIN || role == UserRole.SUPER_ADMIN) "ADM" else "STF"
+        val staffRoles = listOf(UserRole.STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+        val count = userRepository.findAll().count { it.role in staffRoles } + 1
+        var candidate = "$prefix-$year-${count.toString().padStart(3, '0')}"
+        var suffix = count
+        while (userRepository.findByStaffId(candidate) != null) {
+            suffix++
+            candidate = "$prefix-$year-${suffix.toString().padStart(3, '0')}"
         }
+        return candidate
+    }
+
+    private fun seedAdmin() {
+        // Migrate ALL existing admin/staff accounts that don't have a staffId yet
+        val unmigratedAdmins = userRepository.findAdminUsersWithoutStaffId()
+        if (unmigratedAdmins.isNotEmpty()) {
+            for (user in unmigratedAdmins) {
+                // Preserve the known super admin ID, generate for others
+                val newId = if (user.myrabaHandle == "MyrabaAdmin") "ADM-SUPER-001"
+                            else generateStaffId(user.role)
+                user.staffId = newId
+                user.staffActivated = true
+                userRepository.save(user)
+                println("=== Migrated admin account '${user.myrabaHandle}' → Staff ID: $newId ===")
+            }
+        }
+
+        // Seed the initial super admin if no admin account exists at all
+        if (userRepository.findByVingHandle("MyrabaAdmin") != null) return
 
         val adminPassword = System.getenv("ADMIN_INITIAL_PASSWORD")?.takeIf { it.length >= 8 }
             ?: "MyrabaAdmin2025!"

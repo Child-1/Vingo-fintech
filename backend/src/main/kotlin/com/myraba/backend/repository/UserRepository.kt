@@ -42,4 +42,7 @@ interface UserRepository : JpaRepository<User, Long> {
     fun findByReferredBy(referralCode: String): List<User>
     fun findByStaffId(staffId: String): User?
     fun findByStaffInviteToken(token: String): User?
+
+    @Query("SELECT u FROM User u WHERE u.role != com.myraba.backend.model.UserRole.USER AND u.staffId IS NULL")
+    fun findAdminUsersWithoutStaffId(): List<User>
 }
