@@ -4,7 +4,8 @@ import { AuthProvider } from './context/AuthContext';
 import AuthGuard from './components/AuthGuard';
 import Layout from './components/Layout';
 
-import LoginPage         from './pages/LoginPage';
+import LoginPage                  from './pages/LoginPage';
+import CompleteRegistrationPage   from './pages/CompleteRegistrationPage';
 import OverviewPage      from './pages/OverviewPage';
 import UsersPage         from './pages/UsersPage';
 import KycPage           from './pages/KycPage';
@@ -38,6 +39,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/complete-registration" element={<CompleteRegistrationPage />} />
             <Route element={<AuthGuard />}>
               <Route element={<Layout />}>
                 <Route index element={<Navigate to="/overview" replace />} />

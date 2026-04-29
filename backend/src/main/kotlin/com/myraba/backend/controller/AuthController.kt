@@ -112,6 +112,11 @@ class AuthController(
 
         user ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials")
 
+        // Staff/Admin must use the admin portal login (/admin/auth/login)
+        if (user.role != UserRole.USER) {
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Please use the admin portal to sign in.")
+        }
+
         try {
             authenticationManager.authenticate(
                 UsernamePasswordAuthenticationToken(user.myrabaHandle, request.password)

@@ -57,7 +57,7 @@ class SecurityConfig(
             }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/auth/**", "/auth/mfa/verify", "/actuator/**", "/error", "/").permitAll()
+                    .requestMatchers("/auth/**", "/admin/auth/**", "/auth/mfa/verify", "/actuator/**", "/error", "/").permitAll()
                     // Public gift page — accessible without login (for web gifting)
                     .requestMatchers("/public/gift/**").permitAll()
                     // Public wallet lookup (QR code scanning)

@@ -146,7 +146,7 @@ export default function ReportsPage() {
                     { name: 'Frozen',    value: userStats.frozen    ?? 0 },
                   ].filter(d => d.value > 0)}
                   cx="50%" cy="50%" outerRadius={80} dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                   labelLine={false}>
                   {['#10B981','#F59E0B','#EF4444'].map((c, i) => <Cell key={i} fill={c} />)}
                 </Pie>
@@ -171,7 +171,7 @@ export default function ReportsPage() {
                     { name: 'No KYC',   value: Math.max(0, (userStats.total ?? 0) - (userStats.kycApproved ?? 0) - (userStats.kycPending ?? 0) - (userStats.kycRejected ?? 0)) },
                   ].filter(d => d.value > 0)}
                   cx="50%" cy="50%" outerRadius={80} dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                   labelLine={false}>
                   {['#10B981','#F59E0B','#EF4444','#6B6185'].map((c, i) => <Cell key={i} fill={c} />)}
                 </Pie>

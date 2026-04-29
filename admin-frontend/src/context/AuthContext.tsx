@@ -4,11 +4,12 @@ import { api } from '../lib/api';
 interface AuthState {
   token: string | null;
   role: string | null;
-  myrabaHandle: string | null;
+  staffId: string | null;
+  fullName: string | null;
 }
 
 interface AuthContextValue extends AuthState {
-  login: (identifier: string, password: string) => Promise<string | null>;
+  login: (staffId: string, password: string) => Promise<string | null>;
   logout: () => void;
   isAdmin: boolean;
   isSuperAdmin: boolean;
@@ -20,24 +21,22 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const storedToken = localStorage.getItem('myraba_admin_token');
   const [auth, setAuth] = useState<AuthState>({
-    token: storedToken,
-    role:  localStorage.getItem('myraba_admin_role'),
-    myrabaHandle: localStorage.getItem('myraba_admin_handle'),
+    token:    storedToken,
+    role:     localStorage.getItem('myraba_admin_role'),
+    staffId:  localStorage.getItem('myraba_admin_staffid'),
+    fullName: localStorage.getItem('myraba_admin_fullname'),
   });
-  // True while we're verifying a stored token with the backend
   const [isValidating, setIsValidating] = useState<boolean>(!!storedToken);
 
-  // On mount: if we have a stored token, verify it's still valid
   useEffect(() => {
     if (!storedToken) return;
     api.get('/api/users/me')
       .then(({ data }) => {
         const role: string = data.role ?? '';
         if (!['ADMIN', 'SUPER_ADMIN', 'STAFF'].includes(role)) {
-          // Valid token but not an admin — clear and force login
           clearAuth();
         } else {
-          setAuth(prev => ({ ...prev, role, myrabaHandle: data.myrabaHandle }));
+          setAuth(prev => ({ ...prev, role }));
         }
       })
       .catch(() => clearAuth())
@@ -46,41 +45,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   function clearAuth() {
-    setAuth({ token: null, role: null, myrabaHandle: null });
-    ['myraba_admin_token', 'myraba_admin_role', 'myraba_admin_handle'].forEach(k =>
-      localStorage.removeItem(k)
-    );
+    setAuth({ token: null, role: null, staffId: null, fullName: null });
+    ['myraba_admin_token', 'myraba_admin_role', 'myraba_admin_staffid', 'myraba_admin_fullname']
+      .forEach(k => localStorage.removeItem(k));
   }
 
   useEffect(() => {
-    // Sync to localStorage whenever auth changes
     if (auth.token) {
-      localStorage.setItem('myraba_admin_token',  auth.token);
-      localStorage.setItem('myraba_admin_role',   auth.role ?? '');
-      localStorage.setItem('myraba_admin_handle', auth.myrabaHandle ?? '');
+      localStorage.setItem('myraba_admin_token',   auth.token);
+      localStorage.setItem('myraba_admin_role',    auth.role ?? '');
+      localStorage.setItem('myraba_admin_staffid', auth.staffId ?? '');
+      localStorage.setItem('myraba_admin_fullname', auth.fullName ?? '');
     } else {
-      ['myraba_admin_token', 'myraba_admin_role', 'myraba_admin_handle'].forEach(k =>
-        localStorage.removeItem(k)
-      );
+      ['myraba_admin_token', 'myraba_admin_role', 'myraba_admin_staffid', 'myraba_admin_fullname']
+        .forEach(k => localStorage.removeItem(k));
     }
   }, [auth]);
 
-  async function login(identifier: string, password: string): Promise<string | null> {
+  async function login(staffId: string, password: string): Promise<string | null> {
     try {
-      const { data } = await api.post('/auth/login', { identifier, password });
-      const role: string = data.role ?? '';
-      if (!['ADMIN', 'SUPER_ADMIN', 'STAFF'].includes(role)) {
-        return 'Access denied. Admin credentials required.';
-      }
-      setAuth({ token: data.token, role, myrabaHandle: data.myrabaHandle });
+      const { data } = await api.post('/admin/auth/login', { staffId, password });
+      setAuth({ token: data.token, role: data.role, staffId: data.staffId, fullName: data.fullName });
       return null;
     } catch (err: any) {
-      return err.response?.data?.message ?? 'Login failed. Check your credentials.';
+      return err.response?.data?.message ?? 'Login failed. Check your Staff ID and password.';
     }
   }
 
   function logout() {
-    setAuth({ token: null, role: null, myrabaHandle: null });
+    clearAuth();
   }
 
   return (

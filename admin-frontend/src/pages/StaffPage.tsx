@@ -3,17 +3,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { formatDate, roleBadge } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
-import { Users, Plus, RotateCcw, ShieldOff, X, Loader2 } from 'lucide-react';
+import { Users, Plus, Send, ShieldOff, X, Loader2, CheckCircle, Clock } from 'lucide-react';
 
 interface StaffMember {
   id: number;
-  myrabaHandle: string;
+  staffId: string | null;
   fullName: string;
   email: string | null;
-  phone: string | null;
+  personalPhone: string | null;
   role: string;
   status: string;
-  forcePasswordChange: boolean;
+  staffActivated: boolean;
   createdAt: string;
 }
 
@@ -25,9 +25,7 @@ export default function StaffPage() {
   const canCreate = myRole === 'ADMIN' || myRole === 'SUPER_ADMIN';
 
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
-    fullName: '', email: '', phone: '', myrabaHandle: '', role: 'STAFF',
-  });
+  const [form, setForm] = useState({ fullName: '', email: '', role: 'STAFF' });
   const [confirmRevoke, setConfirmRevoke] = useState<StaffMember | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
@@ -41,9 +39,9 @@ export default function StaffPage() {
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ['staff-list'] });
       setShowForm(false);
-      setForm({ fullName: '', email: '', phone: '', myrabaHandle: '', role: 'STAFF' });
-      setFeedback({ type: 'success', msg: res.data.message ?? 'Staff account created.' });
-      setTimeout(() => setFeedback(null), 6000);
+      setForm({ fullName: '', email: '', role: 'STAFF' });
+      setFeedback({ type: 'success', msg: res.data.message ?? 'Invitation sent.' });
+      setTimeout(() => setFeedback(null), 8000);
     },
     onError: (err: any) => {
       setFeedback({ type: 'error', msg: err.response?.data?.message ?? 'Failed to create staff.' });
@@ -51,14 +49,14 @@ export default function StaffPage() {
     },
   });
 
-  const resetPassword = useMutation({
-    mutationFn: (id: number) => api.put(`/api/admin/management/staff/${id}/reset-password`),
+  const resendInvite = useMutation({
+    mutationFn: (id: number) => api.post(`/api/admin/management/staff/${id}/resend-invite`),
     onSuccess: () => {
-      setFeedback({ type: 'success', msg: 'Temporary password sent to staff email.' });
+      setFeedback({ type: 'success', msg: 'Invitation resent successfully.' });
       setTimeout(() => setFeedback(null), 6000);
     },
     onError: (err: any) => {
-      setFeedback({ type: 'error', msg: err.response?.data?.message ?? 'Reset failed.' });
+      setFeedback({ type: 'error', msg: err.response?.data?.message ?? 'Resend failed.' });
       setTimeout(() => setFeedback(null), 4000);
     },
   });
@@ -78,17 +76,15 @@ export default function StaffPage() {
   });
 
   const staff: StaffMember[] = Array.isArray(data) ? data : [];
-
-  const isFormValid = form.fullName.trim() && form.email.trim() && form.myrabaHandle.trim();
+  const isFormValid = form.fullName.trim() && form.email.trim();
 
   return (
     <div className="p-6 space-y-5">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-white">Staff Management</h1>
           <p className="text-myraba-hint text-sm mt-0.5">
-            {staff.length} team {staff.length === 1 ? 'member' : 'members'} · ADMIN and SUPER_ADMIN can create STAFF · only SUPER_ADMIN can create ADMIN
+            {staff.length} team {staff.length === 1 ? 'member' : 'members'} · Staff log in with their Staff ID and password
           </p>
         </div>
         {canCreate && (
@@ -98,7 +94,6 @@ export default function StaffPage() {
         )}
       </div>
 
-      {/* Feedback banner */}
       {feedback && (
         <div className={`flex items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm ${
           feedback.type === 'success'
@@ -110,11 +105,10 @@ export default function StaffPage() {
         </div>
       )}
 
-      {/* Create form */}
       {showForm && (
         <div className="card space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-white font-medium">New Staff Account</h2>
+            <h2 className="text-white font-medium">Invite New Staff Member</h2>
             <button onClick={() => setShowForm(false)} className="text-myraba-hint hover:text-white"><X size={16} /></button>
           </div>
 
@@ -125,19 +119,9 @@ export default function StaffPage() {
                 value={form.fullName} onChange={e => setForm(f => ({ ...f, fullName: e.target.value }))} />
             </div>
             <div>
-              <label className="text-myraba-second text-xs block mb-1">MyrabaTag <span className="text-myraba-error">*</span></label>
-              <input className="input" placeholder="e.g. chisom_ops (no @)"
-                value={form.myrabaHandle} onChange={e => setForm(f => ({ ...f, myrabaHandle: e.target.value }))} />
-            </div>
-            <div>
-              <label className="text-myraba-second text-xs block mb-1">Email <span className="text-myraba-error">*</span></label>
+              <label className="text-myraba-second text-xs block mb-1">Work Email <span className="text-myraba-error">*</span></label>
               <input className="input" type="email" placeholder="chisom@myraba.ng"
                 value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-            </div>
-            <div>
-              <label className="text-myraba-second text-xs block mb-1">Phone (optional)</label>
-              <input className="input" placeholder="08012345678"
-                value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
             </div>
             <div>
               <label className="text-myraba-second text-xs block mb-1">Role</label>
@@ -149,14 +133,14 @@ export default function StaffPage() {
               </select>
               <p className="text-myraba-hint text-xs mt-1">
                 {form.role === 'ADMIN'
-                  ? 'ADMIN — full access except balance adjustments and staff creation at ADMIN level'
+                  ? 'ADMIN — full access except balance adjustments'
                   : 'STAFF — read-only: view users, transactions, audit log'}
               </p>
             </div>
           </div>
 
-          <div className="bg-myraba-gold/10 border border-myraba-gold/30 rounded-lg px-4 py-3 text-xs text-myraba-gold">
-            A temporary password will be auto-generated and emailed to the staff member. They will be required to change it on first login.
+          <div className="bg-brand/10 border border-brand/20 rounded-lg px-4 py-3 text-xs text-myraba-second">
+            A Staff ID will be auto-generated and an invitation email will be sent. The staff member must click the link to set their password and complete registration before they can log in.
           </div>
 
           <div className="flex gap-3 pt-1">
@@ -165,13 +149,12 @@ export default function StaffPage() {
               disabled={!isFormValid || createStaff.isPending}
               onClick={() => createStaff.mutate()}>
               {createStaff.isPending && <Loader2 size={14} className="animate-spin" />}
-              {createStaff.isPending ? 'Creating…' : 'Create Staff Account'}
+              {createStaff.isPending ? 'Sending invite…' : 'Send Invitation'}
             </button>
           </div>
         </div>
       )}
 
-      {/* Staff table */}
       <div className="card p-0 overflow-hidden">
         {isLoading ? (
           <div className="p-8 text-center text-myraba-hint text-sm">Loading…</div>
@@ -179,7 +162,7 @@ export default function StaffPage() {
           <div className="flex flex-col items-center py-14 text-center">
             <Users size={40} className="text-myraba-hint mb-3" />
             <p className="text-myraba-second font-medium">No staff members yet</p>
-            <p className="text-myraba-hint text-sm mt-1">Create the first staff account to get started.</p>
+            <p className="text-myraba-hint text-sm mt-1">Invite the first staff member to get started.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -187,7 +170,7 @@ export default function StaffPage() {
               <thead>
                 <tr>
                   <th>Member</th>
-                  <th>Contact</th>
+                  <th>Staff ID</th>
                   <th>Role</th>
                   <th>Status</th>
                   <th>Joined</th>
@@ -204,33 +187,41 @@ export default function StaffPage() {
                         </div>
                         <div>
                           <p className="text-white text-sm font-medium">{s.fullName}</p>
-                          <p className="text-myraba-hint text-xs">@{s.myrabaHandle}</p>
+                          <p className="text-myraba-hint text-xs">{s.email ?? '—'}</p>
                         </div>
                       </div>
                     </td>
                     <td>
-                      <p className="text-myraba-second text-xs">{s.email ?? '—'}</p>
-                      <p className="text-myraba-hint text-xs">{s.phone ?? ''}</p>
+                      <span className="font-mono text-myraba-second text-xs">{s.staffId ?? '—'}</span>
                     </td>
                     <td><span className={roleBadge(s.role)}>{s.role}</span></td>
                     <td>
                       <div className="flex flex-col gap-1">
                         <span className={s.status === 'ACTIVE' ? 'badge-green' : 'badge-red'}>{s.status}</span>
-                        {s.forcePasswordChange && (
-                          <span className="badge-yellow text-xs">pwd change required</span>
+                        {!s.staffActivated && (
+                          <span className="badge-yellow flex items-center gap-1 text-xs">
+                            <Clock size={10} /> invite pending
+                          </span>
+                        )}
+                        {s.staffActivated && (
+                          <span className="text-myraba-hint flex items-center gap-1 text-xs">
+                            <CheckCircle size={10} /> registered
+                          </span>
                         )}
                       </div>
                     </td>
                     <td className="text-myraba-hint text-xs">{formatDate(s.createdAt)}</td>
                     <td>
                       <div className="flex items-center gap-2">
-                        <button
-                          title="Reset password"
-                          className="btn-ghost p-1.5 text-myraba-second hover:text-white"
-                          disabled={resetPassword.isPending}
-                          onClick={() => resetPassword.mutate(s.id)}>
-                          <RotateCcw size={14} />
-                        </button>
+                        {!s.staffActivated && (
+                          <button
+                            title="Resend invitation"
+                            className="btn-ghost p-1.5 text-myraba-second hover:text-white"
+                            disabled={resendInvite.isPending}
+                            onClick={() => resendInvite.mutate(s.id)}>
+                            <Send size={14} />
+                          </button>
+                        )}
                         {isSuperAdmin && s.role !== 'SUPER_ADMIN' && (
                           <button
                             title="Revoke access"
@@ -249,7 +240,6 @@ export default function StaffPage() {
         )}
       </div>
 
-      {/* Revoke confirmation dialog */}
       {confirmRevoke && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setConfirmRevoke(null)}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
@@ -261,11 +251,12 @@ export default function StaffPage() {
               </div>
               <div>
                 <p className="text-white font-semibold text-sm">Revoke access?</p>
-                <p className="text-myraba-hint text-xs mt-0.5">@{confirmRevoke.myrabaHandle} · {confirmRevoke.role}</p>
+                <p className="text-myraba-hint text-xs mt-0.5">{confirmRevoke.staffId} · {confirmRevoke.role}</p>
               </div>
             </div>
             <p className="text-myraba-second text-sm">
-              This will demote <span className="text-white font-medium">{confirmRevoke.fullName}</span> to a regular USER and suspend their account. This is audited.
+              This will suspend <span className="text-white font-medium">{confirmRevoke.fullName}</span>'s account.
+              They will no longer be able to log into the admin portal. This action is audited.
             </p>
             <div className="flex gap-3 pt-1">
               <button className="btn-ghost flex-1" onClick={() => setConfirmRevoke(null)}>Cancel</button>

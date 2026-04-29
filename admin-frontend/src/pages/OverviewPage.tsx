@@ -145,7 +145,7 @@ function UserStatusPieChart({ stats }: { stats: DashboardStats }) {
   return (
     <ResponsiveContainer width="100%" height={200}>
       <PieChart>
-        <Pie data={data} cx="50%" cy="50%" outerRadius={70} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+        <Pie data={data} cx="50%" cy="50%" outerRadius={70} dataKey="value" label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
           labelLine={false}>
           {data.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
         </Pie>
@@ -170,7 +170,7 @@ function KycPieChart({ stats }: { stats: DashboardStats }) {
     <ResponsiveContainer width="100%" height={200}>
       <PieChart>
         <Pie data={data} cx="50%" cy="50%" outerRadius={70} dataKey="value"
-          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+          label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={false}>
           {data.map((_, i) => <Cell key={i} fill={colors[i % colors.length]} />)}
         </Pie>
         <Tooltip contentStyle={{ background: '#141128', border: '1px solid #3D3060', borderRadius: 8 }}

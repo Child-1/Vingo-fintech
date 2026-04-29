@@ -33,7 +33,7 @@ const nav = [
 const ROLE_RANK: Record<string, number> = { STAFF: 1, ADMIN: 2, SUPER_ADMIN: 3 };
 
 export default function Layout() {
-  const { logout, myrabaHandle, role } = useAuth();
+  const { logout, staffId, fullName, role } = useAuth();
   const myRank = ROLE_RANK[role ?? ''] ?? 0;
   const navigate = useNavigate();
 
@@ -84,10 +84,10 @@ export default function Layout() {
           <div className="flex items-center gap-3 px-3 py-2 rounded-lg">
             <div className="w-7 h-7 rounded-full bg-brand/20 flex items-center justify-center
                             text-brand text-xs font-bold flex-shrink-0 border border-brand/30">
-              {(myrabaHandle ?? '?')[0].toUpperCase()}
+              {(fullName ?? staffId ?? '?')[0].toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white text-xs font-medium truncate">@{myrabaHandle}</p>
+              <p className="text-white text-xs font-medium truncate">{fullName ?? staffId}</p>
               <p className="text-myraba-hint text-xs">{role}</p>
             </div>
             <button onClick={handleLogout} title="Sign out"

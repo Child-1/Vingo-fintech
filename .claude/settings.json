@@ -12,7 +12,8 @@
       "Bash(ipconfig)",
       "Bash(flutter build:*)",
       "Bash(flutter analyze *)",
-      "Bash(cmd /c \"mkdir C:\\\\Users\\\\acer\\\\Child-1\\\\Vingo-fintech\\\\mobile\\\\android\\\\app\\\\src\\\\main\\\\kotlin\\\\com\\\\fourrivers\\\\myraba && move C:\\\\Users\\\\acer\\\\Child-1\\\\Vingo-fintech\\\\mobile\\\\android\\\\app\\\\src\\\\main\\\\kotlin\\\\com\\\\myraba\\\\app\\\\MainActivity.kt C:\\\\Users\\\\acer\\\\Child-1\\\\Vingo-fintech\\\\mobile\\\\android\\\\app\\\\src\\\\main\\\\kotlin\\\\com\\\\fourrivers\\\\myraba\\\\MainActivity.kt\")"
+      "Bash(cmd /c \"mkdir C:\\\\Users\\\\acer\\\\Child-1\\\\Vingo-fintech\\\\mobile\\\\android\\\\app\\\\src\\\\main\\\\kotlin\\\\com\\\\fourrivers\\\\myraba && move C:\\\\Users\\\\acer\\\\Child-1\\\\Vingo-fintech\\\\mobile\\\\android\\\\app\\\\src\\\\main\\\\kotlin\\\\com\\\\myraba\\\\app\\\\MainActivity.kt C:\\\\Users\\\\acer\\\\Child-1\\\\Vingo-fintech\\\\mobile\\\\android\\\\app\\\\src\\\\main\\\\kotlin\\\\com\\\\fourrivers\\\\myraba\\\\MainActivity.kt\")",
+      "Bash(./gradlew compileKotlin --info)"
     ]
   }
 }

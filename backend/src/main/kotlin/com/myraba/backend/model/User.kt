@@ -42,10 +42,11 @@ data class User(
     @Column(unique = true, nullable = true)
     var email: String? = null,
 
-    @Column(name = "account_number", unique = true, nullable = false, length = 10)
-    val accountNumber: String,
+    // Null for STAFF/ADMIN — they don't have financial accounts
+    @Column(name = "account_number", unique = true, nullable = true, length = 10)
+    val accountNumber: String? = null,
 
-    // Optional "5678-smith" style identifier — in-app transfers only
+    // Optional "5678-smith" style identifier — in-app transfers only (users only)
     @Column(name = "custom_account_id", unique = true, nullable = true, length = 20)
     var customAccountId: String? = null,
 
@@ -74,6 +75,30 @@ data class User(
 
     @Column(nullable = true, length = 512)
     var profilePicture: String? = null,
+
+    // ── Staff-only fields ──────────────────────────────────────────
+
+    // e.g. "STF-2025-001" or "ADM-2025-001" — used to log into the admin portal
+    @Column(name = "staff_id", unique = true, nullable = true, length = 20)
+    var staffId: String? = null,
+
+    // UUID sent in the invitation email link; cleared after registration is completed
+    @Column(name = "staff_invite_token", unique = true, nullable = true, length = 64)
+    var staffInviteToken: String? = null,
+
+    @Column(name = "staff_invite_token_expiry", nullable = true)
+    var staffInviteTokenExpiry: LocalDateTime? = null,
+
+    // True once the staff member sets their password via the invite link
+    @Column(name = "staff_activated", nullable = false)
+    var staffActivated: Boolean = false,
+
+    // HR data collected at registration — not used for login
+    @Column(name = "date_of_birth", nullable = true, length = 20)
+    var dateOfBirth: String? = null,
+
+    @Column(name = "personal_phone", nullable = true, length = 20)
+    var personalPhone: String? = null,
 
     @OneToOne(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     @JsonIgnore

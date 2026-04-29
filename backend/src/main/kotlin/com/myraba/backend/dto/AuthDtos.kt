@@ -43,3 +43,23 @@ data class SendOtpRequest(
     val contact: String,              // phone number or email address
     val purpose: String = "REGISTRATION"
 )
+
+data class AdminLoginRequest(
+    val staffId: String,
+    val password: String
+)
+
+data class AdminLoginResponse(
+    val token: String,
+    val staffId: String,
+    val fullName: String,
+    val role: String
+)
+
+data class CompleteRegistrationRequest(
+    val token: String,
+    val password: String,
+    val personalPhone: String? = null,
+    val dateOfBirth: String? = null,
+    val homeAddress: String? = null
+)

@@ -76,6 +76,7 @@ myraba:
   aml:
     daily-transfer-limit: ${AML_DAILY_TRANSFER_LIMIT:500000}   # ₦500,000 default
     single-transfer-limit: ${AML_SINGLE_TRANSFER_LIMIT:200000} # ₦200,000 per transaction
+  admin-frontend-url: ${ADMIN_FRONTEND_URL:http://localhost:5173}
   cloudinary:
     cloud-name: ${CLOUDINARY_CLOUD_NAME:dkij9xngt}
     api-key: ${CLOUDINARY_API_KEY:855364613774551}

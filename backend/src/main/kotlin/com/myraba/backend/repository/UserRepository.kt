@@ -40,4 +40,6 @@ interface UserRepository : JpaRepository<User, Long> {
     fun countByCreatedAtBetween(from: LocalDateTime, to: LocalDateTime): Long
     fun findByReferralCode(referralCode: String): User?
     fun findByReferredBy(referralCode: String): List<User>
+    fun findByStaffId(staffId: String): User?
+    fun findByStaffInviteToken(token: String): User?
 }
