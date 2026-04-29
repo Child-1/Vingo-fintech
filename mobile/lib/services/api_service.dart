@@ -474,6 +474,38 @@ class ApiService {
       _postStrict('/api/fixed-deposits', {'amount': amount, 'termDays': termDays});
   Future<Map<String, dynamic>> withdrawDeposit(int depositId) =>
       _postStrict('/api/fixed-deposits/$depositId/withdraw', {});
+  Future<Map<String, dynamic>> getDepositBreakPreview(int depositId) =>
+      _get('/api/fixed-deposits/$depositId/break-preview');
+  Future<Map<String, dynamic>> breakDeposit(int depositId) =>
+      _postStrict('/api/fixed-deposits/$depositId/break', {});
+
+  // ── Savings Goals ───────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> getSavingsGoals() => _get('/api/savings-goals');
+  Future<Map<String, dynamic>> createSavingsGoal({
+    required String name,
+    String? description,
+    required double targetAmount,
+    required DateTime targetDate,
+    double? initialAmount,
+    double? autoDeductAmount,
+    String? autoDeductFrequency,
+  }) => _postStrict('/api/savings-goals', {
+    'name': name,
+    if (description != null) 'description': description,
+    'targetAmount': targetAmount,
+    'targetDate': targetDate.toIso8601String().split('T').first,
+    if (initialAmount != null && initialAmount > 0) 'initialAmount': initialAmount,
+    if (autoDeductAmount != null) 'autoDeductAmount': autoDeductAmount,
+    if (autoDeductFrequency != null) 'autoDeductFrequency': autoDeductFrequency,
+  });
+  Future<Map<String, dynamic>> topupSavingsGoal(int goalId, double amount) =>
+      _postStrict('/api/savings-goals/$goalId/topup', {'amount': amount});
+  Future<Map<String, dynamic>> getSavingsGoalBreakPreview(int goalId) =>
+      _get('/api/savings-goals/$goalId/break-preview');
+  Future<Map<String, dynamic>> breakSavingsGoal(int goalId) =>
+      _postStrict('/api/savings-goals/$goalId/break', {});
+  Future<Map<String, dynamic>> completeSavingsGoal(int goalId) =>
+      _postStrict('/api/savings-goals/$goalId/complete', {});
 
   // ── Support Chat ────────────────────────────────────────────────────────────
   Future<Map<String, dynamic>> getSupportMessages() => _get('/api/support/messages');

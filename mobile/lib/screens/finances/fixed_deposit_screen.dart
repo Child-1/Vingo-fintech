@@ -6,7 +6,8 @@ import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
 
 class FixedDepositScreen extends StatefulWidget {
-  const FixedDepositScreen({super.key});
+  final bool embedded;
+  const FixedDepositScreen({super.key, this.embedded = false});
 
   @override
   State<FixedDepositScreen> createState() => _FixedDepositScreenState();
@@ -171,38 +172,149 @@ class _FixedDepositScreenState extends State<FixedDepositScreen> {
     }
   }
 
+  Future<void> _breakEarly(Map<String, dynamic> deposit) async {
+    final auth = Provider.of<AuthService>(context, listen: false);
+    final api  = ApiService(auth.token!);
+    final id   = deposit['id'] as int;
+
+    // Fetch preview
+    Map<String, dynamic> preview;
+    try {
+      preview = await api.getDepositBreakPreview(id);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))));
+      return;
+    }
+    if (!mounted) return;
+
+    final locked        = _fmt(double.tryParse(preview['lockedAmount'].toString()) ?? 0);
+    final warnPenalty   = _fmt(double.tryParse(preview['warningPenalty'].toString()) ?? 0);
+    final warnReturn    = _fmt(double.tryParse(preview['warningReturn'].toString()) ?? 0);
+
+    // Show scary warning
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: context.mc.surface,
+        title: Row(children: [
+          const Icon(Icons.warning_amber_rounded, color: MyrabaColors.red, size: 22),
+          const SizedBox(width: 8),
+          Text('Break Deposit?', style: TextStyle(color: context.mc.textPrimary, fontSize: 16)),
+        ]),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('You are about to break your fixed deposit early.',
+              style: TextStyle(fontSize: 13, color: context.mc.textSecond)),
+            const SizedBox(height: 16),
+            _penaltyRow('Locked amount', '₦$locked', context.mc.textPrimary),
+            const SizedBox(height: 8),
+            _penaltyRow('Penalty (25%)', '- ₦$warnPenalty', MyrabaColors.red),
+            const Divider(height: 20),
+            _penaltyRow('You receive', '₦$warnReturn', MyrabaColors.red, bold: true),
+            const SizedBox(height: 12),
+            Text('No interest will be paid. This cannot be undone.',
+              style: TextStyle(fontSize: 11, color: context.mc.textHint)),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Keep it locked', style: TextStyle(color: context.mc.textSecond))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: MyrabaColors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Break Deposit', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      final res = await api.breakDeposit(id);
+      if (!mounted) return;
+      _load();
+      // Show mercy message
+      await showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: context.mc.surface,
+          title: Row(children: [
+            const Text('🙏', style: TextStyle(fontSize: 20)),
+            const SizedBox(width: 8),
+            Text('We showed mercy', style: TextStyle(color: MyrabaColors.green, fontSize: 15, fontWeight: FontWeight.w700)),
+          ]),
+          content: Text(res['message'] as String? ?? 'Funds returned to your wallet.',
+            style: TextStyle(fontSize: 13, color: context.mc.textSecond, height: 1.5)),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Understood'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final body = _loading
+      ? const Center(child: CircularProgressIndicator())
+      : _deposits.isEmpty
+        ? Center(child: Padding(
+            padding: const EdgeInsets.all(40),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Icon(Icons.lock_clock_rounded, size: 48, color: context.mc.textHint),
+              const SizedBox(height: 16),
+              Text('No deposits yet.\nTap "Lock Funds" to earn interest on your savings.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: context.mc.textSecond, height: 1.5)),
+            ]),
+          ))
+        : RefreshIndicator(
+            onRefresh: _load,
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _deposits.length,
+              itemBuilder: (_, i) => _depositCard(_deposits[i]),
+            ),
+          );
+
+    if (widget.embedded) {
+      return Stack(
+        children: [
+          body,
+          Positioned(
+            bottom: 16, right: 16,
+            child: FloatingActionButton.extended(
+              heroTag: 'fd_fab',
+              onPressed: _createDeposit,
+              backgroundColor: MyrabaColors.gold,
+              icon: const Icon(Icons.lock_rounded, color: Colors.white),
+              label: const Text('Lock Funds', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+            ),
+          ),
+        ],
+      );
+    }
+
     return Scaffold(
       backgroundColor: context.mc.bg,
       appBar: AppBar(title: const Text('Fixed Deposits')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _createDeposit,
-        backgroundColor: MyrabaColors.green,
+        backgroundColor: MyrabaColors.gold,
         icon: const Icon(Icons.lock_rounded, color: Colors.white),
         label: const Text('Lock Funds', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
       ),
-      body: _loading
-        ? const Center(child: CircularProgressIndicator())
-        : _deposits.isEmpty
-          ? Center(child: Padding(
-              padding: const EdgeInsets.all(40),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Icon(Icons.lock_clock_rounded, size: 48, color: context.mc.textHint),
-                const SizedBox(height: 16),
-                Text('No deposits yet.\nTap "Lock Funds" to earn interest on your savings.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: context.mc.textSecond, height: 1.5)),
-              ]),
-            ))
-          : RefreshIndicator(
-              onRefresh: _load,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _deposits.length,
-                itemBuilder: (_, i) => _depositCard(_deposits[i]),
-              ),
-            ),
+      body: body,
     );
   }
 
@@ -215,9 +327,9 @@ class _FixedDepositScreenState extends State<FixedDepositScreen> {
 
     Color statusColor;
     switch (status) {
-      case 'ACTIVE':    statusColor = MyrabaColors.gold; break;
-      case 'MATURED':   statusColor = MyrabaColors.green; break;
-      default:          statusColor = context.mc.textHint;
+      case 'ACTIVE':  statusColor = MyrabaColors.gold; break;
+      case 'MATURED': statusColor = MyrabaColors.green; break;
+      default:        statusColor = context.mc.textHint;
     }
 
     return Container(
@@ -249,11 +361,9 @@ class _FixedDepositScreenState extends State<FixedDepositScreen> {
           Row(children: [
             _infoCol('Locked', '₦${_fmt(amount)}'),
             const SizedBox(width: 24),
-            _infoCol('At Maturity', '₦${_fmt(returns)}',
-              valueColor: MyrabaColors.green),
+            _infoCol('At Maturity', '₦${_fmt(returns)}', valueColor: MyrabaColors.green),
             const SizedBox(width: 24),
-            _infoCol('Interest', '+₦${_fmt(interest)}',
-              valueColor: MyrabaColors.green),
+            _infoCol('Interest', '+₦${_fmt(interest)}', valueColor: MyrabaColors.green),
           ]),
           if (status == 'ACTIVE') ...[
             const SizedBox(height: 12),
@@ -264,9 +374,22 @@ class _FixedDepositScreenState extends State<FixedDepositScreen> {
                 style: TextStyle(fontSize: 12, color: context.mc.textHint)),
               const Spacer(),
               Text('${d['interestRate']}% p.a.',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-                  color: MyrabaColors.gold)),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: MyrabaColors.gold)),
             ]),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _breakEarly(d),
+                icon: const Icon(Icons.lock_open_rounded, size: 15, color: MyrabaColors.red),
+                label: const Text('Break Early', style: TextStyle(color: MyrabaColors.red, fontSize: 13)),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: MyrabaColors.red, width: 0.8),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ),
           ],
           if (status == 'MATURED') ...[
             const SizedBox(height: 14),
@@ -290,6 +413,14 @@ class _FixedDepositScreenState extends State<FixedDepositScreen> {
       const SizedBox(height: 2),
       Text(value, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
         color: valueColor ?? context.mc.textPrimary)),
+    ]);
+  }
+
+  static Widget _penaltyRow(String label, String value, Color valueColor, {bool bold = false}) {
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      Text(label, style: const TextStyle(fontSize: 13)),
+      Text(value, style: TextStyle(fontSize: 13, color: valueColor,
+        fontWeight: bold ? FontWeight.w700 : FontWeight.normal)),
     ]);
   }
 

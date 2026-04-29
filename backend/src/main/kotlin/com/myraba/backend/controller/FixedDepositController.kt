@@ -119,6 +119,70 @@ class FixedDepositController(
         return ResponseEntity.ok(mapOf("message" to "₦${deposit.expectedReturn} credited to your wallet"))
     }
 
+    @GetMapping("/{id}/break-preview")
+    fun breakPreview(@PathVariable id: Long, auth: Authentication): ResponseEntity<Any> {
+        val user = auth.principal as User
+        val deposit = depositRepo.findById(id).orElseThrow {
+            ResponseStatusException(HttpStatus.NOT_FOUND, "Deposit not found")
+        }
+        if (deposit.user.id != user.id)
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not your deposit")
+        if (deposit.status != FixedDepositStatus.ACTIVE)
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Deposit is not active")
+
+        val principal = deposit.amount
+        val warningPenalty = principal.multiply(BigDecimal("0.25")).setScale(2, RoundingMode.HALF_UP)
+        val actualPenalty  = principal.multiply(BigDecimal("0.02")).setScale(2, RoundingMode.HALF_UP)
+        return ResponseEntity.ok(mapOf(
+            "lockedAmount"       to principal,
+            "warningPenaltyPct"  to 25,
+            "warningPenalty"     to warningPenalty,
+            "warningReturn"      to principal.subtract(warningPenalty),
+            "actualPenaltyPct"   to 2,
+            "actualPenalty"      to actualPenalty,
+            "actualReturn"       to principal.subtract(actualPenalty),
+            "note"               to "Breaking early forfeits your interest. You will only receive your principal minus a small penalty.",
+        ))
+    }
+
+    @PostMapping("/{id}/break")
+    fun breakDeposit(@PathVariable id: Long, auth: Authentication): ResponseEntity<Any> {
+        val user = auth.principal as User
+        val deposit = depositRepo.findById(id).orElseThrow {
+            ResponseStatusException(HttpStatus.NOT_FOUND, "Deposit not found")
+        }
+        if (deposit.user.id != user.id)
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Not your deposit")
+        if (deposit.status != FixedDepositStatus.ACTIVE)
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Deposit is not active")
+
+        val principal   = deposit.amount
+        val penalty     = principal.multiply(BigDecimal("0.02")).setScale(4, RoundingMode.HALF_UP)
+        val returnAmt   = principal.subtract(penalty).setScale(4, RoundingMode.HALF_UP)
+
+        val wallet = walletRepo.findByUserVingHandle(user.myrabaHandle)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Wallet not found")
+        wallet.balance = wallet.balance.add(returnAmt)
+        walletRepo.save(wallet)
+
+        deposit.status = FixedDepositStatus.WITHDRAWN
+        deposit.withdrawnAt = java.time.LocalDateTime.now()
+        depositRepo.save(deposit)
+
+        txRepo.save(Transaction(
+            senderWallet = null, receiverWallet = wallet,
+            amount = returnAmt, type = TransactionType.TRANSFER,
+            status = "SUCCESS",
+            description = "Fixed deposit broken early — ₦${penalty.toPlainString()} penalty, no interest paid",
+        ))
+
+        return ResponseEntity.ok(mapOf(
+            "returnedAmount" to returnAmt,
+            "penalty"        to penalty,
+            "message"        to "We recognised your urgent need and only charged ₦${penalty.setScale(2, RoundingMode.HALF_UP)} (2%) instead of the full 25%. ₦${returnAmt.setScale(2, RoundingMode.HALF_UP)} has been returned to your wallet. No interest was earned since the deposit was broken early. 🙏",
+        ))
+    }
+
     private fun FixedDeposit.toDto() = mapOf(
         "id"             to id,
         "amount"         to amount,

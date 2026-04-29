@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../thrift/thrift_tab.dart';
-import 'fixed_deposit_screen.dart';
+import 'personal_savings_screen.dart';
 import '../goals/community_goals_screen.dart';
 import 'financial_planner_screen.dart';
 
@@ -31,12 +31,12 @@ class FinancesTab extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _FeatureCard(
-              icon: Icons.lock_clock_rounded,
+              icon: Icons.savings_outlined,
               iconColor: MyrabaColors.gold,
-              title: 'Fixed Deposits',
-              subtitle: 'Lock funds for 30–365 days and earn up to 15% interest p.a.',
+              title: 'Personal Savings',
+              subtitle: 'Set savings goals or lock funds to earn up to 15% interest p.a.',
               onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const FixedDepositScreen())),
+                MaterialPageRoute(builder: (_) => const PersonalSavingsScreen())),
             ),
             const SizedBox(height: 12),
             _FeatureCard(
