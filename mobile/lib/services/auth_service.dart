@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
+
+const _kTimeout = Duration(seconds: 30);
 
 class AuthService extends ChangeNotifier {
   static String get baseUrl => AppConfig.baseUrl;
@@ -49,39 +52,42 @@ class AuthService extends ChangeNotifier {
     if (_token != null) notifyListeners();
   }
 
-  /// Login with phone number or email
+  /// Login with phone number, email, or MyrabaTag
   Future<String?> login(String identifier, String password) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'identifier': identifier.trim(), 'password': password}),
-      );
+      ).timeout(_kTimeout);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         await _saveSession(data);
         notifyListeners();
-        return null; // null = success
+        return null;
       }
-
       final error = jsonDecode(response.body);
       return error['message'] ?? 'Login failed. Please try again.';
+    } on TimeoutException {
+      return 'Server is waking up — please try again in a moment.';
     } catch (_) {
       return 'Cannot reach server. Check your connection.';
     }
   }
 
-  /// Send OTP to phone or email before registration
+  /// Send OTP to phone or email
   Future<String?> sendOtp(String contact, {String purpose = 'REGISTRATION'}) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/send-otp'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'contact': contact.trim(), 'purpose': purpose}),
-      );
+      ).timeout(_kTimeout);
       if (response.statusCode == 200) return null;
       return jsonDecode(response.body)['message'] ?? 'Failed to send OTP';
+    } on TimeoutException {
+      return 'Server is waking up — please try again in a moment.';
     } catch (_) {
       return 'Cannot reach server. Check your connection.';
     }
@@ -116,7 +122,7 @@ class AuthService extends ChangeNotifier {
           if (referralCode != null && referralCode.isNotEmpty) 'referralCode': referralCode,
           if (gender != null && gender.isNotEmpty) 'gender': gender,
         }),
-      );
+      ).timeout(_kTimeout);
 
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
@@ -124,9 +130,10 @@ class AuthService extends ChangeNotifier {
         notifyListeners();
         return null;
       }
-
       final error = jsonDecode(response.body);
       return error['message'] ?? 'Registration failed.';
+    } on TimeoutException {
+      return 'Server is waking up — please try again in a moment.';
     } catch (_) {
       return 'Cannot reach server. Check your connection.';
     }
@@ -146,10 +153,12 @@ class AuthService extends ChangeNotifier {
           'otpCode': otpCode.trim(),
           'newPassword': newPassword,
         }),
-      );
+      ).timeout(_kTimeout);
       if (response.statusCode == 200) return null;
       final error = jsonDecode(response.body);
       return error['message'] ?? 'Password reset failed. Please try again.';
+    } on TimeoutException {
+      return 'Server is waking up — please try again in a moment.';
     } catch (_) {
       return 'Cannot reach server. Check your connection.';
     }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -387,39 +388,40 @@ class ApiService {
 
   // ─── HTTP helpers ─────────────────────────────────────────────
 
+  static const _timeout = Duration(seconds: 30);
+
   Future<Map<String, dynamic>> _get(String path) async {
-    final res = await http.get(Uri.parse('$base$path'), headers: _h);
+    final res = await http.get(Uri.parse('$base$path'), headers: _h).timeout(_timeout);
     return _parse(res);
   }
 
   Future<Map<String, dynamic>> _getWithParams(String path, Map<String, String> params) async {
     final uri = Uri.parse('$base$path').replace(queryParameters: params.isEmpty ? null : params);
-    final res = await http.get(uri, headers: _h);
+    final res = await http.get(uri, headers: _h).timeout(_timeout);
     return _parse(res);
   }
 
   Future<Map<String, dynamic>> _post(String path, Map<String, dynamic> body) async {
     final res = await http.post(Uri.parse('$base$path'),
-        headers: _h, body: jsonEncode(body));
+        headers: _h, body: jsonEncode(body)).timeout(_timeout);
     return _parse(res);
   }
 
-  /// POST with auto-generated (or caller-supplied) idempotency key
   Future<Map<String, dynamic>> _postIdempotent(
       String path, Map<String, dynamic> body, String? key) async {
     final res = await http.post(Uri.parse('$base$path'),
-        headers: _idempotentHeaders(key), body: jsonEncode(body));
+        headers: _idempotentHeaders(key), body: jsonEncode(body)).timeout(_timeout);
     return _parse(res);
   }
 
   Future<Map<String, dynamic>> _put(String path, Map<String, dynamic> body) async {
     final res = await http.put(Uri.parse('$base$path'),
-        headers: _h, body: jsonEncode(body));
+        headers: _h, body: jsonEncode(body)).timeout(_timeout);
     return _parse(res);
   }
 
   Future<Map<String, dynamic>> _delete(String path) async {
-    final res = await http.delete(Uri.parse('$base$path'), headers: _h);
+    final res = await http.delete(Uri.parse('$base$path'), headers: _h).timeout(_timeout);
     return _parse(res);
   }
 
@@ -444,13 +446,13 @@ class ApiService {
 
   Future<Map<String, dynamic>> _postStrict(String path, Map<String, dynamic> body) async {
     final res = await http.post(Uri.parse('$base$path'),
-        headers: _h, body: jsonEncode(body));
+        headers: _h, body: jsonEncode(body)).timeout(_timeout);
     return _parseStrict(res);
   }
 
   Future<Map<String, dynamic>> _putStrict(String path, Map<String, dynamic> body) async {
     final res = await http.put(Uri.parse('$base$path'),
-        headers: _h, body: jsonEncode(body));
+        headers: _h, body: jsonEncode(body)).timeout(_timeout);
     return _parseStrict(res);
   }
 
