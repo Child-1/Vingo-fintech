@@ -90,6 +90,9 @@ class ApiService {
     return _parseStrict(res);
   }
 
+  Future<Map<String, dynamic>> setAvatarPreset(String presetUrl) =>
+      _put('/api/users/me/avatar-preset', {'presetUrl': presetUrl});
+
   Future<Map<String, dynamic>> changePassword(String currentPassword, String newPassword) =>
       _post('/api/users/me/change-password', {
         'currentPassword': currentPassword,

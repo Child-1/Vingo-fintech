@@ -153,6 +153,27 @@ class UserController(
         return ResponseEntity.ok(mapOf("profilePicture" to url))
     }
 
+    data class AvatarPresetRequest(val presetUrl: String)
+
+    @PutMapping("/me/avatar-preset")
+    fun setAvatarPreset(
+        @RequestBody req: AvatarPresetRequest,
+        auth: Authentication,
+        httpRequest: HttpServletRequest
+    ): ResponseEntity<Map<String, String>> {
+        val principal = auth.principal as User
+        val user = userRepository.findById(principal.id).orElseThrow {
+            ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
+        }
+        if (!req.presetUrl.startsWith("https://api.dicebear.com/"))
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid preset URL")
+        user.profilePicture = req.presetUrl
+        userRepository.save(user)
+        auditLogService.logUser(user.myrabaHandle, "AVATAR_UPDATE", "USER", user.id.toString(),
+            details = "Preset avatar selected", request = httpRequest)
+        return ResponseEntity.ok(mapOf("profilePicture" to req.presetUrl))
+    }
+
     data class ChangePasswordRequest(val currentPassword: String, val newPassword: String)
 
     @PostMapping("/me/change-password")

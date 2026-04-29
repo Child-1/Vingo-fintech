@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -91,7 +92,7 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 
   Future<void> _pickAndUploadAvatar() async {
-    final source = await showModalBottomSheet<ImageSource>(
+    final choice = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: context.mc.surface,
       shape: const RoundedRectangleBorder(
@@ -105,22 +106,33 @@ class _ProfileTabState extends State<ProfileTab> {
                 decoration: BoxDecoration(color: context.mc.surfaceLine,
                     borderRadius: BorderRadius.circular(2))),
             ListTile(
-              leading: const Icon(Icons.camera_alt_rounded),
-              title: const Text('Take a photo'),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
+              leading: Icon(Icons.camera_alt_rounded, color: context.mc.textPrimary),
+              title: Text('Take a photo', style: TextStyle(color: context.mc.textPrimary)),
+              onTap: () => Navigator.pop(context, 'camera'),
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_rounded),
-              title: const Text('Choose from gallery'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
+              leading: Icon(Icons.photo_library_rounded, color: context.mc.textPrimary),
+              title: Text('Choose from gallery', style: TextStyle(color: context.mc.textPrimary)),
+              onTap: () => Navigator.pop(context, 'gallery'),
+            ),
+            ListTile(
+              leading: Icon(Icons.face_retouching_natural_rounded, color: MyrabaColors.green),
+              title: Text('Choose an avatar', style: TextStyle(color: context.mc.textPrimary)),
+              onTap: () => Navigator.pop(context, 'preset'),
             ),
             const SizedBox(height: 8),
           ],
         ),
       ),
     );
-    if (source == null || !mounted) return;
+    if (choice == null || !mounted) return;
 
+    if (choice == 'preset') {
+      await _showAvatarPresetPicker();
+      return;
+    }
+
+    final source = choice == 'camera' ? ImageSource.camera : ImageSource.gallery;
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: source, imageQuality: 85, maxWidth: 800);
     if (picked == null || !mounted) return;
@@ -140,6 +152,185 @@ class _ProfileTabState extends State<ProfileTab> {
         );
       }
     }
+  }
+
+  Future<void> _showAvatarPresetPicker() async {
+    final gender = (_profile?['gender'] as String?)?.toUpperCase();
+    final isFemale = gender == 'FEMALE';
+    final isMale = gender == 'MALE';
+
+    // Gender-appropriate seeds and DiceBear style
+    const maleSeeds   = ['alex','jake','mike','tony','sam','dan','ben','leo','max','ryan','tom','chris'];
+    const femaleSeeds = ['anna','emma','lily','rose','mia','zoe','sarah','grace','jade','nina','kate','luna'];
+
+    List<String> seeds;
+    String style;
+    if (isFemale) {
+      seeds = femaleSeeds;
+      style = 'lorelei';
+    } else if (isMale) {
+      seeds = maleSeeds;
+      style = 'avataaars-neutral';
+    } else {
+      // No gender set — show a mix of both styles
+      seeds = [...maleSeeds.take(6), ...femaleSeeds.take(6)];
+      style = 'avataaars-neutral'; // will be overridden per-item below
+    }
+
+    String? selected;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.mc.surface,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          return DraggableScrollableSheet(
+            initialChildSize: 0.75,
+            minChildSize: 0.5,
+            maxChildSize: 0.92,
+            expand: false,
+            builder: (_, scrollCtrl) => Column(
+              children: [
+                const SizedBox(height: 8),
+                Container(width: 40, height: 4,
+                    decoration: BoxDecoration(
+                        color: context.mc.surfaceLine,
+                        borderRadius: BorderRadius.circular(2))),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                  child: Row(
+                    children: [
+                      Text('Choose an Avatar',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: context.mc.textPrimary)),
+                      const Spacer(),
+                      IconButton(
+                        icon: Icon(Icons.close, color: context.mc.textHint, size: 20),
+                        onPressed: () => Navigator.pop(sheetCtx),
+                      ),
+                    ],
+                  ),
+                ),
+                if (gender == null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                    child: Text(
+                      'Set your gender in profile settings to see more personalised avatars.',
+                      style: TextStyle(fontSize: 12, color: context.mc.textHint),
+                    ),
+                  ),
+                Expanded(
+                  child: GridView.builder(
+                    controller: scrollCtrl,
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
+                      childAspectRatio: 1,
+                    ),
+                    itemCount: seeds.length,
+                    itemBuilder: (_, i) {
+                      final seed = seeds[i];
+                      final itemStyle = (!isFemale && !isMale)
+                          ? (i < 6 ? 'avataaars-neutral' : 'lorelei')
+                          : style;
+                      final url = 'https://api.dicebear.com/9.x/$itemStyle/png?seed=${Uri.encodeComponent(seed)}&size=200';
+                      final isSelected = selected == url;
+                      return GestureDetector(
+                        onTap: () => setSheetState(() => selected = url),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected ? MyrabaColors.green : Colors.transparent,
+                              width: 3,
+                            ),
+                            boxShadow: isSelected
+                                ? [BoxShadow(color: MyrabaColors.green.withValues(alpha: 0.4), blurRadius: 8, spreadRadius: 1)]
+                                : null,
+                          ),
+                          child: Stack(
+                            children: [
+                              ClipOval(
+                                child: CachedNetworkImage(
+                                  imageUrl: url,
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, __) => Container(
+                                    color: context.mc.surfaceLine,
+                                    child: Icon(Icons.person, color: context.mc.textHint, size: 32),
+                                  ),
+                                  errorWidget: (_, __, ___) => Container(
+                                    color: context.mc.surfaceLine,
+                                    child: Icon(Icons.person, color: context.mc.textHint, size: 32),
+                                  ),
+                                ),
+                              ),
+                              if (isSelected)
+                                Positioned(
+                                  bottom: 0, right: 0,
+                                  child: Container(
+                                    width: 24, height: 24,
+                                    decoration: BoxDecoration(
+                                      color: MyrabaColors.green,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: context.mc.surface, width: 2),
+                                    ),
+                                    child: const Icon(Icons.check, color: Colors.white, size: 14),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(16, 8, 16, MediaQuery.of(ctx).viewInsets.bottom + 16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: selected == null
+                          ? null
+                          : () => Navigator.pop(sheetCtx, selected),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: MyrabaColors.green,
+                        disabledBackgroundColor: context.mc.surfaceLine,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Use this avatar', style: TextStyle(fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    ).then((chosenUrl) async {
+      if (chosenUrl == null || !mounted) return;
+      final auth = Provider.of<AuthService>(context, listen: false);
+      final api = ApiService(auth.token!);
+      try {
+        final res = await api.setAvatarPreset(chosenUrl as String);
+        if (!mounted) return;
+        setState(() {
+          _profile = {...?_profile, 'profilePicture': res['profilePicture']};
+        });
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to set avatar: $e'), backgroundColor: MyrabaColors.red),
+          );
+        }
+      }
+    });
   }
 
   Widget _buildHeader(AuthService auth) {

@@ -10,7 +10,7 @@ data class UserResponse(
     val fullName: String,
     val phone: String?,
     val email: String?,
-    val accountNumber: String,
+    val accountNumber: String?,
     val customAccountId: String?,
     val address: String?,
     val role: String,
