@@ -31,8 +31,8 @@ android {
         applicationId = "com.fourrivers.myraba"
         minSdk = flutter.minSdkVersion
         targetSdk = 35
-        versionCode = 16
-        versionName = "1.2.0"
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
 
     signingConfigs {
